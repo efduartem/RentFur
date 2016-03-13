@@ -11,19 +11,19 @@ package rentfur.util;
  * @author FDuarte
  */
 public class ComboBoxItem {
-    private int key;
+    private String key;
     private String value;
 
     public ComboBoxItem() {
     }
 
-    public ComboBoxItem(int key, String value)
+    public ComboBoxItem(String key, String value)
     {
         this.key = key;
         this.value = value;
     }
 
-    public void setKey(int key) {
+    public void setKey(String key) {
         this.key = key;
     }
 
@@ -31,7 +31,7 @@ public class ComboBoxItem {
         this.value = value;
     }
 
-    public int getKey()
+    public String getKey()
     {
         return this.key;
     }

@@ -86,32 +86,15 @@ public class FurnitureFamilyCreate extends JInternalFrame{
         */
         add(furnitureFamilyCreatePanel);
         pack();
-        
-        //add(codeLabel);
-        //add(descriptionLabel);
-        
-        //saveButton = new JButton("Crear");
-        //text = new JTextField(20);
-        /*
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //buttonAction(e);
-                System.out.println("Guardar");
-            }
-        });
-        setLayout(new FlowLayout());
-        add(saveButton);
-        add(text);*/
         setIconifiable(true);
-        setMaximizable(true);
-        setResizable(true);
+        setMaximizable(false);
+        setResizable(false);
         setClosable(true);
         setTitle("Crear Familia de Mobiliario");
         setBounds(200,100,400,200);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
-        //pack();
         setVisible(true);
+        
     }
     
     private void saveButtonAction(ActionEvent e) {

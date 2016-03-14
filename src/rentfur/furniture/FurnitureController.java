@@ -82,4 +82,70 @@ public class FurnitureController {
         
         return furnitureFamilies;
     } 
+
+    HashMap saveFurniture(String code, String description, String familyId, String unitPrice, String unitCostPrice, String fineAmountPerUnit, String totalStock, String observation) {
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        
+        try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+
+            if(code == null || code.equals("")){                
+                mapToReturn.put("message", "El campo codigo es requerido para la creacion del Mobiliriario");
+            }else if(description == null || description.equals("")){
+                mapToReturn.put("message", "El campo Descripcion es requerido para la creacion del Mobiliriario");
+            }else if(unitPrice == null || unitPrice.equals("")){
+                mapToReturn.put("message", "El campo Precio unitario es requerido para la creacion del Mobiliriario");
+            }else if(unitCostPrice == null || unitCostPrice.equals("")){
+                 mapToReturn.put("message", "El campo Costo unitario es requerido para la creacion del Mobiliriario");
+            }else if(fineAmountPerUnit == null || fineAmountPerUnit.equals("")){
+                  mapToReturn.put("message", "El campo Multa es requerido para la creacion del Mobiliriario");
+            }else if(totalStock == null || totalStock.equals("")){
+                  mapToReturn.put("message", "El campo Stock es requerido para la creacion del Mobiliriario");
+            }else{
+                connRentFur = DbConnectUtil.getConnection();
+                
+                StringBuilder furnitureInsertSb = new StringBuilder();
+                furnitureInsertSb.append("INSERT INTO furniture(id, code, description, furniture_family_id, unit_price, total_stock,fine_amount_per_unit, unit_cost_price,  observation)");
+                furnitureInsertSb.append(" VALUES (nextval('furniture_seq'), ?, ?, ?, ?, ?, ?, ?, ?)");
+                
+                ps = connRentFur.prepareStatement(furnitureInsertSb.toString());
+                ps.setString(1, code);
+                ps.setString(2, description);
+                ps.setInt(3, Integer.valueOf(familyId));
+                ps.setDouble(4, Double.valueOf(unitPrice));
+                ps.setDouble(5, Double.valueOf(totalStock));
+                ps.setDouble(6, Double.valueOf(fineAmountPerUnit));
+                ps.setDouble(7, Double.valueOf(unitCostPrice));
+                ps.setString(8, observation);
+                ps.executeUpdate();
+                ps.close();
+                mapToReturn.put("status", SUCCESFULLY_SAVED);
+                mapToReturn.put("message", "Mobiliriario creada correctamente");
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            mapToReturn.put("message", th.getMessage());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return mapToReturn;
+    }
+    
+    public void viewClosed(){
+        furnitureCreate = null;
+    }
 }
+

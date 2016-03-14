@@ -10,7 +10,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import javax.swing.table.DefaultTableModel;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 
@@ -82,4 +84,82 @@ public class FurnitureController {
         
         return furnitureFamilies;
     } 
+    
+    public void setFurnitureIndexResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, String code, String description){
+        
+        try{
+            if(!searchPressed){
+                furnituresResultDefaultTableModel.addColumn("Código");
+                furnituresResultDefaultTableModel.addColumn("Descripción");
+            }
+            ArrayList searchResultList = getSearchResultList(code, description);
+            if(searchResultList!=null && !searchResultList.isEmpty()){
+                
+                HashMap resultValueMap;
+                Object[] row;
+                for(int rowNumber = 0; rowNumber < searchResultList.size(); rowNumber++){
+
+                    row = new Object[furnituresResultDefaultTableModel.getColumnCount()];
+                    resultValueMap = (HashMap) searchResultList.get(rowNumber);
+
+                    row[0] = resultValueMap.get("code");
+                    row[1] = resultValueMap.get("description");
+                    /*if(permisosIdMap.containsKey(rs.getInt("idpermisos"))){
+                        fila[1] = Boolean.TRUE;
+                    }else{
+                        fila[1] = Boolean.FALSE;
+                    } */
+
+                    furnituresResultDefaultTableModel.addRow(row);
+
+                }
+            }
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+        }
+    }
+    
+    public ArrayList getSearchResultList(String code, String description){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        ArrayList listToReturn = null;
+        
+        try{
+            HashMap resultValuesMap;
+            connRentFur = DbConnectUtil.getConnection();
+            String furnituriesQuery = "SELECT code, description FROM furniture ORDER BY description";
+            ps = connRentFur.prepareStatement(furnituriesQuery);
+            rs = ps.executeQuery();
+            while(rs.next()){
+                resultValuesMap = new HashMap();
+                resultValuesMap.put("code", rs.getString("code"));
+                resultValuesMap.put("descripcion", rs.getString("descripcion"));
+                listToReturn.add(resultValuesMap);
+                /*if(permisosIdMap.containsKey(rs.getInt("idpermisos"))){
+                    fila[1] = Boolean.TRUE;
+                }else{
+                    fila[1] = Boolean.FALSE;
+                } */ 
+            }
+            rs.close();
+            ps.close();
+
+        }catch(SQLException th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return listToReturn;
+    }
 }

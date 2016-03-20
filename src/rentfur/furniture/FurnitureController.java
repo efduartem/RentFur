@@ -37,6 +37,7 @@ public class FurnitureController {
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public final String TABLE_NAME = "furniture";
+    public final String ALL_VALUES = "Todos";
     
     public FurnitureCreate getFurnitureCreate(){
         if(furnitureCreate == null){
@@ -70,12 +71,14 @@ public class FurnitureController {
                 rows = rs.getRow();
                 rs.beforeFirst();
             }
-            furnitureFamilies = new ComboBoxItem[rows];
-            
+            furnitureFamilies = new ComboBoxItem[rows+1];
+            furnitureFamilies[0] =  new ComboBoxItem();
+            furnitureFamilies[0].setKey(ALL_VALUES);
+            furnitureFamilies[0].setValue(ALL_VALUES);
             while(rs.next()){
-                furnitureFamilies[rs.getRow()-1] =  new ComboBoxItem();
-                furnitureFamilies[rs.getRow()-1].setKey(rs.getString("id"));
-                furnitureFamilies[rs.getRow()-1].setValue(rs.getString("description"));
+                furnitureFamilies[rs.getRow()] =  new ComboBoxItem();
+                furnitureFamilies[rs.getRow()].setKey(rs.getString("id"));
+                furnitureFamilies[rs.getRow()].setValue(rs.getString("description"));
             }
             rs.close();
             ps.close();
@@ -166,14 +169,19 @@ public class FurnitureController {
         return mapToReturn;
     }
     
-    public void setFurnitureIndexResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, String code, String description){
+    public void setFurnitureIndexResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, String code, String description, String familyId){
         
         try{
             if(!searchPressed){
                 furnituresResultDefaultTableModel.addColumn("Código");
                 furnituresResultDefaultTableModel.addColumn("Descripción");
             }
-            ArrayList searchResultList = getSearchResultList(code, description);
+            int numeroRegistrosTablaPermisos=0;
+            numeroRegistrosTablaPermisos = furnituresResultDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistrosTablaPermisos;i++){
+                furnituresResultDefaultTableModel.removeRow(0);
+            }
+            ArrayList searchResultList = getSearchResultList(code, description, familyId);
             if(searchResultList!=null && !searchResultList.isEmpty()){
                 
                 HashMap resultValueMap;
@@ -202,7 +210,7 @@ public class FurnitureController {
         }
     }
     
-    public ArrayList getSearchResultList(String code, String description){
+    public ArrayList getSearchResultList(String code, String description, String familyId){
         Connection connRentFur = null;
         PreparedStatement ps;
         ResultSet rs;
@@ -211,8 +219,15 @@ public class FurnitureController {
         try{
             HashMap resultValuesMap;
             connRentFur = DbConnectUtil.getConnection();
-            String furnituriesQuery = "SELECT code, description FROM furniture ORDER BY description";
-            ps = connRentFur.prepareStatement(furnituriesQuery);
+            StringBuilder furnituriesQuery = new StringBuilder();
+            furnituriesQuery.append("SELECT code, description FROM furniture where code ilike ? AND description ilike ? ");
+            if(!familyId.equals(ALL_VALUES)){
+                furnituriesQuery.append(" AND furniture_family_id = ").append(familyId);
+            }
+            furnituriesQuery.append(" ORDER BY code, description");
+            ps = connRentFur.prepareStatement(furnituriesQuery.toString());
+            ps.setString(1, "%"+code+"%");
+            ps.setString(2, "%"+description+"%");
             rs = ps.executeQuery();
             while(rs.next()){
                 resultValuesMap = new HashMap();

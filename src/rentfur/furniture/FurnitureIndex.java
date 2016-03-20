@@ -132,7 +132,7 @@ public class FurnitureIndex extends JInternalFrame{
         furnituresResultDefaultTableModel = new furnituresIndextResultDefaultTableModel();
         furnituresResultTable = new JTable(furnituresResultDefaultTableModel);
         
-        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null);
+        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null);
         furnituresResultTableJScrollPane = new JScrollPane();
         furnituresResultTableJScrollPane.setBounds(30, 210, 500, 250);
         furnituresResultTableJScrollPane.setViewportView(furnituresResultTable);
@@ -156,7 +156,12 @@ public class FurnitureIndex extends JInternalFrame{
     private void searchFurnitureButtonAction(ActionEvent e) {
         String code = codeTextField.getText();
         String description = descriptionTextField.getText();
-        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, true, code, description);
+        ComboBoxItem family = (ComboBoxItem) furnitureFamilyComboBox.getSelectedItem();
+        String familyId = "";
+        if(family!=null){
+            familyId = family.getKey();
+        }
+        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, true, code, description, familyId);
         /*HashMap mapReturn = furnitureController.saveFurnitureFamily(code, description);
         if((Integer) mapReturn.get("status") == furnitureFamilyController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);

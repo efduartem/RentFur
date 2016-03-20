@@ -87,7 +87,7 @@ public class FurnitureFamilyCreate extends JInternalFrame{
         */
         add(furnitureFamilyCreatePanel);
         pack();
-        setIconifiable(true);
+        setIconifiable(false);
         setMaximizable(false);
         setResizable(false);
         setClosable(true);

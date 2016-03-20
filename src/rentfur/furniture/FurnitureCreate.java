@@ -98,6 +98,7 @@ public class FurnitureCreate extends JInternalFrame{
             public void keyReleased(KeyEvent e) {
             }
         });
+
         furnitureCreatePanel.add(codeTextField);
         
         descriptionLabel = new JLabel("Descripcion:");
@@ -163,6 +164,67 @@ public class FurnitureCreate extends JInternalFrame{
         unitCostPriceLabel.setBounds(30, 140, 100, 25);
         furnitureCreatePanel.add(unitCostPriceLabel);
         
+        unitCostPriceLabel = new JLabel("Costo Unitario:");
+        unitCostPriceLabel.setBounds(30,140, 80, 25);
+        furnitureCreatePanel.add(unitCostPriceLabel);
+        
+        unitCostPriceTextField = new JTextField(20);
+        unitCostPriceTextField.setBounds(150, 140, 160, 25);
+        unitCostPriceLabel.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char caracter = e.getKeyChar();
+
+                // Verificar si la tecla pulsada no es un digito
+                if (((caracter < '0') || (caracter > '9')) && (caracter != '\b' /*corresponde a BACK_SPACE*/)) {
+                e.consume(); // ignorar el evento de teclado
+                }
+            }
+        });
+        furnitureCreatePanel.add(unitCostPriceTextField);
+        
+        fineAmountPerUnitLabel = new JLabel("Monto multa:");
+        fineAmountPerUnitLabel.setBounds(30,170, 80, 25);
+        furnitureCreatePanel.add(fineAmountPerUnitLabel);
+        
+        fineAmountPerUnitTextField = new JTextField(20);
+        fineAmountPerUnitTextField.setBounds(150, 170, 160, 25);
+        fineAmountPerUnitTextField.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char caracter = e.getKeyChar();
+
+                // Verificar si la tecla pulsada no es un digito
+                if (((caracter < '0') || (caracter > '9')) && (caracter != '\b' /*corresponde a BACK_SPACE*/)) {
+                e.consume(); // ignorar el evento de teclado
+                }
+            }
+        });
+        furnitureCreatePanel.add(fineAmountPerUnitTextField);
+        
+        totalStockLabel = new JLabel("Stock:");
+        totalStockLabel.setBounds(30,200, 80, 25);
+        furnitureCreatePanel.add(totalStockLabel);
+        
+        totalStockTextField = new JTextField(20);
+        totalStockTextField.setBounds(150, 200, 160, 25);
+        totalStockTextField.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char caracter = e.getKeyChar();
+
+                // Verificar si la tecla pulsada no es un digito
+                if (((caracter < '0') || (caracter > '9')) && (caracter != '\b' /*corresponde a BACK_SPACE*/)) {
+                e.consume(); // ignorar el evento de teclado
+                }
+            }
+        });
+        furnitureCreatePanel.add(totalStockTextField);
+        
+        observationLabel = new JLabel("Observacion:");
+        observationLabel.setBounds(30,230, 80, 25);
+        furnitureCreatePanel.add(observationLabel);
+        
+        observationTextArea = new JTextArea();
+        observationTextArea.setBounds(150, 230, 160, 60);
+        furnitureCreatePanel.add(observationTextArea);
         
         unitCostPriceTextField = new NumericTextField(20, amountFormat);
         unitCostPriceTextField.setBounds(160, 140, 160, 25);
@@ -278,7 +340,6 @@ public class FurnitureCreate extends JInternalFrame{
         observationTextArea = new JTextArea();
         observationTextArea.setBounds(160, 230, 160, 60);
         furnitureCreatePanel.add(observationTextArea);
-        
         
         createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
         saveButton = new JButton(" Crear", createIconImage);

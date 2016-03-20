@@ -242,6 +242,5 @@ public class FurnitureController {
         
         return listToReturn;
     }
-    
 }
 

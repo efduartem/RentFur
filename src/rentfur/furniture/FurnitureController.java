@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -18,8 +19,10 @@ import java.util.HashMap;
 import java.util.Locale;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.MaskFormatter;
+import rentfur.furnitureFamily.FurnitureFamilyCreate;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
+import rentfur.util.MainWindowController;
 import rentfur.util.SQLUtilService;
 
 /**
@@ -27,8 +30,10 @@ import rentfur.util.SQLUtilService;
  * @author hp
  */
 public class FurnitureController {
+    private MainWindowController mainWindowController;
     private FurnitureCreate furnitureCreate;
     private FurnitureIndex furnitureIndex;
+    private FurnitureFamilyCreate furnitureFamilyCreate;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public final String TABLE_NAME = "furniture";
@@ -40,10 +45,11 @@ public class FurnitureController {
         return furnitureCreate;
     }
     
-    public FurnitureIndex getFurnitureIndex(){
+    public FurnitureIndex getFurnitureIndex(MainWindowController mainWindowController){
         if(furnitureIndex == null){
             furnitureIndex = new FurnitureIndex(this);
         }
+        this.mainWindowController = mainWindowController;
         return furnitureIndex;
     }
     
@@ -112,8 +118,10 @@ public class FurnitureController {
                 mapToReturn.put("message", "El campo Multa es requerido para la creacion del Mobiliriario");
             }else if(totalStock == null || totalStock.equals("")){
                 mapToReturn.put("message", "El campo Stock es requerido para la creacion del Mobiliriario");
+            }else if(familyId == null || familyId.equals("")){
+                mapToReturn.put("message", "No cuenta con familias de Mobiliario creadas, favor crear al menos una para continuar con la creacion de Mobiliario");
             }else if(!sqlUtilService.isUniqueCode(TABLE_NAME, code)){
-                mapToReturn.put("message", "El codigo $code ya existe favor ingresar otro valor");
+                mapToReturn.put("message", MessageFormat.format("El codigo {0} ya existe favor ingresar otro valor", code));
                 furnitureCreate.setCodeTextFieldColor(Color.red);
             }else{
                 
@@ -156,10 +164,6 @@ public class FurnitureController {
         }
         
         return mapToReturn;
-    }
-    
-    public void viewClosed(){
-        furnitureCreate = null;
     }
     
     public void setFurnitureIndexResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, String code, String description){
@@ -214,7 +218,6 @@ public class FurnitureController {
                 resultValuesMap = new HashMap();
                 resultValuesMap.put("code", rs.getString("code"));
                 resultValuesMap.put("description", rs.getString("description"));
-                System.out.println(resultValuesMap);
                 listToReturn.add(resultValuesMap);
                 /*if(permisosIdMap.containsKey(rs.getInt("idpermisos"))){
                     fila[1] = Boolean.TRUE;
@@ -241,6 +244,84 @@ public class FurnitureController {
         }
         
         return listToReturn;
+    }
+    
+    public HashMap saveFurnitureFamily(String code, String description){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        
+        try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+
+            if(code == null || code.equals("")){                
+                mapToReturn.put("message", "El campo codigo es requerido para la creacion de la familia de Mobiliriarios");
+            }else if(description == null || description.equals("")){
+                mapToReturn.put("message", "Para crear la familia de Mobiliriarios debe ingresar una Descripcion");
+            }else{
+                connRentFur = DbConnectUtil.getConnection();
+                String furnitureFamilyInsert = "INSERT INTO furniture_family (id, code, description) values (nextval('furniture_family_seq'), ?, ?)";
+                ps = connRentFur.prepareStatement(furnitureFamilyInsert);
+                ps.setString(1, code);
+                ps.setString(2, description);
+                ps.executeUpdate();
+                ps.close();
+                mapToReturn.put("status", SUCCESFULLY_SAVED);
+                mapToReturn.put("message", "Familia de Mobiliriarios creada correctamente");
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            mapToReturn.put("message", th.getMessage());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return mapToReturn;
+    }
+    
+    public void getFurnitureCreateView(){
+        mainWindowController.setVisibleFurnitureCreateInternalFrame();
+    }
+    
+    public void getFurnitureFamilyCreateView(){
+        mainWindowController.setVisibleFurnitureFamilyCreateInternalFrame();
+    }
+    
+    public FurnitureFamilyCreate getFurnitureFamilyCreate(){
+        if(furnitureFamilyCreate==null){
+            furnitureFamilyCreate = new FurnitureFamilyCreate(this);
+        }
+        return furnitureFamilyCreate;
+    }
+    
+    public void setDisabledIndexView(){
+        furnitureIndex.setDisabledElements();
+    }
+    
+    public void setEnabledIndexView(){
+        furnitureIndex.setEnableddElements();
+    }
+    
+    public void indexViewClosed(){
+        furnitureIndex = null;
+    }
+    
+    public void createViewClosed(){
+        furnitureCreate = null;
+    }
+    
+    public void createFamilyClosed(){
+        furnitureFamilyCreate = null;
     }
 }
 

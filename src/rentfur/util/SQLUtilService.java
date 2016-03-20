@@ -22,7 +22,6 @@ public class SQLUtilService {
                 countQuery.append("SELECT count(*) from ");
                 countQuery.append(table);
                 countQuery.append(" WHERE code = ? ");
-                System.out.println("countQuery: "+countQuery.toString());
                 ps = connRentFur.prepareStatement(countQuery.toString());
                 ps.setString(1, code);
                 rs = ps.executeQuery();

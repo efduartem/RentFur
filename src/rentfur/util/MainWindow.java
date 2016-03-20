@@ -18,7 +18,9 @@ import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import rentfur.furnitureFamily.FurnitureFamilyController;
+import rentfur.furniture.FurnitureController;
+import rentfur.furniture.FurnitureCreate;
+import rentfur.furniture.FurnitureIndex;
 import rentfur.furnitureFamily.FurnitureFamilyCreate;
 
 /**
@@ -26,23 +28,26 @@ import rentfur.furnitureFamily.FurnitureFamilyCreate;
  * @author FDuarte
  */
 public class MainWindow extends JFrame{
+    private final MainWindowController mainWindowController;
     JDesktopPane desktop;
     private Container container;/*declaramos el contenedor*/
-    private MainWindow mainWindowUtilTemp;
     private final JMenuBar menuBar = new JMenuBar();
-    private final JMenu menu = new JMenu("Abrir");
-    private final JMenuItem item = new JMenuItem("Ventana Interna");
-    FurnitureFamilyController furnitureFamilyController = new FurnitureFamilyController();
+    private final JMenu menu = new JMenu("Mobiliarios");
+    private final JMenuItem searchItem = new JMenuItem("Administrar Mobiliarios");
+    FurnitureController furnitureController = new FurnitureController();
     FurnitureFamilyCreate furnitureFamilyCreate;
+    FurnitureIndex furnitureIndex;
+    FurnitureCreate furnitureCreate;
     
-    public MainWindow(){
-        super("MainWindowUtilTem");
+    public MainWindow(MainWindowController mainWindowController){
+        
+        this.mainWindowController = mainWindowController;
         /*permite iniciar las propiedades de los componentes*/
         initComponents();
         /*Asigna un titulo a la barra de titulo*/
         setTitle("RentFur");
         /*tamaño de la ventana*/
-        setSize(1200,750);
+        setSize(1400,950);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         /*pone la ventana en el Centro de la pantalla*/
         setLocationRelativeTo(null);
@@ -50,16 +55,16 @@ public class MainWindow extends JFrame{
     
     public void initComponents(){
         menuBar.add(menu);
-        menu.add(item);
+        menu.add(searchItem);
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
-        item.addActionListener(new ActionListener() {
+        searchItem.addActionListener(new ActionListener() {
             @Override
              public void actionPerformed(ActionEvent e) {
-                   furnitureFamilyCreate = furnitureFamilyController.getFurnitureFamilyCreate();                  
-                   desktop.add(furnitureFamilyCreate, JLayeredPane.DEFAULT_LAYER);
+                   setVisibleFurnitureIndexInternalFrame();
             }
         });
+        
         container=getContentPane();/*instanciamos el contenedor*/
         /*con esto definmos nosotros mismos los tamaños y posicion
           de los componentes*/
@@ -68,11 +73,30 @@ public class MainWindow extends JFrame{
         container.add(desktop, BorderLayout.CENTER);
     }
     
-    public void setMainWindow(MainWindow mainWindowUtilTemp) {
-        this.mainWindowUtilTemp = mainWindowUtilTemp;
-    }
-    
     private void makeDesktop() {
        desktop = new JDesktopPane();
     }
+    
+    //Muestra InternalFrame de Busqueda de Mobiliatios
+    public void setVisibleFurnitureIndexInternalFrame(){
+        furnitureIndex = furnitureController.getFurnitureIndex(this.mainWindowController);
+        desktop.add(furnitureIndex, JLayeredPane.DEFAULT_LAYER);
+    } 
+    
+    //Muestra InternalFrame de Creacion de Mobiliario
+    public void setVisibleFurnitureCreateInternalFrame(){
+        furnitureCreate = furnitureController.getFurnitureCreate();
+        furnitureController.setDisabledIndexView();
+        desktop.add(furnitureCreate, JLayeredPane.MODAL_LAYER);
+        getContentPane().add(desktop);
+    }
+    
+    //Muestra InternalFrame de Creacion de FAMILIA de Mobiliarios
+    public void setVisibleFurnitureCreateFamilyInternalFrame(){
+        furnitureFamilyCreate = furnitureController.getFurnitureFamilyCreate();
+        furnitureController.setDisabledIndexView();
+        desktop.add(furnitureFamilyCreate, JLayeredPane.MODAL_LAYER);
+        getContentPane().add(desktop);
+    }
+    
 }

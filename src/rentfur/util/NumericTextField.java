@@ -330,7 +330,7 @@ class NumericPlainDocument extends PlainDocument {
       }
       return;
     } while (true == false);
-      System.out.println("VENGO IGUAL");
+      
     // Finally, add to the model
     super.insertString(offset, str, a);
   }

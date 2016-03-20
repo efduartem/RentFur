@@ -8,6 +8,7 @@ package rentfur.furniture;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -21,6 +22,8 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -38,7 +41,7 @@ import rentfur.util.ComboBoxItem;
  * @author FDuarte
  */
 public class FurnitureIndex extends JInternalFrame{
-    private FurnitureController furnitureController;
+    private final FurnitureController furnitureController;
     private final JPanel furnitureIndexParamsPanel;
     //private final JPanel furnitureIndexResultPanel;
     private final JLabel codeLabel;
@@ -49,6 +52,9 @@ public class FurnitureIndex extends JInternalFrame{
     private final JComboBox furnitureFamilyComboBox;
     private final ImageIcon searchFurnitureIconImage;
     private final JButton searchFurnitureButton;
+    private final ImageIcon createIconImage;
+    private final JButton createFurnitureButton;
+    private final JButton createFurnitureFamilyButton;
     private final JTable furnituresResultTable;
     private final DefaultTableModel furnituresResultDefaultTableModel;
     private final JScrollPane furnituresResultTableJScrollPane;
@@ -99,28 +105,50 @@ public class FurnitureIndex extends JInternalFrame{
         });
         furnitureIndexParamsPanel.add(searchFurnitureButton);
         
+        //BOTON PARA CREAR MOBILIARIO
+        createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
+        createFurnitureButton = new JButton("  Crear Mobiliario", createIconImage);
+        createFurnitureButton.setBounds(160, 160, 180, 32);
+        createFurnitureButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                getFurnitureCreate();
+            }
+        });
+        furnitureIndexParamsPanel.add(createFurnitureButton);
+        
+        //
+        createFurnitureFamilyButton = new JButton("  Crear Familia de Mobiliarios", createIconImage);
+        createFurnitureFamilyButton.setBounds(350, 160, 230, 32);
+        createFurnitureFamilyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                getFurnitureFamilyCreate();
+            }
+        });
+        furnitureIndexParamsPanel.add(createFurnitureFamilyButton);
+        
         //TABLA DE RESULTADOS
         furnituresResultDefaultTableModel = new furnituresIndextResultDefaultTableModel();
         furnituresResultTable = new JTable(furnituresResultDefaultTableModel);
         
         furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null);
         furnituresResultTableJScrollPane = new JScrollPane();
-        furnituresResultTableJScrollPane.setBounds(30, 200, 500, 250);
+        furnituresResultTableJScrollPane.setBounds(30, 210, 500, 250);
         furnituresResultTableJScrollPane.setViewportView(furnituresResultTable);
         
         add(furnituresResultTableJScrollPane);
         //container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         add(furnitureIndexParamsPanel);
         //container.add(furnitureIndexResultPanel);
-        
         pack();
         setIconifiable(true);
         setMaximizable(true);
         setResizable(true);
         setClosable(true);
         setTitle("Administrar Mobiliarios");
-        setBounds(200,100,800,400);
-        //setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setBounds(200,100,900,700);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
     }
@@ -162,5 +190,45 @@ public class FurnitureIndex extends JInternalFrame{
                                                     }
                                                 }
            
+    }
+    
+    public void getFurnitureCreate(){
+        furnitureController.getFurnitureCreateView();
+    }
+    
+    public void getFurnitureFamilyCreate(){
+        furnitureController.getFurnitureFamilyCreateView();
+    }
+    
+    public void setDisabledElements(){
+        codeTextField.setEditable(false);
+        descriptionTextField.setEditable(false);
+        furnitureFamilyComboBox.setEnabled(false);
+        createFurnitureButton.setEnabled(false);
+        searchFurnitureButton.setEnabled(false);
+        createFurnitureFamilyButton.setEnabled(false);
+        this.setClosable(false);
+        furnituresResultTable.setEnabled(false);
+    }
+    
+    public void setEnableddElements(){
+        codeTextField.setEditable(true);
+        descriptionTextField.setEditable(true);
+        furnitureFamilyComboBox.setEnabled(true);
+        createFurnitureButton.setEnabled(true);
+        searchFurnitureButton.setEnabled(true);
+        createFurnitureFamilyButton.setEnabled(true);
+        this.setClosable(true);
+        furnituresResultTable.setEnabled(true);
+    }
+    
+    @Override
+    public void doDefaultCloseAction() {
+        closeIndexView(null);
+    }
+    
+    private void closeIndexView(ActionEvent e) {
+        this.dispose();
+        furnitureController.indexViewClosed();
     }
 }

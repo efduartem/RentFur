@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import rentfur.furniture.FurnitureController;
 
 /**
  *
@@ -23,7 +24,7 @@ import javax.swing.JTextField;
  */
 public class FurnitureFamilyCreate extends JInternalFrame{
     
-    private final FurnitureFamilyController furnitureFamilyController;
+    private final FurnitureController furnitureController;
     private final JPanel furnitureFamilyCreatePanel;
     private final JLabel codeLabel;
     private final JLabel descriptionLabel;
@@ -34,8 +35,8 @@ public class FurnitureFamilyCreate extends JInternalFrame{
     private final JButton saveButton;
     private final JButton cancelButton;
     
-    public FurnitureFamilyCreate(FurnitureFamilyController furnitureFamilyController) {
-        this.furnitureFamilyController = furnitureFamilyController;
+    public FurnitureFamilyCreate(FurnitureController furnitureController) {
+        this.furnitureController = furnitureController;
         
         furnitureFamilyCreatePanel = new JPanel();
         
@@ -91,7 +92,7 @@ public class FurnitureFamilyCreate extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Crear Familia de Mobiliario");
-        setBounds(200,100,400,200);
+        setBounds(400,340,400,200);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
@@ -100,17 +101,24 @@ public class FurnitureFamilyCreate extends JInternalFrame{
     private void saveButtonAction(ActionEvent e) {
         String code = codeTextField.getText();
         String description = descriptionTextField.getText();
-        HashMap mapReturn = furnitureFamilyController.saveFurnitureFamily(code, description);
-        if((Integer) mapReturn.get("status") == furnitureFamilyController.SUCCESFULLY_SAVED){
+        HashMap mapReturn = furnitureController.saveFurnitureFamily(code, description);
+        if((Integer) mapReturn.get("status") == furnitureController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
-        }else if((Integer)mapReturn.get("status") == furnitureFamilyController.ERROR_IN_SAVED){
+            cancelButtonAction(e);
+        }else if((Integer)mapReturn.get("status") == furnitureController.ERROR_IN_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
         }
     }
     
     private void cancelButtonAction(ActionEvent e) {
         this.dispose();
-        furnitureFamilyController.viewClosed();
+        furnitureController.createFamilyClosed();
+        furnitureController.setEnabledIndexView();
+    }
+    
+    @Override
+    public void doDefaultCloseAction() {
+        cancelButtonAction(null);
     }
     
 }

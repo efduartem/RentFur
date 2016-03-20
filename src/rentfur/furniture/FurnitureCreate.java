@@ -33,6 +33,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.InternalFrameListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -46,6 +47,7 @@ import rentfur.util.NumericTextField;
  * @author hp
  */
 public class FurnitureCreate extends JInternalFrame{
+
     private final FurnitureController furnitureController;
     private final JPanel furnitureCreatePanel;
     private final JLabel codeLabel;
@@ -78,11 +80,11 @@ public class FurnitureCreate extends JInternalFrame{
         furnitureCreatePanel.setLayout(null);
 
         codeLabel = new JLabel("Codigo:");
-        codeLabel.setBounds(30, 20, 100, 25);
+        codeLabel.setBounds(50, 20, 100, 25);
         furnitureCreatePanel.add(codeLabel);
         
         codeTextField = new JTextField(20);
-        codeTextField.setBounds(160, 20, 160, 25);
+        codeTextField.setBounds(180, 20, 160, 25);
         codeTextField.addKeyListener(new KeyListener() {
 
             @Override
@@ -102,24 +104,24 @@ public class FurnitureCreate extends JInternalFrame{
         furnitureCreatePanel.add(codeTextField);
         
         descriptionLabel = new JLabel("Descripcion:");
-        descriptionLabel.setBounds(30,50, 100, 25);
+        descriptionLabel.setBounds(50,50, 100, 25);
         furnitureCreatePanel.add(descriptionLabel);
         
         descriptionTextField = new JTextField(20);
-        descriptionTextField.setBounds(160, 50, 160, 25);
+        descriptionTextField.setBounds(180, 50, 160, 25);
         furnitureCreatePanel.add(descriptionTextField);
         
         familyLabel = new JLabel("Familia:");
-        familyLabel.setBounds(30,80, 100, 25);
+        familyLabel.setBounds(50,80, 100, 25);
         furnitureCreatePanel.add(familyLabel);
         
         ComboBoxItem[] familiesComboBox = furnitureController.getFurnitureFamiliesForComboBox();
         familyComboBox = new JComboBox(familiesComboBox);
-        familyComboBox.setBounds(160, 80, 160, 25);
+        familyComboBox.setBounds(180, 80, 160, 25);
         furnitureCreatePanel.add(familyComboBox);
         
         unitPriceLabel = new JLabel("Precio Unitario:");
-        unitPriceLabel.setBounds(30,110, 100, 25);
+        unitPriceLabel.setBounds(50,110, 100, 25);
         furnitureCreatePanel.add(unitPriceLabel);
         
         amountFormat = new DecimalFormat("#,###");
@@ -128,7 +130,7 @@ public class FurnitureCreate extends JInternalFrame{
         amountFormat.setParseIntegerOnly(true);
         
         unitPriceTextField = new NumericTextField(20, amountFormat);
-        unitPriceTextField.setBounds(160, 110, 160, 25);
+        unitPriceTextField.setBounds(180, 110, 160, 25);
         unitPriceTextField.addKeyListener(new KeyListener() {
 
                      @Override
@@ -161,11 +163,11 @@ public class FurnitureCreate extends JInternalFrame{
         furnitureCreatePanel.add(unitPriceTextField);
         
         unitCostPriceLabel = new JLabel("Costo Unitario:");
-        unitCostPriceLabel.setBounds(30, 140, 100, 25);
+        unitCostPriceLabel.setBounds(50, 140, 100, 25);
         furnitureCreatePanel.add(unitCostPriceLabel);
         
         unitCostPriceTextField = new NumericTextField(20, amountFormat);
-        unitCostPriceTextField.setBounds(150, 140, 160, 25);
+        unitCostPriceTextField.setBounds(180, 140, 160, 25);
         unitCostPriceTextField.addKeyListener(new KeyListener() {
 
                      @Override
@@ -182,12 +184,12 @@ public class FurnitureCreate extends JInternalFrame{
                      }
                      
                      public void update(KeyEvent e){
-                         String texto = unitPriceTextField.getText();
+                         String texto = unitCostPriceTextField.getText();
                          texto = texto.replaceAll("\\.", "");
                          if(e.getKeyChar()!=','){
                             texto = texto.replaceAll(",", ".");
                             if(!texto.isEmpty()){
-                                unitPriceTextField.setValue(Double.valueOf(texto));
+                                unitCostPriceTextField.setValue(Double.valueOf(texto));
                             }
                          }else{
                              texto = texto.replaceAll(",", ".");
@@ -197,11 +199,11 @@ public class FurnitureCreate extends JInternalFrame{
         furnitureCreatePanel.add(unitCostPriceTextField);
         
         fineAmountPerUnitLabel = new JLabel("Monto multa:");
-        fineAmountPerUnitLabel.setBounds(30,170, 80, 25);
+        fineAmountPerUnitLabel.setBounds(50,170, 80, 25);
         furnitureCreatePanel.add(fineAmountPerUnitLabel);
         
         fineAmountPerUnitTextField = new NumericTextField(20, amountFormat);
-        fineAmountPerUnitTextField.setBounds(150, 170, 160, 25);
+        fineAmountPerUnitTextField.setBounds(180, 170, 160, 25);
         fineAmountPerUnitTextField.addKeyListener(new KeyListener() {
 
                      @Override
@@ -218,12 +220,12 @@ public class FurnitureCreate extends JInternalFrame{
                      }
                      
                      public void update(KeyEvent e){
-                         String texto = unitPriceTextField.getText();
+                         String texto = fineAmountPerUnitTextField.getText();
                          texto = texto.replaceAll("\\.", "");
                          if(e.getKeyChar()!=','){
                             texto = texto.replaceAll(",", ".");
                             if(!texto.isEmpty()){
-                                unitPriceTextField.setValue(Double.valueOf(texto));
+                                fineAmountPerUnitTextField.setValue(Double.valueOf(texto));
                             }
                          }else{
                              texto = texto.replaceAll(",", ".");
@@ -233,11 +235,11 @@ public class FurnitureCreate extends JInternalFrame{
         furnitureCreatePanel.add(fineAmountPerUnitTextField);
         
         totalStockLabel = new JLabel("Stock:");
-        totalStockLabel.setBounds(30,200, 80, 25);
+        totalStockLabel.setBounds(50,200, 80, 25);
         furnitureCreatePanel.add(totalStockLabel);
         
         totalStockTextField = new NumericTextField(20, amountFormat);
-        totalStockTextField.setBounds(150, 200, 160, 25);
+        totalStockTextField.setBounds(180, 200, 160, 25);
         totalStockTextField.addKeyListener(new KeyListener() {
 
                      @Override
@@ -254,12 +256,12 @@ public class FurnitureCreate extends JInternalFrame{
                      }
                      
                      public void update(KeyEvent e){
-                         String texto = unitPriceTextField.getText();
+                         String texto = totalStockTextField.getText();
                          texto = texto.replaceAll("\\.", "");
                          if(e.getKeyChar()!=','){
                             texto = texto.replaceAll(",", ".");
                             if(!texto.isEmpty()){
-                                unitPriceTextField.setValue(Double.valueOf(texto));
+                                totalStockTextField.setValue(Double.valueOf(texto));
                             }
                          }else{
                              texto = texto.replaceAll(",", ".");
@@ -269,16 +271,16 @@ public class FurnitureCreate extends JInternalFrame{
         furnitureCreatePanel.add(totalStockTextField);
         
         observationLabel = new JLabel("Observacion:");
-        observationLabel.setBounds(30,230, 80, 25);
+        observationLabel.setBounds(50,230, 80, 25);
         furnitureCreatePanel.add(observationLabel);
         
         observationTextArea = new JTextArea();
-        observationTextArea.setBounds(150, 230, 160, 60);
+        observationTextArea.setBounds(180, 230, 160, 60);
         furnitureCreatePanel.add(observationTextArea);
         
         createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
         saveButton = new JButton(" Crear", createIconImage);
-        saveButton.setBounds(30, 320, 120, 32);
+        saveButton.setBounds(60, 320, 120, 32);
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -289,7 +291,7 @@ public class FurnitureCreate extends JInternalFrame{
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelButton = new JButton(" Cancelar", cancelIconImage);
-        cancelButton.setBounds(160, 320, 120, 32);
+        cancelButton.setBounds(200, 320, 120, 32);
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -300,13 +302,14 @@ public class FurnitureCreate extends JInternalFrame{
         
         add(furnitureCreatePanel);
         
-        setIconifiable(true);
-        setMaximizable(true);
-        setResizable(true);
+        setIconifiable(false);
+        setMaximizable(false);
+        setResizable(false);
         setClosable(true);
+        //setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setTitle("Crear Mobiliario");
-        setBounds(200,100,500,400);
-        pack();
+        setBounds(350,200,500,450);
+        //pack();
         setVisible(true);
     }
     
@@ -314,7 +317,10 @@ public class FurnitureCreate extends JInternalFrame{
         String code = codeTextField.getText();
         String description = descriptionTextField.getText();
         ComboBoxItem family = (ComboBoxItem) familyComboBox.getSelectedItem();
-        String familyId = family.getKey();
+        String familyId = "";
+        if(family!=null){
+            familyId = family.getKey();
+        }
         String unitPrice = unitPriceTextField.getText();
         String unitCostPrice = unitCostPriceTextField.getText();
         String fineAmountPerUnit = fineAmountPerUnitTextField.getText();
@@ -324,6 +330,7 @@ public class FurnitureCreate extends JInternalFrame{
         HashMap mapReturn = furnitureController.saveFurniture(code, description, familyId, unitPrice, unitCostPrice,fineAmountPerUnit, totalStock, observation);
         if((Integer) mapReturn.get("status") == furnitureController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
+            cancelButtonAction(null);
         }else if((Integer)mapReturn.get("status") == furnitureController.ERROR_IN_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
         }
@@ -332,11 +339,17 @@ public class FurnitureCreate extends JInternalFrame{
     
     private void cancelButtonAction(ActionEvent e) {
         this.dispose();
-        furnitureController.viewClosed();
+        furnitureController.createViewClosed();
+        furnitureController.setEnabledIndexView();
     }
     
     public void setCodeTextFieldColor(Color color){
         codeTextField.setForeground(color);
+    }
+    
+    @Override
+    public void doDefaultCloseAction() {
+        cancelButtonAction(null);
     }
     
 }

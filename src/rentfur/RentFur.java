@@ -16,8 +16,8 @@ import javax.swing.JLayeredPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import rentfur.furniture.FurnitureController;
-import rentfur.furnitureFamily.FurnitureFamilyController;
 import rentfur.util.MainWindow;
+import rentfur.util.MainWindowController;
 
 /**
  *
@@ -37,23 +37,28 @@ public class RentFur {
             Logger.getLogger(RentFur.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        JFrame frame = new JFrame("Demo's");
+        /*JFrame frame = new JFrame("Demo's");
         JDesktopPane desktop = new JDesktopPane();
         Container container = frame.getContentPane();//declaramos el contenedor
         frame.setSize(1200, 750);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         FurnitureController furnitureController = new FurnitureController();
-        desktop.add(furnitureController.getFurnitureCreate(), JLayeredPane.DEFAULT_LAYER);
+        desktop.add(furnitureController.getFurnitureIndex(), JLayeredPane.DEFAULT_LAYER);
         container.add(desktop, BorderLayout.CENTER);
         frame.setVisible(true);
-        
+        */
         /*Declaramos el objeto*/
-        //MainWindow mainWindowUtilTemp;
+        
+        MainWindowController mainWindowController;
+        mainWindowController = new MainWindowController();
+        
+        MainWindow mainWindow = mainWindowController.getMainWindowCreate();
+        mainWindow.setVisible(true);
         /*Instanciamos el objeto*/
         //mainWindowUtilTemp = new MainWindow();
         /*Enviamos el objeto como parametro para que sea unico
           en toda la aplicación*/
-       // mainWindowUtilTemp.setMainWindow(mainWindowUtilTemp);
+        //mainWindowUtilTemp.setMainWindow(mainWindowUtilTemp);
         /*Hacemos que se cargue la ventana*/
         //mainWindowUtilTemp.setVisible(true);
     }

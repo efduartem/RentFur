@@ -26,6 +26,8 @@ import rentfur.furnitureFamily.FurnitureFamilyCreate;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
+import rentfur.user.UserController;
+import rentfur.user.UserCreate;
 
 /**
  *
@@ -38,8 +40,10 @@ public class MainWindow extends JFrame{
     private final JMenuBar menuBar = new JMenuBar();
     private final JMenu furnitureMenu = new JMenu("Mobiliarios");
     private final JMenu subjectMenu = new JMenu("Clientes");
+    private final JMenu userMenu = new JMenu("Usuarios");
     private final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
     private final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
+    private final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
     
     FurnitureController furnitureController = new FurnitureController();
     FurnitureIndex furnitureIndex;
@@ -49,6 +53,9 @@ public class MainWindow extends JFrame{
     SubjectController subjectController = new SubjectController();
     SubjectIndex subjectIndex;
     SubjectCreate subjectCreate;
+    
+    UserController userController = new UserController();
+    UserCreate userCreate;
     
     public MainWindow(MainWindowController mainWindowController){
         
@@ -69,8 +76,10 @@ public class MainWindow extends JFrame{
         furnitureMenu.setIcon(furnitureIconImage);
         menuBar.add(furnitureMenu);
         menuBar.add(subjectMenu);
+        menuBar.add(userMenu);
         furnitureMenu.add(manageFurnitureItem);
         subjectMenu.add(manageSubjectItem);
+        userMenu.add(manageUserItem);
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
         manageFurnitureItem.addActionListener(new ActionListener() {
@@ -85,6 +94,14 @@ public class MainWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 setVisibleSubjectIndexInternalFrame();
+            }
+        });
+        
+        manageUserItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleUserIndexInternalFrame();
             }
         });
         container=getContentPane();/*instanciamos el contenedor*/
@@ -131,6 +148,12 @@ public class MainWindow extends JFrame{
         furnitureController.setDisabledIndexView();
         desktop.add(furnitureFamilyCreate, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);
+    }
+    
+    public void setVisibleUserIndexInternalFrame(){
+        userCreate = userController.getUserCreate();
+        desktop.add(userCreate);//, JLayeredPane.MODAL_LAYER);
+        //getContentPane().add(desktop);
     }
     
 }

@@ -86,7 +86,20 @@ public class UserCreate extends JInternalFrame{
                 saveButtonAction(e);
             }
         });
+        
         userCreatePanel.add(saveButton);
+        
+        add(userCreatePanel);
+        
+        //pack();
+        setIconifiable(true);
+        setMaximizable(true);
+        setResizable(true);
+        setClosable(true);
+        setTitle("Crear Usuario");
+        setBounds(200,50,450,400);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        setVisible(true);
     }
     
     private void saveButtonAction(ActionEvent e) {

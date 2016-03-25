@@ -11,6 +11,7 @@ import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.ImageIcon;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,6 +23,9 @@ import rentfur.furniture.FurnitureController;
 import rentfur.furniture.FurnitureCreate;
 import rentfur.furniture.FurnitureIndex;
 import rentfur.furnitureFamily.FurnitureFamilyCreate;
+import rentfur.subject.SubjectController;
+import rentfur.subject.SubjectCreate;
+import rentfur.subject.SubjectIndex;
 
 /**
  *
@@ -32,12 +36,19 @@ public class MainWindow extends JFrame{
     JDesktopPane desktop;
     private Container container;/*declaramos el contenedor*/
     private final JMenuBar menuBar = new JMenuBar();
-    private final JMenu menu = new JMenu("Mobiliarios");
-    private final JMenuItem searchItem = new JMenuItem("Administrar Mobiliarios");
+    private final JMenu furnitureMenu = new JMenu("Mobiliarios");
+    private final JMenu subjectMenu = new JMenu("Clientes");
+    private final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
+    private final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
+    
     FurnitureController furnitureController = new FurnitureController();
-    FurnitureFamilyCreate furnitureFamilyCreate;
     FurnitureIndex furnitureIndex;
     FurnitureCreate furnitureCreate;
+    FurnitureFamilyCreate furnitureFamilyCreate;
+    
+    SubjectController subjectController = new SubjectController();
+    SubjectIndex subjectIndex;
+    SubjectCreate subjectCreate;
     
     public MainWindow(MainWindowController mainWindowController){
         
@@ -54,17 +65,28 @@ public class MainWindow extends JFrame{
     }
     
     public void initComponents(){
-        menuBar.add(menu);
-        menu.add(searchItem);
+        ImageIcon furnitureIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/furniture_24x24.png"));
+        furnitureMenu.setIcon(furnitureIconImage);
+        menuBar.add(furnitureMenu);
+        menuBar.add(subjectMenu);
+        furnitureMenu.add(manageFurnitureItem);
+        subjectMenu.add(manageSubjectItem);
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
-        searchItem.addActionListener(new ActionListener() {
+        manageFurnitureItem.addActionListener(new ActionListener() {
             @Override
              public void actionPerformed(ActionEvent e) {
                    setVisibleFurnitureIndexInternalFrame();
             }
         });
         
+        manageSubjectItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleSubjectIndexInternalFrame();
+            }
+        });
         container=getContentPane();/*instanciamos el contenedor*/
         /*con esto definmos nosotros mismos los tamaños y posicion
           de los componentes*/
@@ -80,8 +102,20 @@ public class MainWindow extends JFrame{
     //Muestra InternalFrame de Busqueda de Mobiliatios
     public void setVisibleFurnitureIndexInternalFrame(){
         furnitureIndex = furnitureController.getFurnitureIndex(this.mainWindowController);
-        desktop.add(furnitureIndex, JLayeredPane.DEFAULT_LAYER);
-    } 
+        desktop.add(furnitureIndex);
+        
+    }
+    
+    public void setVisibleSubjectIndexInternalFrame(){
+        subjectIndex = subjectController.getSubjectIndex(this.mainWindowController);
+        desktop.add(subjectIndex);
+    }
+    
+    public void setVisibleSubjectCreateInternalFrame(){
+        subjectCreate = subjectController.getSubjectCreate();
+        desktop.add(subjectCreate, JLayeredPane.MODAL_LAYER);
+        getContentPane().add(desktop);
+    }
     
     //Muestra InternalFrame de Creacion de Mobiliario
     public void setVisibleFurnitureCreateInternalFrame(){

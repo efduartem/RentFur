@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package rentfur.furniture;
+package rentfur.subject;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -53,146 +53,123 @@ import rentfur.util.ComboBoxItem;
  *
  * @author FDuarte
  */
-public class FurnitureIndex extends JInternalFrame{
-    private final FurnitureController furnitureController;
-    private final JPanel furnitureIndexParamsPanel;
+public class SubjectIndex extends JInternalFrame{
+    private final SubjectController subjectController;
+    private final JPanel subjectIndexParamsPanel;
     //private final JPanel furnitureIndexResultPanel;
     private final JLabel codeLabel;
-    private final JLabel descriptionLabel;
-    private final JLabel furnitureFamilyLabel;
+    private final JLabel nameLabel;
     private final JLabel statusLabel;
     private final JTextField codeTextField;
-    private final JTextField descriptionTextField;
-    private JComboBox furnitureFamilyComboBox;
-    private final JComboBox furnitureStatusComboBox;
-    private final ImageIcon searchFurnitureIconImage;
-    private final JButton searchFurnitureButton;
+    private final JTextField nameTextField;
+    private final JComboBox subjectStatusComboBox;
+    private final ImageIcon searchIconImage;
+    private final JButton searchButton;
     private final ImageIcon createIconImage;
-    private final JButton createFurnitureButton;
-    private final JButton createFurnitureFamilyButton;
-    private final JTable furnituresResultTable;
-    private DefaultTableModel furnituresResultDefaultTableModel;
-    private final JScrollPane furnituresResultTableJScrollPane;
+    private final JButton createButton;
+    private final JTable subjectsResultTable;
+    private DefaultTableModel subjectsResultDefaultTableModel;
+    private final JScrollPane subjectsResultTableJScrollPane;
     
     
-    public FurnitureIndex(FurnitureController furnitureController){
-        this.furnitureController = furnitureController;
+    public SubjectIndex(SubjectController subjectController){
+        this.subjectController = subjectController;
         
-        furnitureIndexParamsPanel = new JPanel();
-        furnitureIndexParamsPanel.setLayout(null);
+        subjectIndexParamsPanel = new JPanel();
+        subjectIndexParamsPanel.setLayout(null);
         //furnitureIndexResultPanel = new JPanel(new BorderLayout());
         
         
         codeLabel = new JLabel("Codigo:");
         codeLabel.setBounds(30, 50, 80, 25);
-        furnitureIndexParamsPanel.add(codeLabel);
+        subjectIndexParamsPanel.add(codeLabel);
         
         codeTextField = new JTextField();
-        codeTextField.setBounds(110, 50, 160, 25);
-        furnitureIndexParamsPanel.add(codeTextField);
+        codeTextField.setBounds(120, 50, 160, 25);
+        subjectIndexParamsPanel.add(codeTextField);
 
-        descriptionLabel = new JLabel("Descripcion:");
-        descriptionLabel.setBounds(30, 80, 80, 25);
-        furnitureIndexParamsPanel.add(descriptionLabel);
+        nameLabel = new JLabel("Razón Social:");
+        nameLabel.setBounds(30, 80, 80, 25);
+        subjectIndexParamsPanel.add(nameLabel);
         
-        descriptionTextField = new JTextField();
-        descriptionTextField.setBounds(110, 80, 160, 25);
-        furnitureIndexParamsPanel.add(descriptionTextField);
+        nameTextField = new JTextField();
+        nameTextField.setBounds(120, 80, 160, 25);
+        subjectIndexParamsPanel.add(nameTextField);
         
-        furnitureFamilyLabel = new JLabel("Familia:");
-        furnitureFamilyLabel.setBounds(30, 110, 80, 25);
-        furnitureIndexParamsPanel.add(furnitureFamilyLabel);
-        
-        ComboBoxItem[] furnitureFamilies = furnitureController.getFurnitureFamiliesForComboBox(true);
-        furnitureFamilyComboBox = new JComboBox(furnitureFamilies);
-        furnitureFamilyComboBox.setBounds(110, 110, 160, 25);
-        furnitureIndexParamsPanel.add(furnitureFamilyComboBox);
-        
-        statusLabel = new JLabel("Estado:");
+        statusLabel = new JLabel("Activo:");
         statusLabel.setBounds(30, 140, 80, 25);
-        furnitureIndexParamsPanel.add(statusLabel);
+        subjectIndexParamsPanel.add(statusLabel);
         
-        ComboBoxItem[] furnitureStatus = furnitureController.getFurnitureStatusForComboBox();
-        furnitureStatusComboBox = new JComboBox(furnitureStatus);
-        furnitureStatusComboBox.setBounds(110, 140, 160, 25);
-        furnitureIndexParamsPanel.add(furnitureStatusComboBox);
+        ComboBoxItem[] furnitureStatus = subjectController.getSubjectIsActiveForComboBox();
+        subjectStatusComboBox = new JComboBox(furnitureStatus);
+        subjectStatusComboBox.setBounds(120, 140, 160, 25);
+        subjectIndexParamsPanel.add(subjectStatusComboBox);
         
         //BOTON DE BUSQUEDA
-        searchFurnitureIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/search_24x24.png"));
-        searchFurnitureButton = new JButton("  Buscar", searchFurnitureIconImage);
-        searchFurnitureButton.setBounds(30, 190, 120, 32);
-        searchFurnitureButton.addActionListener(new ActionListener() {
+        searchIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/search_24x24.png"));
+        searchButton = new JButton("  Buscar", searchIconImage);
+        searchButton.setBounds(30, 190, 120, 32);
+        searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                searchFurnitureButtonAction(e);
+                //searchFurnitureButtonAction(e);
             }
         });
-        furnitureIndexParamsPanel.add(searchFurnitureButton);
+        subjectIndexParamsPanel.add(searchButton);
         
         //BOTON PARA CREAR MOBILIARIO
         createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
-        createFurnitureButton = new JButton("  Crear Mobiliario", createIconImage);
-        createFurnitureButton.setBounds(160, 190, 180, 32);
-        createFurnitureButton.addActionListener(new ActionListener() {
+        createButton = new JButton("  Crear Cliente", createIconImage);
+        createButton.setBounds(160, 190, 180, 32);
+        createButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                getFurnitureCreate();
+                getSubjectCreate();
             }
         });
-        furnitureIndexParamsPanel.add(createFurnitureButton);
-        
-        //
-        createFurnitureFamilyButton = new JButton("  Crear Familia de Mobiliarios", createIconImage);
-        createFurnitureFamilyButton.setBounds(350, 190, 230, 32);
-        createFurnitureFamilyButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                getFurnitureFamilyCreate();
-            }
-        });
-        furnitureIndexParamsPanel.add(createFurnitureFamilyButton);
+        subjectIndexParamsPanel.add(createButton);
         
         //TABLA DE RESULTADOS
-        furnituresResultDefaultTableModel = new furnituresIndextResultDefaultTableModel();
-        furnituresResultTable = new JTable(furnituresResultDefaultTableModel);
+        subjectsResultDefaultTableModel = new subjectsIndextResultDefaultTableModel();
+        subjectsResultTable = new JTable(subjectsResultDefaultTableModel);
         
         //Alineacion a la derecha para numeros
         DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
         rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
         
-        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null, null);
-        furnituresResultTable.setRowHeight(22);
+        subjectController.setSubjectIndexResultsTable(subjectsResultDefaultTableModel, false, null, null);
+        subjectsResultTable.setRowHeight(22);
         //ID
-        furnituresResultTable.getColumnModel().getColumn(0).setMaxWidth(0);
-        furnituresResultTable.getColumnModel().getColumn(0).setMinWidth(0);
-        furnituresResultTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+        subjectsResultTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        subjectsResultTable.getColumnModel().getColumn(0).setMinWidth(0);
+        subjectsResultTable.getColumnModel().getColumn(0).setPreferredWidth(0);
         
         //Code
-        furnituresResultTable.getColumnModel().getColumn(1).setMaxWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(1).setMinWidth(90);
+        subjectsResultTable.getColumnModel().getColumn(1).setMaxWidth(90);
+        subjectsResultTable.getColumnModel().getColumn(1).setMinWidth(90);
         
         //Description
-        furnituresResultTable.getColumnModel().getColumn(2).setPreferredWidth(180);
+        subjectsResultTable.getColumnModel().getColumn(2).setPreferredWidth(180);
         
         //Familia
-        furnituresResultTable.getColumnModel().getColumn(3).setMaxWidth(120);
+        /*furnituresResultTable.getColumnModel().getColumn(3).setMaxWidth(120);
         furnituresResultTable.getColumnModel().getColumn(3).setMinWidth(120);
-        furnituresResultTable.getColumnModel().getColumn(3).setResizable(false);
+        furnituresResultTable.getColumnModel().getColumn(3).setResizable(false);*/
         
         //UnitPrice
-        furnituresResultTable.getColumnModel().getColumn(4).setMaxWidth(100);
+        /*furnituresResultTable.getColumnModel().getColumn(4).setMaxWidth(100);
         furnituresResultTable.getColumnModel().getColumn(4).setMinWidth(100);
         furnituresResultTable.getColumnModel().getColumn(4).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
+        furnituresResultTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);*/
         
         //UnitCostPrice
-        furnituresResultTable.getColumnModel().getColumn(5).setMaxWidth(100);
+        /*furnituresResultTable.getColumnModel().getColumn(5).setMaxWidth(100);
         furnituresResultTable.getColumnModel().getColumn(5).setMinWidth(100);
         furnituresResultTable.getColumnModel().getColumn(5).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
+        furnituresResultTable.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);*/
         
         //FineAmount
-        furnituresResultTable.getColumnModel().getColumn(6).setMaxWidth(100);
+        /*furnituresResultTable.getColumnModel().getColumn(6).setMaxWidth(100);
         furnituresResultTable.getColumnModel().getColumn(6).setMinWidth(100);
         furnituresResultTable.getColumnModel().getColumn(6).setResizable(false);
         furnituresResultTable.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
@@ -207,59 +184,40 @@ public class FurnitureIndex extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(8).setMinWidth(90);
         furnituresResultTable.getColumnModel().getColumn(8).setPreferredWidth(90);
         furnituresResultTable.getColumnModel().getColumn(8).setCellRenderer(new ButtonRenderer());
-        furnituresResultTable.getColumnModel().getColumn(8).setCellEditor(new ButtonEditor(new JTextField()));
+        furnituresResultTable.getColumnModel().getColumn(8).setCellEditor(new ButtonEditor(new JTextField()));*/
         
-        furnituresResultTableJScrollPane = new JScrollPane();
-        furnituresResultTableJScrollPane.setBounds(30, 240, 850, 300);
-        furnituresResultTableJScrollPane.setViewportView(furnituresResultTable);
+        subjectsResultTableJScrollPane = new JScrollPane();
+        subjectsResultTableJScrollPane.setBounds(30, 240, 850, 300);
+        subjectsResultTableJScrollPane.setViewportView(subjectsResultTable);
         
-        add(furnituresResultTableJScrollPane);
-        add(furnitureIndexParamsPanel);
+        add(subjectsResultTableJScrollPane);
+        add(subjectIndexParamsPanel);
         
         pack();
         setIconifiable(true);
         setMaximizable(true);
         setResizable(true);
         setClosable(true);
-        setTitle("Administrar Mobiliarios");
+        setTitle("Administrar Clientes");
         setBounds(200,50,950,800);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
     }
     
-    public void updateFurnitureFamilyComboBox(){
-        ComboBoxItem[] furnitureFamilies = furnitureController.getFurnitureFamiliesForComboBox(true);
-        furnitureFamilyComboBox.removeAllItems();
-        for (ComboBoxItem furnitureFamilie : furnitureFamilies) {
-            furnitureFamilyComboBox.addItem(furnitureFamilie);
-        }
-    }
     
     public void searchFurnitureButtonAction(ActionEvent e) {
         String code = codeTextField.getText();
-        String description = descriptionTextField.getText();
-        ComboBoxItem family = (ComboBoxItem) furnitureFamilyComboBox.getSelectedItem();
-        String familyId = "";
-        if(family!=null){
-            familyId = family.getKey();
-        }
-        
-        ComboBoxItem status = (ComboBoxItem) furnitureStatusComboBox.getSelectedItem();
+        String name = nameTextField.getText();
+        /*ComboBoxItem status = (ComboBoxItem) subjectStatusComboBox.getSelectedItem();
         String furnitureStatus = "";
         if(status!=null){
             furnitureStatus = status.getKey();
-        }
-        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, true, code, description, familyId, furnitureStatus);
-        /*HashMap mapReturn = furnitureController.saveFurnitureFamily(code, description);
-        if((Integer) mapReturn.get("status") == furnitureFamilyController.SUCCESFULLY_SAVED){
-            JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
-        }else if((Integer)mapReturn.get("status") == furnitureFamilyController.ERROR_IN_SAVED){
-            JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
         }*/
+        subjectController.setSubjectIndexResultsTable(subjectsResultDefaultTableModel, true, code, name);
     }
     
-    private class furnituresIndextResultDefaultTableModel extends DefaultTableModel{
+    private class subjectsIndextResultDefaultTableModel extends DefaultTableModel{
         
         /*@Override
         public int getRowCount() {
@@ -279,7 +237,7 @@ public class FurnitureIndex extends JInternalFrame{
         @Override
         public boolean isCellEditable(int row, int column) {
                                                     switch(column){
-                                                        case 8:     return true;
+                                                        //case 8:     return true;
                                                         //case 4:     return true;
                                                         default:    return false;
                                                     }
@@ -287,61 +245,52 @@ public class FurnitureIndex extends JInternalFrame{
            
     }
     
-    public void getFurnitureCreate(){
-        furnitureController.getFurnitureCreateView();
-    }
-    
-    public void getFurnitureFamilyCreate(){
-        furnitureController.getFurnitureFamilyCreateView();
+    public void getSubjectCreate(){
+        subjectController.getSubjectCreateView();
     }
     
     public void setDisabledElements(){
         codeTextField.setEditable(false);
-        descriptionTextField.setEditable(false);
-        furnitureFamilyComboBox.setEnabled(false);
-        createFurnitureButton.setEnabled(false);
-        searchFurnitureButton.setEnabled(false);
-        createFurnitureFamilyButton.setEnabled(false);
+        nameTextField.setEditable(false);
+        createButton.setEnabled(false);
+        searchButton.setEnabled(false);
         this.setClosable(false);
-        furnituresResultTable.setEnabled(false);
-        furnitureStatusComboBox.setEnabled(false);
+        subjectsResultTable.setEnabled(false);
     }
     
     public void setEnableddElements(){
         codeTextField.setEditable(true);
-        descriptionTextField.setEditable(true);
-        furnitureFamilyComboBox.setEnabled(true);
-        createFurnitureButton.setEnabled(true);
-        searchFurnitureButton.setEnabled(true);
-        createFurnitureFamilyButton.setEnabled(true);
+        nameTextField.setEditable(true);
+        searchButton.setEnabled(true);
+        createButton.setEnabled(true);
         this.setClosable(true);
-        furnituresResultTable.setEnabled(true);
-        furnitureStatusComboBox.setEnabled(true);
+        subjectsResultTable.setEnabled(true);
     }
     
     @Override
     public void doDefaultCloseAction() {
         closeIndexView(null);
     }
+
     
     private void closeIndexView(ActionEvent e) {
         this.dispose();
-        furnitureController.indexViewClosed();
+        subjectController.indexViewClosed();
     }
     
     public void deleteRowFromResult(int row){
-        Vector dataVector = (Vector) furnituresResultDefaultTableModel.getDataVector().get(row);
+        Vector dataVector = (Vector) subjectsResultDefaultTableModel.getDataVector().get(row);
         int furnitureId = (Integer) dataVector.get(0);
         String code = (String) dataVector.get(1);
         String description = (String) dataVector.get(2);
         int respuesta = JOptionPane.showConfirmDialog(this, MessageFormat.format("Confirma que desea inactivar el mobiliario {0} - {1}?", code, description),"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if(respuesta == JOptionPane.YES_OPTION){
-            HashMap mapReturn = furnitureController.inactivateFurniture(furnitureId);
-            if((Integer) mapReturn.get("status") == furnitureController.SUCCESFULLY_SAVED){
-                furnitureController.searchFurnitureButtonAction();
-            }else if((Integer)mapReturn.get("status") == furnitureController.ERROR_IN_SAVED){
+            //HashMap mapReturn = subjectController.inactivateSubject(furnitureId);
+            /*if((Integer) mapReturn.get("status") == subjectController.SUCCESFULLY_SAVED){
+                subjectController.searchSubjectButtonAction();
+            }else if((Integer)mapReturn.get("status") == subjectController.ERROR_IN_SAVED){
                 JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
-            }
+            }*/
         }
     }
     
@@ -364,7 +313,7 @@ public class FurnitureIndex extends JInternalFrame{
           return this;
         }
       }
-
+      
       /**
        * @version 1.0 11/09/98
        */
@@ -407,7 +356,7 @@ public class FurnitureIndex extends JInternalFrame{
         @Override
         public Object getCellEditorValue() {
           if (isPushed) {
-                deleteRowFromResult(row);
+                //deleteRowFromResult(row);
           }
           isPushed = false;
           return label;

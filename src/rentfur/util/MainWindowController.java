@@ -28,4 +28,8 @@ public class MainWindowController {
     public void setVisibleFurnitureFamilyCreateInternalFrame(){
         mainWindow.setVisibleFurnitureCreateFamilyInternalFrame();
     }
+    
+    public void setVisibleSubjectCreateInternalFrame(){
+        mainWindow.setVisibleSubjectCreateInternalFrame();
+    }
 }

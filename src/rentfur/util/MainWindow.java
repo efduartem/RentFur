@@ -21,6 +21,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import rentfur.furniture.FurnitureController;
 import rentfur.furniture.FurnitureCreate;
+import rentfur.furniture.FurnitureShowAndEdit;
 import rentfur.furniture.FurnitureIndex;
 import rentfur.furnitureFamily.FurnitureFamilyCreate;
 import rentfur.subject.SubjectController;
@@ -48,6 +49,7 @@ public class MainWindow extends JFrame{
     FurnitureController furnitureController = new FurnitureController();
     FurnitureIndex furnitureIndex;
     FurnitureCreate furnitureCreate;
+    FurnitureShowAndEdit furnitureShowAndEdit;
     FurnitureFamilyCreate furnitureFamilyCreate;
     
     SubjectController subjectController = new SubjectController();
@@ -75,6 +77,8 @@ public class MainWindow extends JFrame{
         ImageIcon furnitureIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/furniture_24x24.png"));
         furnitureMenu.setIcon(furnitureIconImage);
         menuBar.add(furnitureMenu);
+        ImageIcon subjectIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/subject_24x24.png"));
+        subjectMenu.setIcon(subjectIconImage);
         menuBar.add(subjectMenu);
         menuBar.add(userMenu);
         furnitureMenu.add(manageFurnitureItem);
@@ -123,17 +127,14 @@ public class MainWindow extends JFrame{
         
     }
     
-    public void setVisibleSubjectIndexInternalFrame(){
-        subjectIndex = subjectController.getSubjectIndex(this.mainWindowController);
-        desktop.add(subjectIndex);
-    }
-    
-    public void setVisibleSubjectCreateInternalFrame(){
-        subjectCreate = subjectController.getSubjectCreate();
-        desktop.add(subjectCreate, JLayeredPane.MODAL_LAYER);
+    //Muestra InternalFrame de Detalles de un Mobiliario
+    public void setVisibleFurnitureShowAndEditInternalFrame(int furnitureId){
+        furnitureShowAndEdit = furnitureController.getFurnitureShowAndEdit(furnitureId);
+        furnitureController.setDisabledIndexView();
+        desktop.add(furnitureShowAndEdit, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);
     }
-    
+        
     //Muestra InternalFrame de Creacion de Mobiliario
     public void setVisibleFurnitureCreateInternalFrame(){
         furnitureCreate = furnitureController.getFurnitureCreate();
@@ -149,6 +150,18 @@ public class MainWindow extends JFrame{
         desktop.add(furnitureFamilyCreate, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);
     }
+    
+    public void setVisibleSubjectIndexInternalFrame(){
+        subjectIndex = subjectController.getSubjectIndex(this.mainWindowController);
+        desktop.add(subjectIndex);
+    }
+    
+    public void setVisibleSubjectCreateInternalFrame(){
+        subjectCreate = subjectController.getSubjectCreate();
+        desktop.add(subjectCreate, JLayeredPane.MODAL_LAYER);
+        getContentPane().add(desktop);
+    }
+
     
     public void setVisibleUserIndexInternalFrame(){
         userCreate = userController.getUserCreate();

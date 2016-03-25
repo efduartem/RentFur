@@ -29,6 +29,10 @@ public class MainWindowController {
         mainWindow.setVisibleFurnitureCreateFamilyInternalFrame();
     }
     
+    public void setVisibleFurnitureShowAndEditInternalFrame(int furnitureId){
+        mainWindow.setVisibleFurnitureShowAndEditInternalFrame(furnitureId);
+    }
+    
     public void setVisibleSubjectCreateInternalFrame(){
         mainWindow.setVisibleSubjectCreateInternalFrame();
     }

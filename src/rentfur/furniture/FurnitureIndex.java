@@ -42,6 +42,7 @@ import javax.swing.JTextField;
 import javax.swing.Scrollable;
 import javax.swing.UIManager;
 import javax.swing.event.CellEditorListener;
+import javax.swing.plaf.ColorUIResource;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -81,7 +82,7 @@ public class FurnitureIndex extends JInternalFrame{
         furnitureIndexParamsPanel = new JPanel();
         furnitureIndexParamsPanel.setLayout(null);
         //furnitureIndexResultPanel = new JPanel(new BorderLayout());
-        
+        //furnitureIndexParamsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 1, true), "Busqueda de Mobiliarios", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Arial", 3, 14), new java.awt.Color(0, 0, 0))); // NOI18N
         
         codeLabel = new JLabel("Codigo:");
         codeLabel.setBounds(30, 50, 80, 25);
@@ -160,6 +161,16 @@ public class FurnitureIndex extends JInternalFrame{
         DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
         rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
         
+        //Formato para celda inactiva
+        DefaultTableCellRenderer statusRenderer = new DefaultTableCellRenderer();
+        statusRenderer.setHorizontalAlignment(JLabel.CENTER);
+        //statusInactiveRenderer.setBackground(new Color(16751001));
+        
+        //Formato para celda activa
+        //DefaultTableCellRenderer statusActiveRenderer = new DefaultTableCellRenderer();
+        //statusActiveRenderer.setHorizontalAlignment(JLabel.CENTER);
+        //statusActiveRenderer.setBackground(new Color(13434828));
+        
         furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null, null);
         furnituresResultTable.setRowHeight(22);
         //ID
@@ -205,12 +216,28 @@ public class FurnitureIndex extends JInternalFrame{
         
         furnituresResultTable.getColumnModel().getColumn(8).setMaxWidth(90);
         furnituresResultTable.getColumnModel().getColumn(8).setMinWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(8).setPreferredWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(8).setCellRenderer(new ButtonRenderer());
-        furnituresResultTable.getColumnModel().getColumn(8).setCellEditor(new ButtonEditor(new JTextField()));
+        furnituresResultTable.getColumnModel().getColumn(8).setResizable(false);
+        furnituresResultTable.getColumnModel().getColumn(8).setCellRenderer(statusRenderer);
+        
+        furnituresResultTable.getColumnModel().getColumn(9).setMaxWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(9).setMinWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(9).setPreferredWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(9).setCellRenderer(new ButtonRenderer());
+        furnituresResultTable.getColumnModel().getColumn(9).setCellEditor(new ButtonEditor(new JTextField()));
+        
+        furnituresResultTable.getColumnModel().getColumn(10).setMaxWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(10).setMinWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(10).setPreferredWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(10).setCellRenderer(new ButtonRenderer());
+        furnituresResultTable.getColumnModel().getColumn(10).setCellEditor(new ButtonEditor(new JTextField()));
+        
+        //Status
+        furnituresResultTable.getColumnModel().getColumn(11).setMaxWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(11).setMinWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(11).setPreferredWidth(0);
         
         furnituresResultTableJScrollPane = new JScrollPane();
-        furnituresResultTableJScrollPane.setBounds(30, 240, 850, 300);
+        furnituresResultTableJScrollPane.setBounds(30, 240, 1100, 300);
         furnituresResultTableJScrollPane.setViewportView(furnituresResultTable);
         
         add(furnituresResultTableJScrollPane);
@@ -222,7 +249,7 @@ public class FurnitureIndex extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Administrar Mobiliarios");
-        setBounds(200,50,950,800);
+        setBounds(100,50,1200,650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
@@ -279,8 +306,8 @@ public class FurnitureIndex extends JInternalFrame{
         @Override
         public boolean isCellEditable(int row, int column) {
                                                     switch(column){
-                                                        case 8:     return true;
-                                                        //case 4:     return true;
+                                                        case 9:     return true;
+                                                        case 10:    return true;
                                                         default:    return false;
                                                     }
                                                 }
@@ -329,30 +356,56 @@ public class FurnitureIndex extends JInternalFrame{
         furnitureController.indexViewClosed();
     }
     
-    public void deleteRowFromResult(int row){
+    public String updateFurnitureStatus(int row, String label){
         Vector dataVector = (Vector) furnituresResultDefaultTableModel.getDataVector().get(row);
         int furnitureId = (Integer) dataVector.get(0);
         String code = (String) dataVector.get(1);
         String description = (String) dataVector.get(2);
-        int respuesta = JOptionPane.showConfirmDialog(this, MessageFormat.format("Confirma que desea inactivar el mobiliario {0} - {1}?", code, description),"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if(respuesta == JOptionPane.YES_OPTION){
-            HashMap mapReturn = furnitureController.inactivateFurniture(furnitureId);
-            if((Integer) mapReturn.get("status") == furnitureController.SUCCESFULLY_SAVED){
-                furnitureController.searchFurnitureButtonAction();
-            }else if((Integer)mapReturn.get("status") == furnitureController.ERROR_IN_SAVED){
-                JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+        boolean active = (boolean) dataVector.get(11);
+        String valueToReturn = label;
+        int respuesta;
+        HashMap mapReturn;
+        if(active){
+            respuesta = JOptionPane.showConfirmDialog(this, MessageFormat.format("Confirma que desea inactivar el mobiliario {0} - {1}?", code, description),"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if(respuesta == JOptionPane.YES_OPTION){
+                mapReturn = furnitureController.updateFurnitureStatus(furnitureId, active);
+                if((Integer) mapReturn.get("status") == furnitureController.SUCCESFULLY_SAVED){
+                    furnitureController.searchFurnitureButtonAction();
+                    valueToReturn = "Activar";
+                }else if((Integer)mapReturn.get("status") == furnitureController.ERROR_IN_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        }else{
+            respuesta = JOptionPane.showConfirmDialog(this, MessageFormat.format("Confirma que desea activar el mobiliario {0} - {1}?", code, description),"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if(respuesta == JOptionPane.YES_OPTION){
+                mapReturn = furnitureController.updateFurnitureStatus(furnitureId, active);
+                if((Integer) mapReturn.get("status") == furnitureController.SUCCESFULLY_SAVED){
+                    furnitureController.searchFurnitureButtonAction();
+                    valueToReturn = "Inactivar";
+                }else if((Integer)mapReturn.get("status") == furnitureController.ERROR_IN_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+                } 
             }
         }
+        
+        return valueToReturn;
+    }
+    
+    public void showFurnitureShowAndEditView(int row){
+        Vector dataVector = (Vector) furnituresResultDefaultTableModel.getDataVector().get(row);
+        int furnitureId = (Integer) dataVector.get(0);
+        furnitureController.getFurnitureShowAndEditView(furnitureId);
     }
     
     class ButtonRenderer extends JButton implements TableCellRenderer {
 
         public ButtonRenderer() {
-          setOpaque(true);
+            setOpaque(true);
         }
 
         public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
+          boolean isSelected, boolean hasFocus, int row, int column) {
           if (isSelected) {
             setForeground(table.getSelectionForeground());
             setBackground(table.getSelectionBackground());
@@ -390,6 +443,7 @@ public class FurnitureIndex extends JInternalFrame{
                 fireEditingStopped();
             }
           });
+          this.clickCountToStart = 1;
         }
 
         @Override
@@ -407,9 +461,13 @@ public class FurnitureIndex extends JInternalFrame{
         @Override
         public Object getCellEditorValue() {
           if (isPushed) {
-                deleteRowFromResult(row);
+                if(column==9){
+                    label = updateFurnitureStatus(row, label);
+                }else if(column==10){
+                    showFurnitureShowAndEditView(row);
+                }
           }
-          isPushed = false;
+          isPushed = false;          
           return label;
         }
 

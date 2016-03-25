@@ -28,6 +28,7 @@ import rentfur.util.MainWindowController;
  */
 public class FurnitureController {
     private MainWindowController mainWindowController;
+    private FurnitureShowAndEdit furnitureShowAndEdit;
     private FurnitureCreate furnitureCreate;
     private FurnitureIndex furnitureIndex;
     private FurnitureFamilyCreate furnitureFamilyCreate;
@@ -49,6 +50,56 @@ public class FurnitureController {
         }
         this.mainWindowController = mainWindowController;
         return furnitureIndex;
+    }
+    
+    public FurnitureShowAndEdit getFurnitureShowAndEdit(int furnitureId){
+        if(furnitureShowAndEdit == null){
+            furnitureShowAndEdit = new FurnitureShowAndEdit(this, furnitureId);
+        }
+        return furnitureShowAndEdit;
+    }
+    
+    public void getFurnitureShowAndEditView(int furnitureId){
+        mainWindowController.setVisibleFurnitureShowAndEditInternalFrame(furnitureId);
+    }
+    
+    public void getFurnitureCreateView(){
+        mainWindowController.setVisibleFurnitureCreateInternalFrame();
+    }
+    
+    public void getFurnitureFamilyCreateView(){
+        mainWindowController.setVisibleFurnitureFamilyCreateInternalFrame();
+    }
+    
+    public FurnitureFamilyCreate getFurnitureFamilyCreate(){
+        if(furnitureFamilyCreate==null){
+            furnitureFamilyCreate = new FurnitureFamilyCreate(this);
+        }
+        return furnitureFamilyCreate;
+    }
+    
+    public void setDisabledIndexView(){
+        furnitureIndex.setDisabledElements();
+    }
+    
+    public void setEnabledIndexView(){
+        furnitureIndex.setEnableddElements();
+    }
+    
+    public void indexViewClosed(){
+        furnitureIndex = null;
+    }
+    
+    public void showAndEditViewClosed(){
+        furnitureShowAndEdit = null;
+    }
+    
+    public void createViewClosed(){
+        furnitureCreate = null;
+    }
+    
+    public void createFamilyClosed(){
+        furnitureFamilyCreate = null;
     }
     
     public ComboBoxItem[] getFurnitureFamiliesForComboBox(boolean addAllOption){
@@ -137,7 +188,7 @@ public class FurnitureController {
         furnitureIndex.updateFurnitureFamilyComboBox();
     }
 
-    HashMap saveFurniture(String description, String familyId, String unitPrice, String unitCostPrice, String fineAmountPerUnit, String observation, boolean active) {
+    public HashMap saveFurniture(String description, String familyId, String unitPrice, String unitCostPrice, String fineAmountPerUnit, String observation, boolean active) {
         HashMap mapToReturn = new HashMap();
         Connection connRentFur = null;
         PreparedStatement ps;
@@ -198,6 +249,67 @@ public class FurnitureController {
         return mapToReturn;
     }
     
+    public HashMap updateFurniture(String description, String familyId, String unitPrice, String unitCostPrice, String fineAmountPerUnit, String observation, boolean active, int furnitureId){        
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        
+        try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+            
+            if(description == null || description.equals("")){
+                mapToReturn.put("message", "El campo Descripcion no puede quedar vacio");
+            }else if(unitPrice == null || unitPrice.equals("")){
+                mapToReturn.put("message", "El campo Precio unitario no puede quedar vacio");
+            }else if(unitCostPrice == null || unitCostPrice.equals("")){
+                mapToReturn.put("message", "El campo Costo unitario no puede quedar vacio");
+            }else if(fineAmountPerUnit == null || fineAmountPerUnit.equals("")){
+                mapToReturn.put("message", "El campo Multa no puede quedar vacio");
+            }else{
+                
+                Locale pyLocale = new Locale("es", "PY");
+                NumberFormat nf = NumberFormat.getInstance(pyLocale);
+                connRentFur = DbConnectUtil.getConnection();
+                
+                StringBuilder furnitureUpdateSb = new StringBuilder();
+                furnitureUpdateSb.append("UPDATE furniture SET description = ?, furniture_family_id = ?, unit_price = ?, fine_amount_per_unit = ?, ");
+                furnitureUpdateSb.append(" unit_cost_price = ?, observation = ?,  active = ? WHERE id = ?");
+                
+                ps = connRentFur.prepareStatement(furnitureUpdateSb.toString());
+                ps.setString(1, description);
+                ps.setInt(2, Integer.valueOf(familyId));
+                ps.setDouble(3, Double.valueOf(nf.parse(unitPrice).toString()));
+                ps.setDouble(4, Double.valueOf(nf.parse(fineAmountPerUnit).toString()));
+                ps.setDouble(5, Double.valueOf(nf.parse(unitCostPrice).toString()));
+                ps.setString(6, observation);
+                ps.setBoolean(7, active);
+                ps.setInt(8, furnitureId);
+                
+                ps.executeUpdate();
+                ps.close();
+                mapToReturn.put("status", SUCCESFULLY_SAVED);
+                mapToReturn.put("message", "Mobiliriario actualizado correctamente");
+            }
+            
+        }catch(SQLException | NumberFormatException | ParseException th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            mapToReturn.put("message", th.getMessage());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return mapToReturn;
+    }
+    
     public void setFurnitureIndexResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, String code, String description, String familyId, String furnitureStatus){
         
         try{
@@ -210,7 +322,10 @@ public class FurnitureController {
                 furnituresResultDefaultTableModel.addColumn("Costo Unitario");
                 furnituresResultDefaultTableModel.addColumn("Multa");
                 furnituresResultDefaultTableModel.addColumn("Stock total");
+                furnituresResultDefaultTableModel.addColumn("Estado");
                 furnituresResultDefaultTableModel.addColumn("");
+                furnituresResultDefaultTableModel.addColumn("");
+                furnituresResultDefaultTableModel.addColumn("Status");
             }
             
             int numeroRegistrosTablaPermisos=0;
@@ -236,12 +351,21 @@ public class FurnitureController {
                     row[5] = amountFormat.format((Double)resultValueMap.get("unitCostPrice"));
                     row[6] = amountFormat.format((Double)resultValueMap.get("fineAmountPerUnit"));
                     row[7] = amountFormat.format((Double)resultValueMap.get("totalStock"));
+                    
                     if((Boolean)resultValueMap.get("active")){
-                        row[8] = "Inactivar";
+                        row[8] = "Activo";
                     }else{
-                        row[8] = "Activar";
+                        row[8] = "Inactivo";
                     }
                     
+                    if((Boolean)resultValueMap.get("active")){
+                        row[9] = "Inactivar";
+                    }else{
+                        row[9] = "Activar";
+                    }
+                    
+                    row[10] = "Ver";
+                    row[11] = resultValueMap.get("active");
                     /*if(permisosIdMap.containsKey(rs.getInt("idpermisos"))){
                         fila[1] = Boolean.TRUE;
                     }else{
@@ -372,42 +496,7 @@ public class FurnitureController {
         return mapToReturn;
     }
     
-    public void getFurnitureCreateView(){
-        mainWindowController.setVisibleFurnitureCreateInternalFrame();
-    }
-    
-    public void getFurnitureFamilyCreateView(){
-        mainWindowController.setVisibleFurnitureFamilyCreateInternalFrame();
-    }
-    
-    public FurnitureFamilyCreate getFurnitureFamilyCreate(){
-        if(furnitureFamilyCreate==null){
-            furnitureFamilyCreate = new FurnitureFamilyCreate(this);
-        }
-        return furnitureFamilyCreate;
-    }
-    
-    public void setDisabledIndexView(){
-        furnitureIndex.setDisabledElements();
-    }
-    
-    public void setEnabledIndexView(){
-        furnitureIndex.setEnableddElements();
-    }
-    
-    public void indexViewClosed(){
-        furnitureIndex = null;
-    }
-    
-    public void createViewClosed(){
-        furnitureCreate = null;
-    }
-    
-    public void createFamilyClosed(){
-        furnitureFamilyCreate = null;
-    }
-    
-    public HashMap inactivateFurniture(int furnitureId){
+    public HashMap updateFurnitureStatus(int furnitureId, boolean active){
         HashMap mapToReturn = new HashMap();
         Connection connRentFur = null;
         PreparedStatement ps;
@@ -415,10 +504,12 @@ public class FurnitureController {
         try{
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
+            active = !active;
             connRentFur = DbConnectUtil.getConnection();
-            String furnitureDelete = "UPDATE furniture SET active = false WHERE id = ?";
+            String furnitureDelete = "UPDATE furniture SET active = ? WHERE id = ?";
             ps = connRentFur.prepareStatement(furnitureDelete);
-            ps.setInt(1, furnitureId);
+            ps.setBoolean(1, active);
+            ps.setInt(2, furnitureId);
             ps.executeUpdate();
             ps.close();
             mapToReturn.put("status", SUCCESFULLY_SAVED);
@@ -443,6 +534,54 @@ public class FurnitureController {
     
     public void searchFurnitureButtonAction(){
         furnitureIndex.searchFurnitureButtonAction(null);
+    }
+    
+    public HashMap getFurnitureById(int furnitureId){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        
+        try{
+            connRentFur = DbConnectUtil.getConnection();
+            StringBuilder furnitureQuery = new StringBuilder();
+            furnitureQuery.append("SELECT f.id, f.code, f.description, f.unit_price, f.total_stock, f.observation, f.fine_amount_per_unit, f.unit_cost_price,");
+            furnitureQuery.append(" f.active, f.furniture_family_id, (SELECT ff.description FROM furniture_family ff WHERE ff.id = f.furniture_family_id) as family");
+            furnitureQuery.append(" FROM furniture f WHERE f.id = ?");
+            ps = connRentFur.prepareStatement(furnitureQuery.toString());
+            ps.setInt(1, furnitureId);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                mapToReturn.put("id",rs.getInt("id"));
+                mapToReturn.put("code",rs.getString("code"));
+                mapToReturn.put("description", rs.getString("description"));
+                mapToReturn.put("unitPrice", rs.getDouble("unit_price"));
+                mapToReturn.put("totalStock", rs.getDouble("total_stock"));
+                mapToReturn.put("observation", rs.getString("observation"));
+                mapToReturn.put("fineAmountPerUnit", rs.getDouble("fine_amount_per_unit"));
+                mapToReturn.put("unitCostPrice", rs.getDouble("unit_cost_price"));
+                mapToReturn.put("active", rs.getBoolean("active"));
+                mapToReturn.put("furnitureFamilyId", rs.getInt("furniture_family_id"));
+                mapToReturn.put("family", rs.getString("family"));
+            }
+            
+            rs.close();
+            ps.close();
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
     }
 }
 

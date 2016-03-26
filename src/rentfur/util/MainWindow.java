@@ -31,6 +31,7 @@ import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
 import rentfur.user.UserController;
 import rentfur.user.UserCreate;
+import rentfur.user.UserShowAndEdit;
 
 /**
  *
@@ -60,6 +61,7 @@ public class MainWindow extends JFrame{
     SubjectCreate subjectCreate;
     
     UserController userController = new UserController();
+    UserShowAndEdit userShowAndEdit;
     UserCreate userCreate;
     
     //POSITION

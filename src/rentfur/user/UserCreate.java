@@ -30,13 +30,17 @@ public class UserCreate extends JInternalFrame{
     private final JLabel usernameLabel;
     private final JLabel fullnameLabel;
     private final JLabel passwordLabel;
-    private final JLabel positionLabel; 
+    private final JLabel positionLabel;
+    private final JLabel confirmPasswordLabeld;
     private final JTextField usernameTextField;
     private final JTextField fullnameTextField;
     private final JPasswordField passwordPasswordField;
+    private final JPasswordField confirmPasswordField;
     private final JComboBox positionComboBox;
     private final ImageIcon createIconImage;
+    private final ImageIcon cancelIconImage;
     private final JButton saveButton;
+    private final JButton cancelButton;
     
     public UserCreate(UserController userController){
         this.userController = userController;
@@ -60,7 +64,7 @@ public class UserCreate extends JInternalFrame{
         fullnameTextField.setBounds(180, 50, 160, 25);
         userCreatePanel.add(fullnameTextField);
         
-        passwordLabel = new JLabel("Contraseña");
+        passwordLabel = new JLabel("Contraseña:");
         passwordLabel.setBounds(50,80, 100, 25);
         userCreatePanel.add(passwordLabel);
         
@@ -68,18 +72,26 @@ public class UserCreate extends JInternalFrame{
         passwordPasswordField.setBounds(180, 80, 160, 25);
         userCreatePanel.add(passwordPasswordField);
         
+        confirmPasswordLabeld = new JLabel("Confirmar Contraseña:");
+        confirmPasswordLabeld.setBounds(50,110, 120, 25);
+        userCreatePanel.add(confirmPasswordLabeld);
+        
+        confirmPasswordField = new JPasswordField();
+        confirmPasswordField.setBounds(180, 110, 160, 25);
+        userCreatePanel.add(confirmPasswordField);
+        
         positionLabel = new JLabel("Cargo");
-        positionLabel.setBounds(50,110, 100, 25);
+        positionLabel.setBounds(50,140, 100, 25);
         userCreatePanel.add(positionLabel);
         
         ComboBoxItem[] positionsComboBox = userController.getPositionForComboBox();
         positionComboBox = new JComboBox(positionsComboBox);
-        positionComboBox.setBounds(180, 110, 160, 25);
+        positionComboBox.setBounds(180, 140, 160, 25);
         userCreatePanel.add(positionComboBox);
         
         createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
         saveButton = new JButton(" Crear", createIconImage);
-        saveButton.setBounds(60, 320, 120, 32);
+        saveButton.setBounds(60, 180, 120, 32);
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -89,6 +101,19 @@ public class UserCreate extends JInternalFrame{
         
         userCreatePanel.add(saveButton);
         
+        cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
+        cancelButton = new JButton(" Cancelar", cancelIconImage);
+        cancelButton.setBounds(200, 180, 120, 32);
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cancelButtonAction(e);
+            }
+        });
+        userCreatePanel.add(cancelButton);
+        
+        
+        
         add(userCreatePanel);
         
         //pack();
@@ -97,7 +122,7 @@ public class UserCreate extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Crear Usuario");
-        setBounds(200,50,450,400);
+        setBounds(200,50,450,250);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setVisible(true);
     }
@@ -105,7 +130,8 @@ public class UserCreate extends JInternalFrame{
     private void saveButtonAction(ActionEvent e) {
         String username = usernameTextField.getText();
         String fullname = fullnameTextField.getText();
-        char[] password = passwordPasswordField.getPassword();
+        String password = String.valueOf(passwordPasswordField.getPassword());
+        String confirmPassword = String.valueOf(confirmPasswordField.getPassword());
         ComboBoxItem position = (ComboBoxItem) positionComboBox.getSelectedItem();
         String positionId = "";
         if(position!=null){
@@ -113,7 +139,7 @@ public class UserCreate extends JInternalFrame{
         }
         
         
-        HashMap mapReturn = userController.saveUser(username, fullname, password, positionId);
+        HashMap mapReturn = userController.saveUser(username, fullname, password, confirmPassword, positionId);
         if((Integer) mapReturn.get("status") == userController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
             cancelButtonAction(null);

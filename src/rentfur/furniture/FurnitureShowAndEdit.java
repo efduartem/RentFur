@@ -101,7 +101,6 @@ public class FurnitureShowAndEdit extends JInternalFrame{
        
         familyComboBox = new JComboBox(familiesComboBox);
         familyComboBox.setSelectedItem(familiesComboBoxItem);
-        //familyComboBox.addItem(familiesComboBox);
         familyComboBox.setEditable(false);
         familyComboBox.setEnabled(false);
         familyComboBox.setBounds(180, 80, 160, 25);

@@ -24,6 +24,8 @@ import rentfur.furniture.FurnitureCreate;
 import rentfur.furniture.FurnitureShowAndEdit;
 import rentfur.furniture.FurnitureIndex;
 import rentfur.furnitureFamily.FurnitureFamilyCreate;
+import rentfur.position.PositionController;
+import rentfur.position.PositionCreate;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
@@ -45,6 +47,7 @@ public class MainWindow extends JFrame{
     private final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
     private final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
     private final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
+     private final JMenuItem managePositionItem = new JMenuItem("Administrar Cargos");
     
     FurnitureController furnitureController = new FurnitureController();
     FurnitureIndex furnitureIndex;
@@ -58,6 +61,10 @@ public class MainWindow extends JFrame{
     
     UserController userController = new UserController();
     UserCreate userCreate;
+    
+    //POSITION
+    PositionController positionController = new PositionController();
+    PositionCreate positionCreate;
     
     public MainWindow(MainWindowController mainWindowController){
         
@@ -74,16 +81,23 @@ public class MainWindow extends JFrame{
     }
     
     public void initComponents(){
+        //Furniture
         ImageIcon furnitureIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/furniture_24x24.png"));
         furnitureMenu.setIcon(furnitureIconImage);
         menuBar.add(furnitureMenu);
+        furnitureMenu.add(manageFurnitureItem);
+        
+        //Subject
         ImageIcon subjectIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/subject_24x24.png"));
         subjectMenu.setIcon(subjectIconImage);
         menuBar.add(subjectMenu);
-        menuBar.add(userMenu);
-        furnitureMenu.add(manageFurnitureItem);
         subjectMenu.add(manageSubjectItem);
+        
+        //Users
+        menuBar.add(userMenu);
         userMenu.add(manageUserItem);
+        userMenu.add(managePositionItem);
+        
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
         manageFurnitureItem.addActionListener(new ActionListener() {
@@ -106,6 +120,14 @@ public class MainWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 setVisibleUserIndexInternalFrame();
+            }
+        });
+        
+        managePositionItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisiblePositionCreateInternalFrame();
             }
         });
         container=getContentPane();/*instanciamos el contenedor*/
@@ -166,6 +188,14 @@ public class MainWindow extends JFrame{
     public void setVisibleUserIndexInternalFrame(){
         userCreate = userController.getUserCreate();
         desktop.add(userCreate);//, JLayeredPane.MODAL_LAYER);
+        //getContentPane().add(desktop);
+    }
+    
+    //POSITION
+    public void setVisiblePositionCreateInternalFrame(){
+        positionCreate = positionController.getPositionCreate();
+        desktop.add(positionCreate);
+        //desktop.add(positionCreate, JLayeredPane.MODAL_LAYER);
         //getContentPane().add(desktop);
     }
     

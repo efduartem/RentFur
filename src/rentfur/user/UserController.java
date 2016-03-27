@@ -10,10 +10,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+import javax.swing.table.DefaultTableModel;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
@@ -27,9 +30,11 @@ public class UserController {
     private MainWindowController mainWindowController;
     private UserCreate userCreate;
     private UserShowAndEdit userShowAndEdit;
+    private UserIndex userIndex;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
-    public final String TABLE_NAME = "user";
+    public final String TABLE_NAME = "users";
+    public final String ALL_VALUES = "Todos";
     
     public UserCreate getUserCreate(){
         if(userCreate == null){
@@ -45,7 +50,43 @@ public class UserController {
         return userShowAndEdit;
     }
     
-    public ComboBoxItem[] getPositionForComboBox(){
+    public UserIndex getUserIndex(MainWindowController mainWindowController){
+        if(userIndex == null){
+            userIndex = new UserIndex(this);
+        }
+        this.mainWindowController = mainWindowController;
+        return userIndex;
+    }
+    
+    public void indexViewClosed(){
+        userIndex = null;
+    }
+    
+    public void getUserCreateView(){
+        mainWindowController.setVisibleUserCreateInternalFrame();
+    }
+    
+    public void setDisabledIndexView(){
+        userIndex.setDisabledElements();
+    }
+    
+    public void setEnabledIndexView(){
+        userIndex.setEnableddElements();
+    }
+    
+    public void searchUserButtonAction(){
+        userIndex.searchUserButtonAction(null);
+    }
+    
+    public void getUserShowAndEditView(int userId){
+        mainWindowController.setVisibleUserShowAndEditInternalFrame(userId);
+    }
+    
+    public void showAndEditViewClosed(){
+        userShowAndEdit = null;
+    }
+    
+    public ComboBoxItem[] getPositionForComboBox(boolean addAllOption){
         ComboBoxItem[] positions = null;
         Connection connRentFur = null;
         PreparedStatement ps;
@@ -63,11 +104,24 @@ public class UserController {
                 rs.beforeFirst();
             }
             
-            positions = new ComboBoxItem[rows];            
-            while(rs.next()){
-                positions[rs.getRow()-1] =  new ComboBoxItem();
-                positions[rs.getRow()-1].setKey(rs.getString("id"));
-                positions[rs.getRow()-1].setValue(rs.getString("description"));
+            if(addAllOption){
+                positions = new ComboBoxItem[rows+1];
+                positions[0] =  new ComboBoxItem();
+                positions[0].setKey(ALL_VALUES);
+                positions[0].setValue(ALL_VALUES);
+                while(rs.next()){
+                    positions[rs.getRow()] =  new ComboBoxItem();
+                    positions[rs.getRow()].setKey(rs.getString("id"));
+                    positions[rs.getRow()].setValue(rs.getString("description"));
+                }
+            }else{
+                positions = new ComboBoxItem[rows];
+                
+                while(rs.next()){
+                    positions[rs.getRow()-1] =  new ComboBoxItem();
+                    positions[rs.getRow()-1].setKey(rs.getString("id"));
+                    positions[rs.getRow()-1].setValue(rs.getString("description"));
+                }
             }
             
             rs.close();
@@ -152,9 +206,7 @@ public class UserController {
          try{
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
-            SQLUtilService sqlUtilService = new SQLUtilService();
             
-             System.out.println("USERNAME: "+username);
             if(username == null || username.trim().equals("")){                
                 mapToReturn.put("message", "El campo Nombre Usuario no puede quedar vacio.");
             }else if(fullname==null || fullname.equals("")){
@@ -212,7 +264,6 @@ public class UserController {
         PreparedStatement userPs;
         ResultSet userRs;
         try{
-            SQLUtilService sqlUtilService = new SQLUtilService();
             connRentFur = DbConnectUtil.getConnection();
             
             StringBuilder userSb = new StringBuilder();
@@ -250,4 +301,195 @@ public class UserController {
         return userMap;
     }
     
+    public ComboBoxItem[] getUserStatusForComboBox(){
+        ComboBoxItem[] furnitureStatus = null;
+        
+        try{
+            
+            furnitureStatus = new ComboBoxItem[3];
+            furnitureStatus[0] =  new ComboBoxItem();
+            furnitureStatus[0].setKey(ALL_VALUES);
+            furnitureStatus[0].setValue(ALL_VALUES);
+
+            furnitureStatus[1] =  new ComboBoxItem();
+            furnitureStatus[1].setKey("true");
+            furnitureStatus[1].setValue("Activo");
+
+            furnitureStatus[2] =  new ComboBoxItem();
+            furnitureStatus[2].setKey("false");
+            furnitureStatus[2].setValue("Inactivo");
+                
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+        }
+        
+        return furnitureStatus;
+    }
+    
+    public void setUserIndexResultsTable(DefaultTableModel usersResultDefaultTableModel, boolean searchPressed, String code, String fullname, String username, String positionId, String userStatus){
+        
+        try{
+            if(!searchPressed){
+                usersResultDefaultTableModel.addColumn("Id");
+                usersResultDefaultTableModel.addColumn("Código");
+                usersResultDefaultTableModel.addColumn("Nombre Completo");
+                usersResultDefaultTableModel.addColumn("Nombre de Usuario");
+                usersResultDefaultTableModel.addColumn("Cargo");
+                usersResultDefaultTableModel.addColumn("Estado");
+                usersResultDefaultTableModel.addColumn("");
+                usersResultDefaultTableModel.addColumn("");
+                usersResultDefaultTableModel.addColumn("Status");
+            }
+            
+            int numeroRegistrosTablaPermisos=0;
+            numeroRegistrosTablaPermisos = usersResultDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistrosTablaPermisos;i++){
+                usersResultDefaultTableModel.removeRow(0);
+            }
+            ArrayList searchResultList = getSearchResultList(code, fullname, username, positionId, userStatus);
+            if(searchResultList!=null && !searchResultList.isEmpty()){
+                HashMap resultValueMap;
+                Object[] row;
+                for(int rowNumber = 0; rowNumber < searchResultList.size(); rowNumber++){
+
+                    row = new Object[usersResultDefaultTableModel.getColumnCount()];
+                    resultValueMap = (HashMap) searchResultList.get(rowNumber);
+
+                    row[0] = resultValueMap.get("id");
+                    row[1] = resultValueMap.get("code");
+                    row[2] = resultValueMap.get("fullname");
+                    row[3] = resultValueMap.get("username");
+                    row[4] = resultValueMap.get("position");
+                    if((Boolean)resultValueMap.get("active")){
+                        row[5] = "Activo";
+                    }else{
+                        row[5] = "Inactivo";
+                    }
+                    
+                    if((Boolean)resultValueMap.get("active")){
+                        row[6] = "Inactivar";
+                    }else{
+                        row[6] = "Activar";
+                    }
+                    
+                    row[7] = "Ver";
+                    row[8] = resultValueMap.get("active");
+
+                    usersResultDefaultTableModel.addRow(row);
+
+                }
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }
+    }
+    
+    public ArrayList getSearchResultList(String code, String fullname, String username , String positionId, String userStatus){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        ArrayList listToReturn = new ArrayList();
+        
+        try{
+            HashMap resultValuesMap;
+            connRentFur = DbConnectUtil.getConnection();
+            
+            if(code==null){
+                code="";
+            }
+            
+            if(fullname==null){
+                fullname="";
+            }
+            
+            if(username==null){
+                username="";
+            }
+            
+            StringBuilder furnituriesQuery = new StringBuilder();
+            furnituriesQuery.append("SELECT u.id, u.code, u.fullname, u.username, u.active, (SELECT description FROM position p WHERE p.id = u.position_id) as position FROM users u WHERE u.code ilike ? AND u.fullname ilike ? AND u.username ilike ?");
+            if(positionId!= null && !positionId.equals(ALL_VALUES)){
+                furnituriesQuery.append(" AND position_id = ").append(positionId);
+            }
+            
+            if(userStatus!= null && !userStatus.equals(ALL_VALUES)){
+                furnituriesQuery.append(" AND active = ").append(userStatus);
+            }
+            
+            furnituriesQuery.append(" ORDER BY u.code, u.fullname, u.username, u.active");
+            ps = connRentFur.prepareStatement(furnituriesQuery.toString());
+            ps.setString(1, "%"+code+"%");
+            ps.setString(2, "%"+fullname+"%");
+            ps.setString(3, "%"+username+"%");
+            rs = ps.executeQuery();
+            while(rs.next()){
+                resultValuesMap = new HashMap();
+                resultValuesMap.put("id", rs.getInt("id"));
+                resultValuesMap.put("code", rs.getString("code"));
+                resultValuesMap.put("fullname", rs.getString("fullname"));
+                resultValuesMap.put("username", rs.getString("username"));
+                resultValuesMap.put("active", rs.getBoolean("active"));
+                resultValuesMap.put("position", rs.getString("position"));
+                listToReturn.add(resultValuesMap);
+            }
+            rs.close();
+            ps.close();
+
+        }catch(SQLException th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return listToReturn;
+    }
+    
+    public HashMap updateUserStatus(int userId, boolean active){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        
+        try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+            active = !active;
+            connRentFur = DbConnectUtil.getConnection();
+            String furnitureDelete = "UPDATE users SET active = ? WHERE id = ?";
+            ps = connRentFur.prepareStatement(furnitureDelete);
+            ps.setBoolean(1, active);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+            ps.close();
+            mapToReturn.put("status", SUCCESFULLY_SAVED);
+            mapToReturn.put("message", "");
+        }catch(Throwable th){
+            mapToReturn.put("message", th.getMessage());
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
+    }
 }

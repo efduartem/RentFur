@@ -21,6 +21,7 @@ public class MainWindowController {
         return mainWindow;
     }
     
+    //FURNITURE
     public void setVisibleFurnitureCreateInternalFrame(){
         mainWindow.setVisibleFurnitureCreateInternalFrame();
     }
@@ -33,7 +34,17 @@ public class MainWindowController {
         mainWindow.setVisibleFurnitureShowAndEditInternalFrame(furnitureId);
     }
     
+    //SUBJECT
     public void setVisibleSubjectCreateInternalFrame(){
         mainWindow.setVisibleSubjectCreateInternalFrame();
+    }
+    
+    //USER
+    public void setVisibleUserCreateInternalFrame(){
+        mainWindow.setVisibleUserCreateInternalFrame();
+    }
+    
+    public void setVisibleUserShowAndEditInternalFrame(int userId){
+        mainWindow.setVisibleUserShowAndEditInternalFrame(userId);
     }
 }

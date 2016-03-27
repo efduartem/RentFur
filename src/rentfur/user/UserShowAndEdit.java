@@ -89,7 +89,7 @@ public class UserShowAndEdit extends JInternalFrame{
         positionLabel.setBounds(50,110, 100, 25);
         userShowAndEditPanel.add(positionLabel);
         
-        ComboBoxItem[] positionsComboBox = userController.getPositionForComboBox();
+        ComboBoxItem[] positionsComboBox = userController.getPositionForComboBox(false);
         ComboBoxItem positionComboBoxItem = null;
         for (ComboBoxItem positionsComboBoxFor : positionsComboBox) {
             positionComboBoxItem = positionsComboBoxFor;
@@ -140,9 +140,9 @@ public class UserShowAndEdit extends JInternalFrame{
         
         
         
-        editImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
-        editButton = new JButton(" Editar", editImageIcon);
-        editButton.setBounds(60, 230, 120, 32);
+        editImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/edit_24x24.png"));
+        editButton = new JButton("     Editar", editImageIcon);
+        editButton.setBounds(110, 230, 200, 32);
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -151,8 +151,8 @@ public class UserShowAndEdit extends JInternalFrame{
         });
         userShowAndEditPanel.add(editButton);
         
-        createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
-        saveButton = new JButton(" Crear", createIconImage);
+        createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
+        saveButton = new JButton(" Guardar", createIconImage);
         saveButton.setBounds(60, 240, 120, 32);
         saveButton.addActionListener(new ActionListener() {
             @Override
@@ -181,7 +181,7 @@ public class UserShowAndEdit extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Usuario "+usersMap.get("fullname"));
-        setBounds(200,50,450,350);
+        setBounds(350,150,450,350);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setVisible(true);
     }
@@ -238,5 +238,13 @@ public class UserShowAndEdit extends JInternalFrame{
         editButton.setVisible(true);
         saveButton.setVisible(false);
         cancelButton.setVisible(false);
+    }
+    
+    @Override
+    public void doDefaultCloseAction() {
+        this.dispose();
+        userController.showAndEditViewClosed();
+        userController.setEnabledIndexView();
+        userController.searchUserButtonAction();
     }
 }

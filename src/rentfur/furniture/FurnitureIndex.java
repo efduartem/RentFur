@@ -142,7 +142,7 @@ public class FurnitureIndex extends JInternalFrame{
         });
         furnitureIndexParamsPanel.add(createFurnitureButton);
         
-        //
+        //BOTON PARA CREAR FAMILIA DE MOBILIARIOS
         createFurnitureFamilyButton = new JButton("  Crear Familia de Mobiliarios", createIconImage);
         createFurnitureFamilyButton.setBounds(350, 190, 230, 32);
         createFurnitureFamilyButton.addActionListener(new ActionListener() {

@@ -49,19 +49,19 @@ public class UserCreate extends JInternalFrame{
         userCreatePanel.setLayout(null);
 
         usernameLabel = new JLabel("Nombre usuario:");
-        usernameLabel.setBounds(50,20, 100, 25);
+        usernameLabel.setBounds(50, 20, 120, 25);
         userCreatePanel.add(usernameLabel);
         
         usernameTextField = new JTextField();
-        usernameTextField.setBounds(180, 20, 160, 25);
+        usernameTextField.setBounds(200, 20, 160, 25);
         userCreatePanel.add(usernameTextField);
         
         fullnameLabel = new JLabel("Nombre completo:");
-        fullnameLabel.setBounds(50,50, 100, 25);
+        fullnameLabel.setBounds(50,50, 120, 25);
         userCreatePanel.add(fullnameLabel);
         
         fullnameTextField = new JTextField();
-        fullnameTextField.setBounds(180, 50, 160, 25);
+        fullnameTextField.setBounds(200, 50, 160, 25);
         userCreatePanel.add(fullnameTextField);
         
         passwordLabel = new JLabel("Contraseña:");
@@ -69,29 +69,29 @@ public class UserCreate extends JInternalFrame{
         userCreatePanel.add(passwordLabel);
         
         passwordPasswordField = new JPasswordField();
-        passwordPasswordField.setBounds(180, 80, 160, 25);
+        passwordPasswordField.setBounds(200, 80, 160, 25);
         userCreatePanel.add(passwordPasswordField);
         
         confirmPasswordLabeld = new JLabel("Confirmar Contraseña:");
-        confirmPasswordLabeld.setBounds(50,110, 120, 25);
+        confirmPasswordLabeld.setBounds(50,110, 140, 25);
         userCreatePanel.add(confirmPasswordLabeld);
         
         confirmPasswordField = new JPasswordField();
-        confirmPasswordField.setBounds(180, 110, 160, 25);
+        confirmPasswordField.setBounds(200, 110, 160, 25);
         userCreatePanel.add(confirmPasswordField);
         
-        positionLabel = new JLabel("Cargo");
+        positionLabel = new JLabel("Cargo:");
         positionLabel.setBounds(50,140, 100, 25);
         userCreatePanel.add(positionLabel);
         
-        ComboBoxItem[] positionsComboBox = userController.getPositionForComboBox();
+        ComboBoxItem[] positionsComboBox = userController.getPositionForComboBox(false);
         positionComboBox = new JComboBox(positionsComboBox);
-        positionComboBox.setBounds(180, 140, 160, 25);
+        positionComboBox.setBounds(200, 140, 160, 25);
         userCreatePanel.add(positionComboBox);
         
         createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
         saveButton = new JButton(" Crear", createIconImage);
-        saveButton.setBounds(60, 180, 120, 32);
+        saveButton.setBounds(70, 180, 120, 32);
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -103,7 +103,7 @@ public class UserCreate extends JInternalFrame{
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelButton = new JButton(" Cancelar", cancelIconImage);
-        cancelButton.setBounds(200, 180, 120, 32);
+        cancelButton.setBounds(210, 180, 120, 32);
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -122,7 +122,7 @@ public class UserCreate extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Crear Usuario");
-        setBounds(200,50,450,250);
+        setBounds(320,200,450,280);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setVisible(true);
     }
@@ -151,5 +151,12 @@ public class UserCreate extends JInternalFrame{
     private void cancelButtonAction(ActionEvent e) {
         this.dispose();
         userController.createViewClosed();
+        userController.setEnabledIndexView();
+        userController.searchUserButtonAction();
+    }
+    
+    @Override
+    public void doDefaultCloseAction() {
+        cancelButtonAction(null);
     }
 }

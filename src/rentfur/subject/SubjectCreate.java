@@ -226,6 +226,7 @@ public class SubjectCreate extends JInternalFrame{
         HashMap mapReturn = subjectController.saveSubject(tradename, name, fiscalNumber, address, telephone, city, documentNumberSelectedItem, verifyDigit);
          if((Integer) mapReturn.get("status") == subjectController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
+            cancelButtonAction(null);
         }else if((Integer)mapReturn.get("status") == subjectController.ERROR_IN_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
         }
@@ -239,6 +240,8 @@ public class SubjectCreate extends JInternalFrame{
      private void cancelButtonAction(ActionEvent e) {
         this.dispose();
         subjectController.viewClosed();
+        //subjectController.setEnabledIndexView();
+        //subjectController.searchSubjecteButtonAction();
     }
      
     private void generateVerificationDidgit(){

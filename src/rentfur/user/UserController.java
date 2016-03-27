@@ -302,29 +302,29 @@ public class UserController {
     }
     
     public ComboBoxItem[] getUserStatusForComboBox(){
-        ComboBoxItem[] furnitureStatus = null;
+        ComboBoxItem[] userStatus = null;
         
         try{
             
-            furnitureStatus = new ComboBoxItem[3];
-            furnitureStatus[0] =  new ComboBoxItem();
-            furnitureStatus[0].setKey(ALL_VALUES);
-            furnitureStatus[0].setValue(ALL_VALUES);
+            userStatus = new ComboBoxItem[3];
+            userStatus[0] =  new ComboBoxItem();
+            userStatus[0].setKey(ALL_VALUES);
+            userStatus[0].setValue(ALL_VALUES);
 
-            furnitureStatus[1] =  new ComboBoxItem();
-            furnitureStatus[1].setKey("true");
-            furnitureStatus[1].setValue("Activo");
+            userStatus[1] =  new ComboBoxItem();
+            userStatus[1].setKey("true");
+            userStatus[1].setValue("Activo");
 
-            furnitureStatus[2] =  new ComboBoxItem();
-            furnitureStatus[2].setKey("false");
-            furnitureStatus[2].setValue("Inactivo");
+            userStatus[2] =  new ComboBoxItem();
+            userStatus[2].setKey("false");
+            userStatus[2].setValue("Inactivo");
                 
         }catch(Throwable th){
             System.err.println(th.getMessage());
             System.err.println(th);
         }
         
-        return furnitureStatus;
+        return userStatus;
     }
     
     public void setUserIndexResultsTable(DefaultTableModel usersResultDefaultTableModel, boolean searchPressed, String code, String fullname, String username, String positionId, String userStatus){
@@ -410,18 +410,18 @@ public class UserController {
                 username="";
             }
             
-            StringBuilder furnituriesQuery = new StringBuilder();
-            furnituriesQuery.append("SELECT u.id, u.code, u.fullname, u.username, u.active, (SELECT description FROM position p WHERE p.id = u.position_id) as position FROM users u WHERE u.code ilike ? AND u.fullname ilike ? AND u.username ilike ?");
+            StringBuilder usersQuery = new StringBuilder();
+            usersQuery.append("SELECT u.id, u.code, u.fullname, u.username, u.active, (SELECT description FROM position p WHERE p.id = u.position_id) as position FROM users u WHERE u.code ilike ? AND u.fullname ilike ? AND u.username ilike ?");
             if(positionId!= null && !positionId.equals(ALL_VALUES)){
-                furnituriesQuery.append(" AND position_id = ").append(positionId);
+                usersQuery.append(" AND position_id = ").append(positionId);
             }
             
             if(userStatus!= null && !userStatus.equals(ALL_VALUES)){
-                furnituriesQuery.append(" AND active = ").append(userStatus);
+                usersQuery.append(" AND active = ").append(userStatus);
             }
             
-            furnituriesQuery.append(" ORDER BY u.code, u.fullname, u.username, u.active");
-            ps = connRentFur.prepareStatement(furnituriesQuery.toString());
+            usersQuery.append(" ORDER BY u.code, u.fullname, u.username, u.active");
+            ps = connRentFur.prepareStatement(usersQuery.toString());
             ps.setString(1, "%"+code+"%");
             ps.setString(2, "%"+fullname+"%");
             ps.setString(3, "%"+username+"%");
@@ -467,8 +467,8 @@ public class UserController {
             mapToReturn.put("message", "");
             active = !active;
             connRentFur = DbConnectUtil.getConnection();
-            String furnitureDelete = "UPDATE users SET active = ? WHERE id = ?";
-            ps = connRentFur.prepareStatement(furnitureDelete);
+            String userUpdate = "UPDATE users SET active = ? WHERE id = ?";
+            ps = connRentFur.prepareStatement(userUpdate);
             ps.setBoolean(1, active);
             ps.setInt(2, userId);
             ps.executeUpdate();

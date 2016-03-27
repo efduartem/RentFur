@@ -177,13 +177,21 @@ public class SubjectController {
 	  return v_digit; 
 	}
      
-     public void setSubjectIndexResultsTable(DefaultTableModel subjectResultDefaultTableModel, boolean searchPressed, String code, String name){
+     public void setSubjectIndexResultsTable(DefaultTableModel subjectResultDefaultTableModel, boolean searchPressed, String code, String name, String tradename, String address, String city, String telephone, String subjectActive, String fiscalNumber){
          try{
             if(!searchPressed){
                 subjectResultDefaultTableModel.addColumn("Id");
                 subjectResultDefaultTableModel.addColumn("Código");
-                subjectResultDefaultTableModel.addColumn("Descripción");
+                subjectResultDefaultTableModel.addColumn("Razón Social");
+                subjectResultDefaultTableModel.addColumn("Nombre Comercial");
+                subjectResultDefaultTableModel.addColumn("Dirección");
+                subjectResultDefaultTableModel.addColumn("Ciudad");
+                subjectResultDefaultTableModel.addColumn("Teléfono");
+                subjectResultDefaultTableModel.addColumn("CI / RUC");
+                subjectResultDefaultTableModel.addColumn("Activo");
                 subjectResultDefaultTableModel.addColumn("");
+                subjectResultDefaultTableModel.addColumn("");
+                subjectResultDefaultTableModel.addColumn("Active");
             }
             
             int numeroRegistrosTablaPermisos=0;
@@ -191,9 +199,11 @@ public class SubjectController {
             for(int i=0;i<numeroRegistrosTablaPermisos;i++){
                 subjectResultDefaultTableModel.removeRow(0);
             }
-            ArrayList searchResultList = getSearchResultList(code, name);
+            ArrayList searchResultList = getSearchResultList(code, name, tradename, address, city, telephone, subjectActive, fiscalNumber);
             if(searchResultList!=null && !searchResultList.isEmpty()){
                 DecimalFormat amountFormat = new DecimalFormat("#,###");
+                String fiscalNumberResult = "";
+                String verificationDigitFiscalNumber = "";
                 HashMap resultValueMap;
                 Object[] row;
                 for(int rowNumber = 0; rowNumber < searchResultList.size(); rowNumber++){
@@ -204,17 +214,36 @@ public class SubjectController {
                     row[0] = resultValueMap.get("id");
                     row[1] = resultValueMap.get("code");
                     row[2] = resultValueMap.get("name");
-                    if((Boolean)resultValueMap.get("isActive")){
-                        row[3] = "Inactivar";
+                    row[3] = resultValueMap.get("tradename");
+                    row[4] = resultValueMap.get("address");
+                    row[5] = resultValueMap.get("city");
+                    row[6] = resultValueMap.get("telephone");
+                    
+                    if(resultValueMap.get("fiscalNumber").toString().contains("-")){
+                        fiscalNumberResult = resultValueMap.get("fiscalNumber").toString().split("-")[0];
+                        verificationDigitFiscalNumber = "-"+resultValueMap.get("fiscalNumber").toString().split("-")[1];
                     }else{
-                        row[3] = "Activar";
+                        fiscalNumberResult = resultValueMap.get("fiscalNumber").toString();
                     }
                     
-                    /*if(permisosIdMap.containsKey(rs.getInt("idpermisos"))){
-                        fila[1] = Boolean.TRUE;
+                    fiscalNumberResult = amountFormat.format(Double.valueOf(fiscalNumberResult));
+                    
+                    row[7] = fiscalNumberResult+verificationDigitFiscalNumber;
+                    
+                    if((Boolean)resultValueMap.get("isActive")){
+                        row[8] = "Si";
                     }else{
-                        fila[1] = Boolean.FALSE;
-                    } */
+                        row[8] = "No";
+                    }
+                    
+                    if((Boolean)resultValueMap.get("isActive")){
+                        row[9] = "Inactivar";
+                    }else{
+                        row[9] = "Activar";
+                    }
+                    
+                    row[10] = "Ver";
+                    row[11] = resultValueMap.get("isActive");
 
                     subjectResultDefaultTableModel.addRow(row);
 
@@ -228,7 +257,7 @@ public class SubjectController {
         }
      }
      
-     public ArrayList getSearchResultList(String code, String name){
+     public ArrayList getSearchResultList(String code, String name, String tradename, String address, String city, String telephone, String subjectActive, String fiscalNumber){
         Connection connRentFur = null;
         PreparedStatement ps;
         ResultSet rs;
@@ -246,25 +275,54 @@ public class SubjectController {
                 name="";
             }
             
+            if(tradename==null){
+                tradename="";
+            }
+            
+            if(address==null){
+                address="";
+            }
+            
+            if(city==null){
+                city="";
+            }
+            
+            if(telephone==null){
+                telephone="";
+            }
+            
+            if(fiscalNumber==null){
+                fiscalNumber="";
+            }
+            
             StringBuilder furnituriesQuery = new StringBuilder();
-            furnituriesQuery.append("SELECT s.id, s.code, s.name, s.is_active FROM subject s WHERE s.code ilike ? AND s.name ilike ?");   
+            furnituriesQuery.append("SELECT s.id, s.code, s.name, s.tradename, s.address, s.telephone, s.fiscal_number, s.city, s.is_active FROM subject s");   
+            furnituriesQuery.append(" WHERE s.code ilike ? AND s.name ilike ? AND s.tradename ilike ? AND s.address ilike ? AND s.telephone ilike ? AND s.city ilike ? AND s.fiscal_number ilike ?");
+            if(subjectActive!= null && !subjectActive.equals(ALL_VALUES)){
+                furnituriesQuery.append(" AND is_active = ").append(subjectActive);
+            }
             furnituriesQuery.append(" ORDER BY s.code, s.name, s.is_active");
             ps = connRentFur.prepareStatement(furnituriesQuery.toString());
             ps.setString(1, "%"+code+"%");
             ps.setString(2, "%"+name+"%");
+            ps.setString(3, "%"+tradename+"%");
+            ps.setString(4, "%"+address+"%");
+            ps.setString(5, "%"+telephone+"%");
+            ps.setString(6, "%"+city+"%");
+            ps.setString(7, "%"+fiscalNumber+"%");
             rs = ps.executeQuery();
             while(rs.next()){
                 resultValuesMap = new HashMap();
                 resultValuesMap.put("id", rs.getInt("id"));
                 resultValuesMap.put("code", rs.getString("code"));
                 resultValuesMap.put("name", rs.getString("name"));
+                resultValuesMap.put("tradename", rs.getString("tradename"));
+                resultValuesMap.put("address", rs.getString("address"));
+                resultValuesMap.put("telephone", rs.getString("telephone"));
+                resultValuesMap.put("fiscalNumber", rs.getString("fiscal_number"));
+                resultValuesMap.put("city", rs.getString("city"));
                 resultValuesMap.put("isActive", rs.getBoolean("is_active"));
                 listToReturn.add(resultValuesMap);
-                /*if(permisosIdMap.containsKey(rs.getInt("idpermisos"))){
-                    fila[1] = Boolean.TRUE;
-                }else{
-                    fila[1] = Boolean.FALSE;
-                } */ 
             }
             rs.close();
             ps.close();

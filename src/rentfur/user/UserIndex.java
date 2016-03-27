@@ -97,8 +97,8 @@ public class UserIndex extends JInternalFrame{
         statusLabel.setBounds(30, 170, 80, 25);
         userIndexParamsPanel.add(statusLabel);
         
-        ComboBoxItem[] furnitureStatus = userController.getUserStatusForComboBox();
-        statusComboBox = new JComboBox(furnitureStatus);
+        ComboBoxItem[] userStatus = userController.getUserStatusForComboBox();
+        statusComboBox = new JComboBox(userStatus);
         statusComboBox.setBounds(170, 170, 160, 25);
         userIndexParamsPanel.add(statusComboBox);
         
@@ -220,12 +220,7 @@ public class UserIndex extends JInternalFrame{
             userStatus = status.getKey();
         }
         userController.setUserIndexResultsTable(usersResultDefaultTableModel, true, code, fullname, username, positionId, userStatus);
-        /*HashMap mapReturn = furnitureController.saveFurnitureFamily(code, description);
-        if((Integer) mapReturn.get("status") == furnitureFamilyController.SUCCESFULLY_SAVED){
-            JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
-        }else if((Integer)mapReturn.get("status") == furnitureFamilyController.ERROR_IN_SAVED){
-            JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
-        }*/
+
     }
     
     private void closeIndexView(ActionEvent e) {

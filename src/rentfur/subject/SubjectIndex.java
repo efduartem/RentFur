@@ -16,6 +16,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +51,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import rentfur.util.ComboBoxItem;
+import rentfur.util.NumericTextField;
 
 /**
  *
@@ -59,17 +63,28 @@ public class SubjectIndex extends JInternalFrame{
     //private final JPanel furnitureIndexResultPanel;
     private final JLabel codeLabel;
     private final JLabel nameLabel;
+    private final JLabel tradenameLabel;
     private final JLabel statusLabel;
+    private final JLabel addressLabel;
+    private final JLabel telephoneLabel;
+    private final JLabel fiscalNumberLabel;
+    private final JLabel cityLabel;
     private final JTextField codeTextField;
     private final JTextField nameTextField;
+    private final JTextField tradenameTextField;
     private final JComboBox subjectStatusComboBox;
+    private final JTextField addressTextField;
+    private final JTextField telephoneTextField;
+    private final NumericTextField fiscalNumberTextField;
+    private final JTextField cityTextField;
     private final ImageIcon searchIconImage;
     private final JButton searchButton;
     private final ImageIcon createIconImage;
     private final JButton createButton;
     private final JTable subjectsResultTable;
-    private DefaultTableModel subjectsResultDefaultTableModel;
+    private final DefaultTableModel subjectsResultDefaultTableModel;
     private final JScrollPane subjectsResultTableJScrollPane;
+    private final DecimalFormat amountFormat;
     
     
     public SubjectIndex(SubjectController subjectController){
@@ -79,31 +94,108 @@ public class SubjectIndex extends JInternalFrame{
         subjectIndexParamsPanel.setLayout(null);
         //furnitureIndexResultPanel = new JPanel(new BorderLayout());
         
-        
+        //FILA 1
         codeLabel = new JLabel("Codigo:");
         codeLabel.setBounds(30, 50, 80, 25);
         subjectIndexParamsPanel.add(codeLabel);
         
         codeTextField = new JTextField();
-        codeTextField.setBounds(120, 50, 160, 25);
+        codeTextField.setBounds(160, 50, 170, 25);
         subjectIndexParamsPanel.add(codeTextField);
-
+        
+        addressLabel = new JLabel("Dirección:");
+        addressLabel.setBounds(370, 50, 160, 25);
+        subjectIndexParamsPanel.add(addressLabel);
+        
+        addressTextField = new JTextField();
+        addressTextField.setBounds(440, 50, 170, 25);
+        subjectIndexParamsPanel.add(addressTextField);
+        
+        //FILA 2
         nameLabel = new JLabel("Razón Social:");
-        nameLabel.setBounds(30, 80, 80, 25);
+        nameLabel.setBounds(30, 80, 100, 25);
         subjectIndexParamsPanel.add(nameLabel);
         
         nameTextField = new JTextField();
-        nameTextField.setBounds(120, 80, 160, 25);
+        nameTextField.setBounds(160, 80, 170, 25);
         subjectIndexParamsPanel.add(nameTextField);
         
+        telephoneLabel = new JLabel("Teléfono:");
+        telephoneLabel.setBounds(370, 80, 100, 25);
+        subjectIndexParamsPanel.add(telephoneLabel);
+        
+        telephoneTextField = new JTextField();
+        telephoneTextField.setBounds(440, 80, 170, 25);
+        subjectIndexParamsPanel.add(telephoneTextField);
+        
+        //FILA 3
+        tradenameLabel = new JLabel("Nombre Comercial:");
+        tradenameLabel.setBounds(30, 110, 120, 25);
+        subjectIndexParamsPanel.add(tradenameLabel);
+        
+        tradenameTextField = new JTextField();
+        tradenameTextField.setBounds(160, 110, 170, 25);
+        subjectIndexParamsPanel.add(tradenameTextField);
+        
+        fiscalNumberLabel = new JLabel("RUC / CI:");
+        fiscalNumberLabel.setBounds(370, 110, 120, 25);
+        subjectIndexParamsPanel.add(fiscalNumberLabel);
+        
+        amountFormat = new DecimalFormat("#,###");
+        amountFormat.setGroupingUsed(true);
+        amountFormat.setGroupingSize(3);
+        amountFormat.setParseIntegerOnly(true);
+        
+        fiscalNumberTextField = new NumericTextField(20, amountFormat);
+        fiscalNumberTextField.setBounds(440, 110, 170, 25);
+        fiscalNumberTextField.addKeyListener(new KeyListener() {
+
+                     @Override
+                     public void keyTyped(KeyEvent e) {
+                     }
+
+                     @Override
+                     public void keyPressed(KeyEvent e) {
+                     }
+
+                     @Override
+                     public void keyReleased(KeyEvent e) {
+                         update(e);
+                     }
+                     
+                     public void update(KeyEvent e){
+                         String texto = fiscalNumberTextField.getText();
+                         texto = texto.replaceAll("\\.", "");
+                         if(e.getKeyChar()!=','){
+                            texto = texto.replaceAll(",", ".");
+                            if(!texto.isEmpty()){
+                                fiscalNumberTextField.setValue(Double.valueOf(texto));
+                            }
+                         }else{
+                             texto = texto.replaceAll(",", ".");
+                         }
+                     }
+                 });
+
+        subjectIndexParamsPanel.add(fiscalNumberTextField);
+        
+        //FILA 4
         statusLabel = new JLabel("Activo:");
         statusLabel.setBounds(30, 140, 80, 25);
         subjectIndexParamsPanel.add(statusLabel);
         
         ComboBoxItem[] furnitureStatus = subjectController.getSubjectIsActiveForComboBox();
         subjectStatusComboBox = new JComboBox(furnitureStatus);
-        subjectStatusComboBox.setBounds(120, 140, 160, 25);
+        subjectStatusComboBox.setBounds(160, 140, 170, 25);
         subjectIndexParamsPanel.add(subjectStatusComboBox);
+        
+        cityLabel = new JLabel("Ciudad:");
+        cityLabel.setBounds(370, 140, 80, 25);
+        subjectIndexParamsPanel.add(cityLabel);
+        
+        cityTextField = new JTextField();
+        cityTextField.setBounds(440, 140, 170, 25);
+        subjectIndexParamsPanel.add(cityTextField);
         
         //BOTON DE BUSQUEDA
         searchIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/search_24x24.png"));
@@ -112,7 +204,7 @@ public class SubjectIndex extends JInternalFrame{
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //searchFurnitureButtonAction(e);
+                searchSubjectButtonAction(e);
             }
         });
         subjectIndexParamsPanel.add(searchButton);
@@ -137,7 +229,11 @@ public class SubjectIndex extends JInternalFrame{
         DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
         rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
         
-        subjectController.setSubjectIndexResultsTable(subjectsResultDefaultTableModel, false, null, null);
+        //Formato para celda centrada
+        DefaultTableCellRenderer statusRenderer = new DefaultTableCellRenderer();
+        statusRenderer.setHorizontalAlignment(JLabel.CENTER);
+        
+        subjectController.setSubjectIndexResultsTable(subjectsResultDefaultTableModel, false, null, null, null, null, null, null, null, null);
         subjectsResultTable.setRowHeight(22);
         //ID
         subjectsResultTable.getColumnModel().getColumn(0).setMaxWidth(0);
@@ -148,46 +244,59 @@ public class SubjectIndex extends JInternalFrame{
         subjectsResultTable.getColumnModel().getColumn(1).setMaxWidth(90);
         subjectsResultTable.getColumnModel().getColumn(1).setMinWidth(90);
         
-        //Description
+        //Name
         subjectsResultTable.getColumnModel().getColumn(2).setPreferredWidth(180);
         
-        //Familia
-        /*furnituresResultTable.getColumnModel().getColumn(3).setMaxWidth(120);
-        furnituresResultTable.getColumnModel().getColumn(3).setMinWidth(120);
-        furnituresResultTable.getColumnModel().getColumn(3).setResizable(false);*/
+        //Tradename
+        subjectsResultTable.getColumnModel().getColumn(3).setPreferredWidth(180);
         
-        //UnitPrice
-        /*furnituresResultTable.getColumnModel().getColumn(4).setMaxWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(4).setMinWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(4).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);*/
+        //Address
+        subjectsResultTable.getColumnModel().getColumn(4).setPreferredWidth(180);
         
-        //UnitCostPrice
-        /*furnituresResultTable.getColumnModel().getColumn(5).setMaxWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(5).setMinWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(5).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);*/
+        //City
+        subjectsResultTable.getColumnModel().getColumn(5).setMaxWidth(100);
+        subjectsResultTable.getColumnModel().getColumn(5).setMinWidth(100);
+        subjectsResultTable.getColumnModel().getColumn(5).setResizable(false);
         
-        //FineAmount
-        /*furnituresResultTable.getColumnModel().getColumn(6).setMaxWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(6).setMinWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(6).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
+        //Telephone
+        subjectsResultTable.getColumnModel().getColumn(6).setMaxWidth(100);
+        subjectsResultTable.getColumnModel().getColumn(6).setMinWidth(100);
+        subjectsResultTable.getColumnModel().getColumn(6).setResizable(false);
         
-        //Stock Total
-        furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(7).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(7).setCellRenderer(rightRenderer);
+        //Fiscal Number
+        subjectsResultTable.getColumnModel().getColumn(7).setMaxWidth(100);
+        subjectsResultTable.getColumnModel().getColumn(7).setMinWidth(100);
+        subjectsResultTable.getColumnModel().getColumn(7).setResizable(false);
+        subjectsResultTable.getColumnModel().getColumn(7).setCellRenderer(statusRenderer);
         
-        furnituresResultTable.getColumnModel().getColumn(8).setMaxWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(8).setMinWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(8).setPreferredWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(8).setCellRenderer(new ButtonRenderer());
-        furnituresResultTable.getColumnModel().getColumn(8).setCellEditor(new ButtonEditor(new JTextField()));*/
+        //Activo
+        subjectsResultTable.getColumnModel().getColumn(8).setMaxWidth(50);
+        subjectsResultTable.getColumnModel().getColumn(8).setMinWidth(50);
+        subjectsResultTable.getColumnModel().getColumn(8).setResizable(false);
+        subjectsResultTable.getColumnModel().getColumn(8).setCellRenderer(statusRenderer);
+        
+        //BOTON Activar/Desactivar
+        subjectsResultTable.getColumnModel().getColumn(9).setMaxWidth(90);
+        subjectsResultTable.getColumnModel().getColumn(9).setMinWidth(90);
+        subjectsResultTable.getColumnModel().getColumn(9).setPreferredWidth(90);
+        subjectsResultTable.getColumnModel().getColumn(9).setCellRenderer(new ButtonRenderer());
+        subjectsResultTable.getColumnModel().getColumn(9).setCellEditor(new ButtonEditor(new JTextField()));
+        
+        //BOTON Ver
+        subjectsResultTable.getColumnModel().getColumn(10).setMaxWidth(60);
+        subjectsResultTable.getColumnModel().getColumn(10).setMinWidth(60);
+        subjectsResultTable.getColumnModel().getColumn(10).setPreferredWidth(60);
+        subjectsResultTable.getColumnModel().getColumn(10).setCellRenderer(new ButtonRenderer());
+        subjectsResultTable.getColumnModel().getColumn(10).setCellEditor(new ButtonEditor(new JTextField()));
+        
+        //Status
+        subjectsResultTable.getColumnModel().getColumn(11).setMaxWidth(0);
+        subjectsResultTable.getColumnModel().getColumn(11).setMinWidth(0);
+        subjectsResultTable.getColumnModel().getColumn(11).setPreferredWidth(0);
+        subjectsResultTable.getColumnModel().getColumn(11).setResizable(false);
         
         subjectsResultTableJScrollPane = new JScrollPane();
-        subjectsResultTableJScrollPane.setBounds(30, 240, 850, 300);
+        subjectsResultTableJScrollPane.setBounds(30, 240, 1100, 300);
         subjectsResultTableJScrollPane.setViewportView(subjectsResultTable);
         
         add(subjectsResultTableJScrollPane);
@@ -199,22 +308,28 @@ public class SubjectIndex extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Administrar Clientes");
-        setBounds(200,50,950,800);
+        setBounds(100,50,1200,700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
     }
     
     
-    public void searchFurnitureButtonAction(ActionEvent e) {
+    public void searchSubjectButtonAction(ActionEvent e) {
         String code = codeTextField.getText();
         String name = nameTextField.getText();
-        /*ComboBoxItem status = (ComboBoxItem) subjectStatusComboBox.getSelectedItem();
-        String furnitureStatus = "";
-        if(status!=null){
-            furnitureStatus = status.getKey();
-        }*/
-        subjectController.setSubjectIndexResultsTable(subjectsResultDefaultTableModel, true, code, name);
+        String tradename = tradenameTextField.getText();
+        String address = addressTextField.getText();
+        String city = cityTextField.getText();
+        String telephone = telephoneTextField.getText();
+        String fiscalNumber = fiscalNumberTextField.getText();
+        fiscalNumber = fiscalNumber.replaceAll("\\.", "");
+        ComboBoxItem active = (ComboBoxItem) subjectStatusComboBox.getSelectedItem();
+        String subjectActive = "";
+        if(active!=null){
+            subjectActive = active.getKey();
+        }
+        subjectController.setSubjectIndexResultsTable(subjectsResultDefaultTableModel, true, code, name, tradename, address, city, telephone, subjectActive, fiscalNumber);
     }
     
     private class subjectsIndextResultDefaultTableModel extends DefaultTableModel{

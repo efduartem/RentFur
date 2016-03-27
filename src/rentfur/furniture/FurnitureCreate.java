@@ -70,7 +70,7 @@ public class FurnitureCreate extends JInternalFrame{
     private final JButton saveButton;
     private final ImageIcon cancelIconImage;
     private final JButton cancelButton;
-    private DecimalFormat amountFormat;
+    private final DecimalFormat amountFormat;
     
     public FurnitureCreate(FurnitureController furnitureController){
         this.furnitureController = furnitureController;

@@ -289,7 +289,7 @@ public class SubjectIndex extends JInternalFrame{
         subjectsResultTable.getColumnModel().getColumn(10).setCellRenderer(new ButtonRenderer());
         subjectsResultTable.getColumnModel().getColumn(10).setCellEditor(new ButtonEditor(new JTextField()));
         
-        //Status
+        //Active
         subjectsResultTable.getColumnModel().getColumn(11).setMaxWidth(0);
         subjectsResultTable.getColumnModel().getColumn(11).setMinWidth(0);
         subjectsResultTable.getColumnModel().getColumn(11).setPreferredWidth(0);
@@ -352,7 +352,7 @@ public class SubjectIndex extends JInternalFrame{
         @Override
         public boolean isCellEditable(int row, int column) {
                                                     switch(column){
-                                                        //case 8:     return true;
+                                                        case 9:     return true;
                                                         //case 4:     return true;
                                                         default:    return false;
                                                     }
@@ -393,20 +393,40 @@ public class SubjectIndex extends JInternalFrame{
         subjectController.indexViewClosed();
     }
     
-    public void deleteRowFromResult(int row){
+    public String updateSubjectStatus(int row, String label){
         Vector dataVector = (Vector) subjectsResultDefaultTableModel.getDataVector().get(row);
-        int furnitureId = (Integer) dataVector.get(0);
+        int subjectId = (Integer) dataVector.get(0);
         String code = (String) dataVector.get(1);
-        String description = (String) dataVector.get(2);
-        int respuesta = JOptionPane.showConfirmDialog(this, MessageFormat.format("Confirma que desea inactivar el mobiliario {0} - {1}?", code, description),"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if(respuesta == JOptionPane.YES_OPTION){
-            //HashMap mapReturn = subjectController.inactivateSubject(furnitureId);
-            /*if((Integer) mapReturn.get("status") == subjectController.SUCCESFULLY_SAVED){
-                subjectController.searchSubjectButtonAction();
-            }else if((Integer)mapReturn.get("status") == subjectController.ERROR_IN_SAVED){
-                JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
-            }*/
+        String name = (String) dataVector.get(2);
+        boolean active = (boolean) dataVector.get(11);
+        String valueToReturn = label;
+        int respuesta;
+        HashMap mapReturn;
+        if(active){
+            respuesta = JOptionPane.showConfirmDialog(this, MessageFormat.format("Confirma que desea inactivar el cliente {0} - {1}?", code, name),"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if(respuesta == JOptionPane.YES_OPTION){
+                mapReturn = subjectController.updateSubjectStatus(subjectId, active);
+                if((Integer) mapReturn.get("status") == subjectController.SUCCESFULLY_SAVED){
+                    subjectController.searchSubjectButtonAction();
+                    valueToReturn = "Activar";
+                }else if((Integer)mapReturn.get("status") == subjectController.ERROR_IN_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        }else{
+            respuesta = JOptionPane.showConfirmDialog(this, MessageFormat.format("Confirma que desea activar el usuario {0} - {1}?", code, name),"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if(respuesta == JOptionPane.YES_OPTION){
+                mapReturn = subjectController.updateSubjectStatus(subjectId, active);
+                if((Integer) mapReturn.get("status") == subjectController.SUCCESFULLY_SAVED){
+                    subjectController.searchSubjectButtonAction();
+                    valueToReturn = "Inactivar";
+                }else if((Integer)mapReturn.get("status") == subjectController.ERROR_IN_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+                } 
+            }
         }
+        
+        return valueToReturn;
     }
     
     class ButtonRenderer extends JButton implements TableCellRenderer {
@@ -454,6 +474,7 @@ public class SubjectIndex extends JInternalFrame{
                 fireEditingStopped();
             }
           });
+          this.clickCountToStart = 1;
         }
 
         @Override
@@ -471,6 +492,11 @@ public class SubjectIndex extends JInternalFrame{
         @Override
         public Object getCellEditorValue() {
           if (isPushed) {
+            if(column==9){
+                label = updateSubjectStatus(row, label);
+            }else if(column==7){
+                //showUserShowAndEditView(row);
+            }
                 //deleteRowFromResult(row);
           }
           isPushed = false;

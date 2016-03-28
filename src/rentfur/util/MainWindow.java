@@ -26,6 +26,7 @@ import rentfur.furniture.FurnitureIndex;
 import rentfur.furnitureFamily.FurnitureFamilyCreate;
 import rentfur.position.PositionController;
 import rentfur.position.PositionCreate;
+import rentfur.position.PositionIndex;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
@@ -49,18 +50,21 @@ public class MainWindow extends JFrame{
     private final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
     private final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
     private final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
-     private final JMenuItem managePositionItem = new JMenuItem("Administrar Cargos");
+    private final JMenuItem managePositionItem = new JMenuItem("Administrar Cargos");
     
+    //FURNITURE 
     FurnitureController furnitureController = new FurnitureController();
     FurnitureIndex furnitureIndex;
     FurnitureCreate furnitureCreate;
     FurnitureShowAndEdit furnitureShowAndEdit;
     FurnitureFamilyCreate furnitureFamilyCreate;
     
+    //SUBJECT
     SubjectController subjectController = new SubjectController();
     SubjectIndex subjectIndex;
     SubjectCreate subjectCreate;
     
+    //USER
     UserController userController = new UserController();
     UserShowAndEdit userShowAndEdit;
     UserIndex userIndex;
@@ -69,6 +73,7 @@ public class MainWindow extends JFrame{
     //POSITION
     PositionController positionController = new PositionController();
     PositionCreate positionCreate;
+    PositionIndex positionIndex;
     
     public MainWindow(MainWindowController mainWindowController){
         
@@ -142,7 +147,7 @@ public class MainWindow extends JFrame{
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                setVisiblePositionCreateInternalFrame();
+                setVisiblePositionIndexInternalFrame();
             }
         });
         container=getContentPane();/*instanciamos el contenedor*/
@@ -226,11 +231,17 @@ public class MainWindow extends JFrame{
     }
     
     //POSITION
+    public void setVisiblePositionIndexInternalFrame(){
+        positionIndex = positionController.getPositionIndex(this.mainWindowController);
+        desktop.add(positionIndex);
+    }
+    
+    //Muestra InternalFrame de Creacion de Cargos
     public void setVisiblePositionCreateInternalFrame(){
         positionCreate = positionController.getPositionCreate();
-        desktop.add(positionCreate);
-        //desktop.add(positionCreate, JLayeredPane.MODAL_LAYER);
-        //getContentPane().add(desktop);
+        positionController.setDisabledIndexView();
+        desktop.add(positionCreate, JLayeredPane.MODAL_LAYER);
+        getContentPane().add(desktop);
     }
     
 }

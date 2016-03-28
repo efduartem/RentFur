@@ -53,6 +53,10 @@ public class SubjectController {
         return subjectCreate;
     }
     
+    public void searchSubjectButtonAction(){
+        subjectIndex.searchSubjectButtonAction(null);
+    }
+    
     public HashMap saveSubject(String tradename, String name, String fiscalNumber, String address, String telephone, String city, String documentNumberSelectedItem, String verifyDigit){
          HashMap mapToReturn = new HashMap();
          Connection connRentFur = null;
@@ -207,7 +211,7 @@ public class SubjectController {
                 HashMap resultValueMap;
                 Object[] row;
                 for(int rowNumber = 0; rowNumber < searchResultList.size(); rowNumber++){
-
+                    verificationDigitFiscalNumber = "";
                     row = new Object[subjectResultDefaultTableModel.getColumnCount()];
                     resultValueMap = (HashMap) searchResultList.get(rowNumber);
 
@@ -295,14 +299,14 @@ public class SubjectController {
                 fiscalNumber="";
             }
             
-            StringBuilder furnituriesQuery = new StringBuilder();
-            furnituriesQuery.append("SELECT s.id, s.code, s.name, s.tradename, s.address, s.telephone, s.fiscal_number, s.city, s.is_active FROM subject s");   
-            furnituriesQuery.append(" WHERE s.code ilike ? AND s.name ilike ? AND s.tradename ilike ? AND s.address ilike ? AND s.telephone ilike ? AND s.city ilike ? AND s.fiscal_number ilike ?");
+            StringBuilder subjectsQuery = new StringBuilder();
+            subjectsQuery.append("SELECT s.id, s.code, s.name, s.tradename, s.address, s.telephone, s.fiscal_number, s.city, s.is_active FROM subject s");   
+            subjectsQuery.append(" WHERE s.code ilike ? AND s.name ilike ? AND s.tradename ilike ? AND s.address ilike ? AND s.telephone ilike ? AND s.city ilike ? AND s.fiscal_number ilike ?");
             if(subjectActive!= null && !subjectActive.equals(ALL_VALUES)){
-                furnituriesQuery.append(" AND is_active = ").append(subjectActive);
+                subjectsQuery.append(" AND is_active = ").append(subjectActive);
             }
-            furnituriesQuery.append(" ORDER BY s.code, s.name, s.is_active");
-            ps = connRentFur.prepareStatement(furnituriesQuery.toString());
+            subjectsQuery.append(" ORDER BY s.code, s.name, s.is_active");
+            ps = connRentFur.prepareStatement(subjectsQuery.toString());
             ps.setString(1, "%"+code+"%");
             ps.setString(2, "%"+name+"%");
             ps.setString(3, "%"+tradename+"%");
@@ -343,6 +347,42 @@ public class SubjectController {
         }
         
         return listToReturn;
+    }
+     
+    public HashMap updateSubjectStatus(int subjectId, boolean active){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        
+        try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+            active = !active;
+            connRentFur = DbConnectUtil.getConnection();
+            String userUpdate = "UPDATE subject SET is_active = ? WHERE id = ?";
+            ps = connRentFur.prepareStatement(userUpdate);
+            ps.setBoolean(1, active);
+            ps.setInt(2, subjectId);
+            ps.executeUpdate();
+            ps.close();
+            mapToReturn.put("status", SUCCESFULLY_SAVED);
+            mapToReturn.put("message", "");
+        }catch(Throwable th){
+            mapToReturn.put("message", th.getMessage());
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
     }
    
 }

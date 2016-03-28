@@ -342,8 +342,8 @@ public class PositionCreate extends JInternalFrame{
     public void cancelButtonActionPerformed(ActionEvent evt){
         this.dispose();
         positionController.createViewClosed();
-        //furnitureController.setEnabledIndexView();
-        //furnitureController.searchFurnitureButtonAction();
+        positionController.setEnabledIndexView();
+        positionController.searchPositionButtonAction();
     }
     
     @Override

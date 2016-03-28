@@ -11,15 +11,23 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import javax.swing.JLabel;
+import javax.swing.table.DefaultTableModel;
+import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
+import rentfur.util.MainWindowController;
+import rentfur.util.RoleEntry;
 
 /**
  *
  * @author FDuarte
  */
 public class PositionController {
+    private MainWindowController mainWindowController;
     private PositionCreate positionCreate;
+    private PositionIndex positionIndex;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public final String ROLE_RF_FURNITURE = "ROLE_RF_FURNITURE";
@@ -27,6 +35,7 @@ public class PositionController {
     public final String ROLE_RF_SUBJECT = "ROLE_RF_SUBJECT";
     public final String ROLE_RF_POSITION = "ROLE_RF_POSITION";
     public final String ROLE_RF_USER = "ROLE_RF_USER";
+    public final String ALL_VALUES = "Todos";
     
     
     public PositionCreate getPositionCreate(){
@@ -36,8 +45,36 @@ public class PositionController {
         return positionCreate;
     }
     
+    public PositionIndex getPositionIndex(MainWindowController mainWindowController){
+        if(positionIndex == null){
+            positionIndex = new PositionIndex(this);
+        }
+        this.mainWindowController = mainWindowController;
+        return positionIndex;
+    }
+    
     public void createViewClosed(){
         positionCreate = null;
+    }
+    
+    public void indexViewClosed(){
+        positionIndex = null;
+    }
+    
+    public void getPositionCreateView(){
+        mainWindowController.setVisiblePositionCreateInternalFrame();
+    }
+    
+    public void setDisabledIndexView(){
+        positionIndex.setDisabledElements();
+    }
+    
+    public void setEnabledIndexView(){
+        positionIndex.setEnableddElements();
+    }
+    
+    public void searchPositionButtonAction(){
+        positionIndex.searchPositionButtonAction(null);
     }
     
     public HashMap savePosition(String description, HashMap rolesMap) {
@@ -206,4 +243,187 @@ public class PositionController {
         
         return roleId;
     }
+    
+    public void setPositionIndexResultsTable(DefaultTableModel positionsResultDefaultTableModel, boolean searchPressed, String code, String description, String roleId){
+        
+        try{
+            if(!searchPressed){
+                positionsResultDefaultTableModel.addColumn("Id");
+                positionsResultDefaultTableModel.addColumn("Código");
+                positionsResultDefaultTableModel.addColumn("Descripción");
+                positionsResultDefaultTableModel.addColumn("Permisos");
+                positionsResultDefaultTableModel.addColumn("");
+            }
+            
+            int numeroRegistrosTablaPermisos=0;
+            numeroRegistrosTablaPermisos = positionsResultDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistrosTablaPermisos;i++){
+                positionsResultDefaultTableModel.removeRow(0);
+            }
+            
+            ArrayList searchResultList = getSearchResultList(code, description, roleId);
+            if(searchResultList!=null && !searchResultList.isEmpty()){
+                HashMap resultValueMap;
+                Object[] row;
+                for(int rowNumber = 0; rowNumber < searchResultList.size(); rowNumber++){
+
+                    row = new Object[positionsResultDefaultTableModel.getColumnCount()];
+                    resultValueMap = (HashMap) searchResultList.get(rowNumber);
+
+                    row[0] = resultValueMap.get("id");
+                    row[1] = resultValueMap.get("code");
+                    row[2] = resultValueMap.get("description");
+                    row[3] = resultValueMap.get("roles");//roles;
+                    row[4] = "Ver";
+
+                    positionsResultDefaultTableModel.addRow(row);
+
+                }
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }
+    }
+    
+    public ArrayList getSearchResultList(String code, String description, String roleId){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        PreparedStatement psRole;
+        ResultSet rs;
+        ResultSet rsRole;
+        ArrayList listToReturn = new ArrayList();
+        
+        try{
+            HashMap resultValuesMap;
+            connRentFur = DbConnectUtil.getConnection();
+            
+            if(code==null){
+                code="";
+            }
+            
+            if(description==null){
+                description="";
+            }
+            
+            int roleRows = 0;
+            RoleEntry[] roles = null;
+            String roleQuery = "SELECT pr.only_query, (SELECT r.description FROM role r WHERE r.id = pr.role_id) as roleName FROM position_role pr WHERE pr.position_id = ?";
+            psRole = connRentFur.prepareStatement(roleQuery, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            
+            StringBuilder positionsQuery = new StringBuilder();
+            positionsQuery.append("SELECT p.id, p.code, p.description FROM position p WHERE p.code ilike ? AND p.description ilike ?");            
+            if(roleId!= null && !roleId.equals(ALL_VALUES)){
+                positionsQuery.append(" AND p.id in (SELECT position_id FROM position_role WHERE role_id = ").append(roleId).append(")");
+            }
+            positionsQuery.append(" ORDER BY p.code, p.description");
+            ps = connRentFur.prepareStatement(positionsQuery.toString());
+            
+            ps.setString(1, "%"+code+"%");
+            ps.setString(2, "%"+description+"%");
+            rs = ps.executeQuery();
+            while(rs.next()){
+                resultValuesMap = new HashMap();
+                resultValuesMap.put("id", rs.getInt("id"));
+                resultValuesMap.put("code", rs.getString("code"));
+                resultValuesMap.put("description", rs.getString("description"));
+                
+                psRole.setInt(1, rs.getInt("id"));
+                rsRole = psRole.executeQuery();
+                if (rsRole.last()) {
+                    roleRows = rsRole.getRow();
+                    rsRole.beforeFirst();
+                }
+                roles = new RoleEntry[roleRows];
+                while(rsRole.next()){
+                    if(rsRole.getBoolean("only_query")){
+                        roles[rsRole.getRow()-1] =  new RoleEntry(rsRole.getString("roleName")+" [Solo Consultas]");
+                    }else{
+                        roles[rsRole.getRow()-1] =  new RoleEntry(rsRole.getString("roleName"));
+                    }
+                }
+                resultValuesMap.put("roles", roles);
+                
+                listToReturn.add(resultValuesMap);
+            }
+            rs.close();
+            ps.close();
+
+        }catch(SQLException th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return listToReturn;
+    }
+    
+    public ComboBoxItem[] getRoleForComboBox(boolean addAllOption){
+        ComboBoxItem[] positions = null;
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        try{
+            int rows = 0;
+            connRentFur = DbConnectUtil.getConnection();
+            String positionString = "SELECT id, description FROM role ORDER BY description";
+            
+            ps = connRentFur.prepareStatement(positionString, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            rs = ps.executeQuery();
+            
+            if (rs.last()) {
+                rows = rs.getRow();
+                rs.beforeFirst();
+            }
+            
+            if(addAllOption){
+                positions = new ComboBoxItem[rows+1];
+                positions[0] =  new ComboBoxItem();
+                positions[0].setKey(ALL_VALUES);
+                positions[0].setValue(ALL_VALUES);
+                while(rs.next()){
+                    positions[rs.getRow()] =  new ComboBoxItem();
+                    positions[rs.getRow()].setKey(rs.getString("id"));
+                    positions[rs.getRow()].setValue(rs.getString("description"));
+                }
+            }else{
+                positions = new ComboBoxItem[rows];
+                
+                while(rs.next()){
+                    positions[rs.getRow()-1] =  new ComboBoxItem();
+                    positions[rs.getRow()-1].setKey(rs.getString("id"));
+                    positions[rs.getRow()-1].setValue(rs.getString("description"));
+                }
+            }
+            
+            rs.close();
+            ps.close();
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return positions;
+    }
+    
 }

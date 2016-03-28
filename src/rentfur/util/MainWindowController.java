@@ -47,4 +47,9 @@ public class MainWindowController {
     public void setVisibleUserShowAndEditInternalFrame(int userId){
         mainWindow.setVisibleUserShowAndEditInternalFrame(userId);
     }
+    
+    //POSITION
+    public void setVisiblePositionCreateInternalFrame(){
+        mainWindow.setVisiblePositionCreateInternalFrame();
+    }
 }

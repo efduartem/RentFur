@@ -361,7 +361,13 @@ public class PositionIndex extends JInternalFrame{
         {
             dataVector = (Vector) positionsResultDefaultTableModel.getDataVector().get(row);
             roles = (RoleEntry[]) dataVector.get(3);
-            rowHeight = (roles.length * 22);
+            
+            if(roles.length==0){
+                rowHeight = 22;
+            }else{
+                rowHeight = (roles.length * 22);
+            }
+            
             positionsResultTable.setRowHeight(row, rowHeight);
         }
     }

@@ -39,6 +39,10 @@ public class MainWindowController {
         mainWindow.setVisibleSubjectCreateInternalFrame();
     }
     
+    public void setVisibleSubjectShowAndEditInternalFrame(int subjectId){
+        mainWindow.setVisibleSubjectShowAndEditInternalFrame(subjectId);
+    }
+    
     //USER
     public void setVisibleUserCreateInternalFrame(){
         mainWindow.setVisibleUserCreateInternalFrame();

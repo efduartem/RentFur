@@ -104,7 +104,7 @@ public class SubjectCreate extends JInternalFrame{
             public void itemStateChanged(ItemEvent e) {
                 if(fiscalNumberComboBox.getSelectedItem().equals("RUC")){
                     rucIsEnabled = true;
-                    addVerificationDigitTextField();   
+                    addVerificationDigitTextField();
                 }else{
                     rucIsEnabled = false;
                     fiscalNumberDigitTextField.setVisible(false);

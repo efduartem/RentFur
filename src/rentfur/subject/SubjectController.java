@@ -31,6 +31,7 @@ public class SubjectController {
     private MainWindowController mainWindowController;
     private SubjectCreate subjectCreate;
     private SubjectIndex subjectIndex;
+    private SubjectShowAndEdit subjectShowAndEdit;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public final boolean IS_ACTIVE = true;
@@ -53,6 +54,13 @@ public class SubjectController {
         return subjectCreate;
     }
     
+    public SubjectShowAndEdit getSubjectShowAndEdit(int subjectId){
+        if(subjectShowAndEdit == null){
+            subjectShowAndEdit = new SubjectShowAndEdit(this, subjectId);
+        }
+        return subjectShowAndEdit;
+    }
+    
     public void searchSubjectButtonAction(){
         subjectIndex.searchSubjectButtonAction(null);
     }
@@ -61,8 +69,16 @@ public class SubjectController {
         subjectIndex.setDisabledElements();
     }
     
+    public void showAndEditViewClosed(){
+        subjectShowAndEdit = null;
+    }
+    
     public void setEnabledIndexView(){
         subjectIndex.setEnableddElements();
+    }
+    
+    public void getSubjectShowAndEditView(int subjectId){
+        mainWindowController.setVisibleSubjectShowAndEditInternalFrame(subjectId);
     }
     
     public HashMap saveSubject(String tradename, String name, String fiscalNumber, String address, String telephone, String city, String documentNumberSelectedItem, String verifyDigit){
@@ -73,18 +89,20 @@ public class SubjectController {
              mapToReturn.put("status", ERROR_IN_SAVED);
              mapToReturn.put("message", "");
              
+             fiscalNumber = fiscalNumber.replaceAll("\\.", "");
+            if(documentNumberSelectedItem.equals(SubjectCreate.DOCUMENT_RUC)){
+                fiscalNumber += "-"+verifyDigit;
+            }
+             
              if(name==null || name.equals("")){
                  mapToReturn.put("message", "El campo Razón Social es requerido para la creacion de Cliente");
              }else if(fiscalNumber == null || fiscalNumber.equals("")){
                  mapToReturn.put("message", "El campo Nro de documento es requerido para la creacion de Cliente");
-             }else if(!SQLUtilService.isUniqueFiscalNumber(fiscalNumber.replaceAll("\\.", ""))){
+             }else if(!SQLUtilService.isUniqueFiscalNumber(fiscalNumber)){
                  mapToReturn.put("message", "El Nro de documento ya se encuentra registrado, favor verificar este valor");
              }else{
                    connRentFur = DbConnectUtil.getConnection();
-                   fiscalNumber = fiscalNumber.replaceAll("\\.", "");
-                   if(documentNumberSelectedItem.equals(SubjectCreate.DOCUMENT_RUC)){
-                       fiscalNumber += "-"+verifyDigit;
-                   }
+                   
                    StringBuilder subjectCreateSb = new StringBuilder();
                    subjectCreateSb.append("INSERT INTO subject(id, code, name, address, telephone, fiscal_number, city, is_active, tradename)");
                    subjectCreateSb.append("VALUES ((select nextval('subject_seq')), LPAD(nextval('subject_code_seq')::text, 4, '0'), ?, ?, ?, ?, ?, ?, ?)");
@@ -392,5 +410,145 @@ public class SubjectController {
         }
         return mapToReturn;
     }
-   
+
+    public HashMap getSubjectById(int subjectId){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            StringBuilder subjectQuery = new StringBuilder();
+            subjectQuery.append("SELECT id, code, name, address, telephone, fiscal_number, city, is_active, status, tradename");
+            subjectQuery.append(" FROM subject WHERE id = ?");
+            ps = connRentFur.prepareStatement(subjectQuery.toString());
+            ps.setInt(1, subjectId);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                mapToReturn.put("id",rs.getInt("id"));
+                mapToReturn.put("code",rs.getString("id"));
+                mapToReturn.put("name",rs.getString("name"));
+                if(rs.getString("address") != null){
+                    mapToReturn.put("address",rs.getString("address"));
+                }else{
+                    mapToReturn.put("address","");
+                }
+                if(rs.getString("telephone") != null){
+                     mapToReturn.put("telephone",rs.getString("telephone"));
+                }else{
+                     mapToReturn.put("telephone","");
+                }
+                if(rs.getString("fiscal_number") != null){
+                    mapToReturn.put("fiscalNumber", rs.getString("fiscal_number"));
+                }else{
+                    mapToReturn.put("fiscalNumber", "");
+                }
+                if(rs.getString("city") != null){
+                     mapToReturn.put("city",rs.getString("city"));
+                }else{
+                    mapToReturn.put("city","");
+                }
+                
+                mapToReturn.put("active",rs.getBoolean("is_active"));
+                
+                if(rs.getString("status") != null){
+                    mapToReturn.put("status",rs.getString("status"));
+                }else{
+                    mapToReturn.put("status","");
+                }
+                
+                if(rs.getString("tradename") != null){
+                     mapToReturn.put("tradename",rs.getString("tradename"));
+                }else{
+                     mapToReturn.put("tradename","");
+                }
+            }
+            
+            rs.close();
+            ps.close();
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
+    }
+     
+    public HashMap updateSubject(String name, String tradename, String fiscalNumber, String address, String telephone, String city, boolean active, int subjectId, String verifyDigit, String currentFiscalNumber){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        
+        try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+            fiscalNumber = fiscalNumber.replaceAll("\\.", "");
+            
+            if(!verifyDigit.equals("")){
+                fiscalNumber += "-"+verifyDigit;
+            }
+            
+            if(name==null || name.equals("")){
+                 mapToReturn.put("message", "El campo Razón Social es requerido para la actualizacion de Cliente");
+             }else if(fiscalNumber == null || fiscalNumber.equals("")){
+                 mapToReturn.put("message", "El campo Nro de documento es requerido para la actualizacion de Cliente");
+             }else if(!SQLUtilService.isUniqueFiscalNumber(fiscalNumber) && !currentFiscalNumber.equals(fiscalNumber)){
+                 mapToReturn.put("message", "El Nro. de documento ya se encuentra registrado, favor verificar este valor");
+             }else{
+                
+                Locale pyLocale = new Locale("es", "PY");
+                NumberFormat nf = NumberFormat.getInstance(pyLocale);
+                connRentFur = DbConnectUtil.getConnection();
+                
+                StringBuilder subjectUpdateSb = new StringBuilder();
+                subjectUpdateSb.append("UPDATE subject SET  name=?, tradename=?, address=?, telephone=?, fiscal_number=?,");
+                subjectUpdateSb.append(" city=?, is_active=? WHERE id = ?");
+                
+                
+                
+                ps = connRentFur.prepareStatement(subjectUpdateSb.toString());
+                ps.setString(1, name);
+                ps.setString(2, tradename);
+                ps.setString(3, address);
+                ps.setString(4, telephone);
+                ps.setString(5, fiscalNumber);
+                ps.setString(6, city);
+                ps.setBoolean(7, active);
+                ps.setInt(8, subjectId);
+                
+                ps.executeUpdate();
+                ps.close();
+                mapToReturn.put("status", SUCCESFULLY_SAVED);
+                mapToReturn.put("message", "Cliente actualizado correctamente");
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            mapToReturn.put("message", th.getMessage());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return mapToReturn;
+    }
+     
 }

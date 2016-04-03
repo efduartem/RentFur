@@ -57,9 +57,10 @@ public class SQLUtilService {
         try{
                 connRentFur = DbConnectUtil.getConnection();    
                 StringBuilder countQuery = new StringBuilder();
-                countQuery.append("SELECT count(*) FROM subject WHERE fiscal_number like ? ");
+                countQuery.append("SELECT count(*) FROM subject WHERE fiscal_number = ? ");
                 ps = connRentFur.prepareStatement(countQuery.toString());
-                ps.setString(1, fiscalNumber+"%");
+                ps.setString(1, fiscalNumber);
+                
                 rs = ps.executeQuery();
                 if(rs.next()){
                     if(rs.getInt(1)==0){

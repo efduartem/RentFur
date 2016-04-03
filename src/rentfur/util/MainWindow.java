@@ -33,6 +33,7 @@ import rentfur.provider.ProviderCreate;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
+import rentfur.subject.SubjectShowAndEdit;
 import rentfur.user.UserController;
 import rentfur.user.UserCreate;
 import rentfur.user.UserIndex;
@@ -68,6 +69,7 @@ public class MainWindow extends JFrame{
     SubjectController subjectController = new SubjectController();
     SubjectIndex subjectIndex;
     SubjectCreate subjectCreate;
+    SubjectShowAndEdit subjectShowAndEdit;
     
     //USER
     UserController userController = new UserController();
@@ -229,6 +231,14 @@ public class MainWindow extends JFrame{
         subjectCreate = subjectController.getSubjectCreate();
         subjectController.setDisabledIndexView();
         desktop.add(subjectCreate, JLayeredPane.MODAL_LAYER);
+        getContentPane().add(desktop);
+    }
+    
+    //Muestra InternalFrame de Detalles de un Cliente
+    public void setVisibleSubjectShowAndEditInternalFrame(int subjectId){
+        subjectShowAndEdit = subjectController.getSubjectShowAndEdit(subjectId);
+        subjectController.setDisabledIndexView();
+        desktop.add(subjectShowAndEdit, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);
     }
     

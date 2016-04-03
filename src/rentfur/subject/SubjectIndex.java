@@ -353,7 +353,7 @@ public class SubjectIndex extends JInternalFrame{
         public boolean isCellEditable(int row, int column) {
                                                     switch(column){
                                                         case 9:     return true;
-                                                        //case 4:     return true;
+                                                        case 10:    return true;
                                                         default:    return false;
                                                     }
                                                 }
@@ -426,7 +426,7 @@ public class SubjectIndex extends JInternalFrame{
                 }
             }
         }else{
-            respuesta = JOptionPane.showConfirmDialog(this, MessageFormat.format("Confirma que desea activar el usuario {0} - {1}?", code, name),"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            respuesta = JOptionPane.showConfirmDialog(this, MessageFormat.format("Confirma que desea activar el cliente {0} - {1}?", code, name),"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             if(respuesta == JOptionPane.YES_OPTION){
                 mapReturn = subjectController.updateSubjectStatus(subjectId, active);
                 if((Integer) mapReturn.get("status") == subjectController.SUCCESFULLY_SAVED){
@@ -506,10 +506,9 @@ public class SubjectIndex extends JInternalFrame{
           if (isPushed) {
             if(column==9){
                 label = updateSubjectStatus(row, label);
-            }else if(column==7){
-                //showUserShowAndEditView(row);
+            }else if(column==10){
+                showSubjectShowAndEditView(row);
             }
-                //deleteRowFromResult(row);
           }
           isPushed = false;
           return label;
@@ -524,6 +523,12 @@ public class SubjectIndex extends JInternalFrame{
         @Override
         protected void fireEditingStopped() {
           super.fireEditingStopped();
+        }
+
+        private void showSubjectShowAndEditView(int row) {
+            Vector dataVector = (Vector) subjectsResultDefaultTableModel.getDataVector().get(row);
+            int subjectId = (Integer) dataVector.get(0);
+            subjectController.getSubjectShowAndEditView(subjectId);
         }
       }
 }

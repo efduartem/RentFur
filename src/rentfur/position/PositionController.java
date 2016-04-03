@@ -348,6 +348,7 @@ public class PositionController {
                 
                 psRole.setInt(1, rs.getInt("id"));
                 rsRole = psRole.executeQuery();
+                roleRows = 0;
                 if (rsRole.last()) {
                     roleRows = rsRole.getRow();
                     rsRole.beforeFirst();

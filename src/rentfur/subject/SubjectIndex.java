@@ -367,6 +367,12 @@ public class SubjectIndex extends JInternalFrame{
     public void setDisabledElements(){
         codeTextField.setEditable(false);
         nameTextField.setEditable(false);
+        tradenameTextField.setEditable(false);
+        addressTextField.setEditable(false);
+        telephoneTextField.setEditable(false);
+        cityTextField.setEditable(false);
+        fiscalNumberTextField.setEditable(false);
+        subjectStatusComboBox.setEnabled(false);
         createButton.setEnabled(false);
         searchButton.setEnabled(false);
         this.setClosable(false);
@@ -376,6 +382,12 @@ public class SubjectIndex extends JInternalFrame{
     public void setEnableddElements(){
         codeTextField.setEditable(true);
         nameTextField.setEditable(true);
+        tradenameTextField.setEditable(true);
+        addressTextField.setEditable(true);
+        telephoneTextField.setEditable(true);
+        cityTextField.setEditable(true);
+        fiscalNumberTextField.setEditable(true);
+        subjectStatusComboBox.setEnabled(true);
         searchButton.setEnabled(true);
         createButton.setEnabled(true);
         this.setClosable(true);

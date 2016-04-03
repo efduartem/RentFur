@@ -240,8 +240,8 @@ public class SubjectCreate extends JInternalFrame{
      private void cancelButtonAction(ActionEvent e) {
         this.dispose();
         subjectController.viewClosed();
-        //subjectController.setEnabledIndexView();
-        //subjectController.searchSubjecteButtonAction();
+        subjectController.setEnabledIndexView();
+        subjectController.searchSubjectButtonAction();
     }
      
     private void generateVerificationDidgit(){

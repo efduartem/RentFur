@@ -282,7 +282,7 @@ public class PositionIndex extends JInternalFrame{
         @Override
         public Object getCellEditorValue() {
           if (isPushed) {
-                System.out.println("A PEEER");
+              showUserShowAndEditView(row);
           }
           isPushed = false;          
           return label;
@@ -377,5 +377,11 @@ public class PositionIndex extends JInternalFrame{
         positionController.setPositionIndexResultsTable(positionsResultDefaultTableModel, true, code, description, roleId);
         updateRowHeights(positionsResultTable, positionsResultDefaultTableModel);
 
+    }
+    
+    public void showUserShowAndEditView(int row){
+        Vector dataVector = (Vector) positionsResultDefaultTableModel.getDataVector().get(row);
+        int positionId = (Integer) dataVector.get(0);
+        positionController.getPositionShowAndEditView(positionId);
     }
 }

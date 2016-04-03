@@ -28,6 +28,7 @@ public class PositionController {
     private MainWindowController mainWindowController;
     private PositionCreate positionCreate;
     private PositionIndex positionIndex;
+    private PositionShowAndEdit positionShowAndEdit;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public final String ROLE_RF_FURNITURE = "ROLE_RF_FURNITURE";
@@ -53,6 +54,17 @@ public class PositionController {
         return positionIndex;
     }
     
+    public PositionShowAndEdit getPositionShowAndEdit(int positionId){
+        if(positionShowAndEdit == null){
+            positionShowAndEdit = new PositionShowAndEdit(this,positionId);
+        }
+        return positionShowAndEdit;
+    }
+    
+    public void showAndEditViewClosed(){
+        positionShowAndEdit = null;
+    }
+    
     public void createViewClosed(){
         positionCreate = null;
     }
@@ -75,6 +87,10 @@ public class PositionController {
     
     public void searchPositionButtonAction(){
         positionIndex.searchPositionButtonAction(null);
+    }
+    
+    public void getPositionShowAndEditView(int positionId){
+        mainWindowController.setVisiblePositionShowAndEditInternalFrame(positionId);
     }
     
     public HashMap savePosition(String description, HashMap rolesMap) {
@@ -426,4 +442,256 @@ public class PositionController {
         return positions;
     }
     
+    public HashMap getPositionById(int positionId){
+        HashMap positionMap = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement positionPs;
+        ResultSet positionRs;
+        PreparedStatement rolePs;
+        ResultSet roleRs;
+        try{
+            connRentFur = DbConnectUtil.getConnection();
+            
+            StringBuilder positionSb = new StringBuilder();
+            positionSb.append("SELECT id, code, description FROM position WHERE id = ?");
+            positionPs = connRentFur.prepareStatement(positionSb.toString());
+            positionPs.setInt(1, positionId);
+            
+            positionRs = positionPs.executeQuery();
+            if(positionRs.next()){
+                positionMap.put("id", positionRs.getInt(1));
+                positionMap.put("code", positionRs.getString(2));
+                positionMap.put("description", positionRs.getString(3));
+            }
+            
+            positionPs.close();
+            positionRs.close();
+            
+            StringBuilder roleSb = new StringBuilder();
+            roleSb.append("SELECT (SELECT r.code FROM role r WHERE r.id = pr.role_id) as role, pr.only_query FROM position_role pr WHERE pr.position_id = ?");
+            rolePs = connRentFur.prepareStatement(roleSb.toString());
+            rolePs.setInt(1, positionId);
+            
+            roleRs = rolePs.executeQuery();
+            while(roleRs.next()){
+                positionMap.put(roleRs.getString("role"), roleRs.getBoolean("only_query"));
+            }
+            
+            rolePs.close();
+            roleRs.close();
+
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return positionMap;
+    }
+    
+    public HashMap updatePosition(int positionId, HashMap positionMap, String description, boolean provider, boolean providerOnlyQuery,
+                                    boolean subject, boolean subjectOnlyQuery, boolean furniture, boolean furnitureOnlyQuery,
+                                    boolean users, boolean usersOnlyQuery){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+         try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+            
+            if(description == null || description.trim().equals("")){
+                
+                mapToReturn.put("message", "El campo Descripcion no puede quedar vacio.");
+                
+            }else{
+                
+                boolean currentProviderValue = positionMap.containsKey(ROLE_RF_PROVIDER);
+                if(provider){
+                    if(currentProviderValue){
+                        if(providerOnlyQuery!=Boolean.valueOf(positionMap.get(ROLE_RF_PROVIDER).toString())){
+                            updatePositionOnlyQuery(positionId, ROLE_RF_PROVIDER, providerOnlyQuery);
+                        }
+                    }else{
+                        insertNewPositionRole(positionId, ROLE_RF_PROVIDER, providerOnlyQuery);
+                    }
+                }else{
+                    if(currentProviderValue){
+                        deletePositionRoleValue(positionId, ROLE_RF_PROVIDER);
+                    }
+                }
+                
+                
+                boolean currentSubjectValue = positionMap.containsKey(ROLE_RF_SUBJECT);
+                if(subject){
+                    if(currentSubjectValue){
+                        if(subjectOnlyQuery!=Boolean.valueOf(positionMap.get(ROLE_RF_SUBJECT).toString())){
+                            updatePositionOnlyQuery(positionId, ROLE_RF_SUBJECT, subjectOnlyQuery);
+                        }
+                    }else{
+                        insertNewPositionRole(positionId, ROLE_RF_SUBJECT, subjectOnlyQuery);
+                    }
+                }else{
+                    if(currentSubjectValue){
+                        deletePositionRoleValue(positionId, ROLE_RF_SUBJECT);
+                    }
+                }
+                
+                boolean currentFurnitureValue = positionMap.containsKey(ROLE_RF_FURNITURE);
+                if(furniture){
+                    if(currentFurnitureValue){
+                        if(furnitureOnlyQuery!=Boolean.valueOf(positionMap.get(ROLE_RF_FURNITURE).toString())){
+                            updatePositionOnlyQuery(positionId, ROLE_RF_FURNITURE, furnitureOnlyQuery);
+                        }
+                    }else{
+                        insertNewPositionRole(positionId, ROLE_RF_FURNITURE, furnitureOnlyQuery);
+                    }
+                }else{
+                    if(currentFurnitureValue){
+                        deletePositionRoleValue(positionId, ROLE_RF_FURNITURE);
+                    }
+                }
+                
+                boolean currentUsersValue = positionMap.containsKey(ROLE_RF_USER);
+                if(users){
+                    if(currentUsersValue){
+                        if(usersOnlyQuery!=Boolean.valueOf(positionMap.get(ROLE_RF_USER).toString())){
+                            updatePositionOnlyQuery(positionId, ROLE_RF_USER, usersOnlyQuery);
+                        }
+                    }else{
+                        insertNewPositionRole(positionId, ROLE_RF_USER, usersOnlyQuery);
+                    }
+                }else{
+                    if(currentUsersValue){
+                        deletePositionRoleValue(positionId, ROLE_RF_USER);
+                    }
+                }
+                
+                connRentFur = DbConnectUtil.getConnection();
+                
+                StringBuilder positionUpdateSb = new StringBuilder();
+                positionUpdateSb.append("UPDATE position SET description = ? WHERE id = ?");
+                ps = connRentFur.prepareStatement(positionUpdateSb.toString());
+                ps.setString(1, description);
+                ps.setInt(2, positionId);
+                ps.executeUpdate();
+                ps.close();
+                mapToReturn.put("status", SUCCESFULLY_SAVED);
+                mapToReturn.put("message", "Cargo actualizado correctamente");
+                
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            mapToReturn.put("message", th.getMessage());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
+    }
+    
+    public void deletePositionRoleValue(int positionId, String roleCode){        
+        Connection connRentFur = null;
+        PreparedStatement ps;
+         try{   
+                connRentFur = DbConnectUtil.getConnection();
+                int roleId = getRoleIdByCode(roleCode);
+                StringBuilder positionDeleteSb = new StringBuilder();
+                positionDeleteSb.append("DELETE FROM position_role WHERE position_id = ? AND role_id = ?");
+                
+                ps = connRentFur.prepareStatement(positionDeleteSb.toString());
+                ps.setInt(1, positionId);
+                ps.setInt(2, roleId);
+                ps.executeUpdate();
+                ps.close();
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+    }
+    
+    public void updatePositionOnlyQuery(int positionId, String roleCode, boolean onlyQuery){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+         try{   
+                connRentFur = DbConnectUtil.getConnection();
+                int roleId = getRoleIdByCode(roleCode);
+                StringBuilder positionDeleteSb = new StringBuilder();
+                positionDeleteSb.append("UPDATE position_role set only_query = ? WHERE position_id = ? AND role_id = ?");
+                
+                ps = connRentFur.prepareStatement(positionDeleteSb.toString());
+                ps.setBoolean(1, onlyQuery);
+                ps.setInt(2, positionId);
+                ps.setInt(3, roleId);
+                ps.executeUpdate();
+                ps.close();
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+    }
+    
+    public void insertNewPositionRole(int positionId, String roleCode, boolean onlyQuery){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+         try{   
+                connRentFur = DbConnectUtil.getConnection();
+                int roleId = getRoleIdByCode(roleCode);
+                StringBuilder positionDeleteSb = new StringBuilder();
+                positionDeleteSb.append("INSERT INTO position_role (position_id, role_id, only_query) VALUES (?, ?, ?)");
+                ps = connRentFur.prepareStatement(positionDeleteSb.toString());
+                ps.setInt(1, positionId);
+                ps.setInt(2, roleId);
+                ps.setBoolean(3, onlyQuery);
+                ps.executeUpdate();
+                ps.close();
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+    }
 }

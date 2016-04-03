@@ -52,4 +52,8 @@ public class MainWindowController {
     public void setVisiblePositionCreateInternalFrame(){
         mainWindow.setVisiblePositionCreateInternalFrame();
     }
+    
+    public void setVisiblePositionShowAndEditInternalFrame(int positionId){
+        mainWindow.setVisiblePositionShowAndEditInternalFrame(positionId);
+    }
 }

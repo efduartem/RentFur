@@ -45,7 +45,7 @@ public class UserShowAndEdit extends JInternalFrame{
     private final JComboBox positionComboBox;
     private final JCheckBox statusCheckBox;
     private final ImageIcon editImageIcon;
-    private final ImageIcon createIconImage;
+    private final ImageIcon saveIconImage;
     private final ImageIcon cancelIconImage;
     private final JButton editButton;
     private final JButton saveButton;
@@ -151,8 +151,8 @@ public class UserShowAndEdit extends JInternalFrame{
         });
         userShowAndEditPanel.add(editButton);
         
-        createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
-        saveButton = new JButton(" Guardar", createIconImage);
+        saveIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
+        saveButton = new JButton(" Guardar", saveIconImage);
         saveButton.setBounds(60, 240, 120, 32);
         saveButton.addActionListener(new ActionListener() {
             @Override

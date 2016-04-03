@@ -57,6 +57,14 @@ public class SubjectController {
         subjectIndex.searchSubjectButtonAction(null);
     }
     
+    public void setDisabledIndexView(){
+        subjectIndex.setDisabledElements();
+    }
+    
+    public void setEnabledIndexView(){
+        subjectIndex.setEnableddElements();
+    }
+    
     public HashMap saveSubject(String tradename, String name, String fiscalNumber, String address, String telephone, String city, String documentNumberSelectedItem, String verifyDigit){
          HashMap mapToReturn = new HashMap();
          Connection connRentFur = null;

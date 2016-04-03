@@ -27,6 +27,7 @@ import rentfur.furnitureFamily.FurnitureFamilyCreate;
 import rentfur.position.PositionController;
 import rentfur.position.PositionCreate;
 import rentfur.position.PositionIndex;
+import rentfur.position.PositionShowAndEdit;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
@@ -74,6 +75,7 @@ public class MainWindow extends JFrame{
     PositionController positionController = new PositionController();
     PositionCreate positionCreate;
     PositionIndex positionIndex;
+    PositionShowAndEdit positionShowAndEdit;
     
     public MainWindow(MainWindowController mainWindowController){
         
@@ -203,6 +205,7 @@ public class MainWindow extends JFrame{
     
     public void setVisibleSubjectCreateInternalFrame(){
         subjectCreate = subjectController.getSubjectCreate();
+        subjectController.setDisabledIndexView();
         desktop.add(subjectCreate, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);
     }
@@ -241,6 +244,14 @@ public class MainWindow extends JFrame{
         positionCreate = positionController.getPositionCreate();
         positionController.setDisabledIndexView();
         desktop.add(positionCreate, JLayeredPane.MODAL_LAYER);
+        getContentPane().add(desktop);
+    }
+    
+    //Muestra InternalFrame de Detalles de un Mobiliario
+    public void setVisiblePositionShowAndEditInternalFrame(int positionId){
+        positionShowAndEdit = positionController.getPositionShowAndEdit(positionId);
+        positionController.setDisabledIndexView();
+        desktop.add(positionShowAndEdit, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);
     }
     

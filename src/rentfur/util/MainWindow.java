@@ -28,6 +28,8 @@ import rentfur.position.PositionController;
 import rentfur.position.PositionCreate;
 import rentfur.position.PositionIndex;
 import rentfur.position.PositionShowAndEdit;
+import rentfur.provider.ProviderController;
+import rentfur.provider.ProviderCreate;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
@@ -47,9 +49,11 @@ public class MainWindow extends JFrame{
     private final JMenuBar menuBar = new JMenuBar();
     private final JMenu furnitureMenu = new JMenu("Mobiliarios");
     private final JMenu subjectMenu = new JMenu("Clientes");
+    private final JMenu providerMenu = new JMenu("Proveedores");
     private final JMenu organizationMenu = new JMenu("Organización");
     private final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
     private final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
+    private final JMenuItem manageProviderItem = new JMenuItem("Administrar Proveedores");
     private final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
     private final JMenuItem managePositionItem = new JMenuItem("Administrar Cargos");
     
@@ -77,6 +81,10 @@ public class MainWindow extends JFrame{
     PositionIndex positionIndex;
     PositionShowAndEdit positionShowAndEdit;
     
+    //PROVIDER
+    ProviderController providerController = new ProviderController();
+    ProviderCreate providerCreate;
+    
     public MainWindow(MainWindowController mainWindowController){
         
         this.mainWindowController = mainWindowController;
@@ -103,21 +111,27 @@ public class MainWindow extends JFrame{
         subjectMenu.setIcon(subjectIconImage);
         menuBar.add(subjectMenu);
             subjectMenu.add(manageSubjectItem);
+            
+        //Provider
+        //ImageIcon subjectIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/subject_24x24.png"));
+        //providerMenu.setIcon(subjectIconImage);
+        menuBar.add(providerMenu);
+            providerMenu.add(manageProviderItem);
         
         //Organization
         ImageIcon organizationIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/organization_24x24.png"));
         organizationMenu.setIcon(organizationIconImage);
         menuBar.add(organizationMenu);
         
-            //Users
-            ImageIcon userIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/users_24x24.png"));
-            manageUserItem.setIcon(userIconImage);
-            organizationMenu.add(manageUserItem);
-        
-            //Position
-            ImageIcon positionIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/position_24x24.png"));
-            managePositionItem.setIcon(positionIconImage);
-            organizationMenu.add(managePositionItem);
+        //Users
+        ImageIcon userIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/users_24x24.png"));
+        manageUserItem.setIcon(userIconImage);
+        organizationMenu.add(manageUserItem);
+
+        //Position
+        ImageIcon positionIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/position_24x24.png"));
+        managePositionItem.setIcon(positionIconImage);
+        organizationMenu.add(managePositionItem);
         
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
@@ -134,6 +148,14 @@ public class MainWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 setVisibleSubjectIndexInternalFrame();
+            }
+        });
+        
+        manageProviderItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleProviderIndexInternalFrame();
             }
         });
         
@@ -208,6 +230,12 @@ public class MainWindow extends JFrame{
         subjectController.setDisabledIndexView();
         desktop.add(subjectCreate, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);
+    }
+    
+    //PROVIDER
+    public void setVisibleProviderIndexInternalFrame(){
+        providerCreate = providerController.getProviderCreate();
+        desktop.add(providerCreate);
     }
 
     

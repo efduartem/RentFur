@@ -7,6 +7,7 @@
 package rentfur.util;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -57,7 +58,7 @@ public class MainWindow extends JFrame{
     private final JMenuItem manageProviderItem = new JMenuItem("Administrar Proveedores");
     private final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
     private final JMenuItem managePositionItem = new JMenuItem("Administrar Cargos");
-    
+    UserRoles userRoles = new UserRoles();
     //FURNITURE 
     FurnitureController furnitureController = new FurnitureController();
     FurnitureIndex furnitureIndex;
@@ -95,31 +96,48 @@ public class MainWindow extends JFrame{
         /*Asigna un titulo a la barra de titulo*/
         setTitle("RentFur");
         /*tamaño de la ventana*/
-        setSize(1400,950);
+        setSize(1350,850);
+        desktop.setBackground(new Color(204, 204, 204));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         /*pone la ventana en el Centro de la pantalla*/
         setLocationRelativeTo(null);
     }
     
     public void initComponents(){
+        
         //Furniture
         ImageIcon furnitureIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/furniture_24x24.png"));
         furnitureMenu.setIcon(furnitureIconImage);
         menuBar.add(furnitureMenu);
             furnitureMenu.add(manageFurnitureItem);
         
+        if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_FURNITURE)){
+            manageFurnitureItem.setEnabled(false);
+            manageFurnitureItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Mobiliarios");
+        }
+            
         //Subject
         ImageIcon subjectIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/subject_24x24.png"));
         subjectMenu.setIcon(subjectIconImage);
         menuBar.add(subjectMenu);
             subjectMenu.add(manageSubjectItem);
+        
+        if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_SUBJECT)){
+            manageSubjectItem.setEnabled(false);
+            manageSubjectItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Clientes");
+        }
             
         //Provider
-        //ImageIcon subjectIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/subject_24x24.png"));
-        //providerMenu.setIcon(subjectIconImage);
+        ImageIcon providerIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/provider_32x32.png"));
+        providerMenu.setIcon(providerIconImage);
         menuBar.add(providerMenu);
             providerMenu.add(manageProviderItem);
         
+        if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_PROVIDER)){
+            manageProviderItem.setEnabled(false);
+            manageProviderItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Proveedores");
+        }
+            
         //Organization
         ImageIcon organizationIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/organization_24x24.png"));
         organizationMenu.setIcon(organizationIconImage);
@@ -130,10 +148,20 @@ public class MainWindow extends JFrame{
         manageUserItem.setIcon(userIconImage);
         organizationMenu.add(manageUserItem);
 
+        if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_USER)){
+            manageUserItem.setEnabled(false);
+            manageUserItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Usuarios");
+        }
+        
         //Position
         ImageIcon positionIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/position_24x24.png"));
         managePositionItem.setIcon(positionIconImage);
         organizationMenu.add(managePositionItem);
+        
+        /*if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_POSITION)){
+            managePositionItem.setEnabled(false);
+            managePositionItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Cargos");
+        }*/
         
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
@@ -192,14 +220,14 @@ public class MainWindow extends JFrame{
     //FURNITURE
     //Muestra InternalFrame de Busqueda de Mobiliatios
     public void setVisibleFurnitureIndexInternalFrame(){
-        furnitureIndex = furnitureController.getFurnitureIndex(this.mainWindowController);
+        furnitureIndex = furnitureController.getFurnitureIndex(this.mainWindowController, userRoles);
         desktop.add(furnitureIndex);
         
     }
     
     //Muestra InternalFrame de Detalles de un Mobiliario
     public void setVisibleFurnitureShowAndEditInternalFrame(int furnitureId){
-        furnitureShowAndEdit = furnitureController.getFurnitureShowAndEdit(furnitureId);
+        furnitureShowAndEdit = furnitureController.getFurnitureShowAndEdit(furnitureId, userRoles);
         furnitureController.setDisabledIndexView();
         desktop.add(furnitureShowAndEdit, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);

@@ -31,7 +31,7 @@ public class PositionController {
     private PositionShowAndEdit positionShowAndEdit;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
-    public final String ROLE_RF_FURNITURE = "ROLE_RF_FURNITURE";
+    public static final String ROLE_RF_FURNITURE = "ROLE_RF_FURNITURE";
     public final String ROLE_RF_PROVIDER = "ROLE_RF_PROVIDER";
     public final String ROLE_RF_SUBJECT = "ROLE_RF_SUBJECT";
     public final String ROLE_RF_POSITION = "ROLE_RF_POSITION";

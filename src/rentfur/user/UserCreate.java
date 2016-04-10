@@ -6,6 +6,7 @@
 
 package rentfur.user;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
@@ -14,10 +15,14 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 import rentfur.util.ComboBoxItem;
 
 /**
@@ -41,6 +46,7 @@ public class UserCreate extends JInternalFrame{
     private final ImageIcon cancelIconImage;
     private final JButton saveButton;
     private final JButton cancelButton;
+    String[] tooltips;
     
     public UserCreate(UserController userController){
         this.userController = userController;
@@ -85,7 +91,22 @@ public class UserCreate extends JInternalFrame{
         userCreatePanel.add(positionLabel);
         
         ComboBoxItem[] positionsComboBox = userController.getPositionForComboBox(false);
+        ComboBoxItem positionComboBoxItem = null;
+        tooltips = new String[positionsComboBox.length];//{ "Javanese ", "Japanese ", "Latin " };
+        
+        for (int i = 0; i < positionsComboBox.length; i++) {
+            positionComboBoxItem = positionsComboBox[i];
+            if(positionComboBoxItem.isEnable()){
+                tooltips[i] = "";
+            }else{
+                tooltips[i] = "El Cargo no cuenta con permisos asignados";
+            }
+            
+        }
+        
         positionComboBox = new JComboBox(positionsComboBox);
+        positionComboBox.addActionListener(new ComboListener(positionComboBox));
+        positionComboBox.setRenderer(new ComboRenderer());
         positionComboBox.setBounds(200, 140, 160, 25);
         userCreatePanel.add(positionComboBox);
         
@@ -159,4 +180,54 @@ public class UserCreate extends JInternalFrame{
     public void doDefaultCloseAction() {
         cancelButtonAction(null);
     }
+    
+    class ComboRenderer extends JLabel implements ListCellRenderer {
+
+        public ComboRenderer() {
+          setOpaque(true);
+          setBorder(new EmptyBorder(1, 1, 1, 1));
+        }
+
+        public Component getListCellRendererComponent(JList list, Object value,
+            int index, boolean isSelected, boolean cellHasFocus) {
+          if (isSelected) {
+            setBackground(list.getSelectionBackground());
+            setForeground(list.getSelectionForeground());
+            if (-1 < index) {
+                list.setToolTipText(tooltips[index]);
+            }
+          } else {
+            setBackground(list.getBackground());
+            setForeground(list.getForeground());
+          }
+          if (!((ComboBoxItem) value).isEnable()) {
+            setBackground(list.getBackground());
+            setForeground(UIManager.getColor("Label.disabledForeground"));
+          }
+          setFont(list.getFont());
+          setText((value == null) ? "" : value.toString());
+          return this;
+        }
+      }
+     
+     class ComboListener implements ActionListener {
+        JComboBox combo;
+
+        Object currentItem;
+
+        ComboListener(JComboBox combo) {
+          this.combo = combo;
+          combo.setSelectedIndex(0);
+          currentItem = combo.getSelectedItem();
+        }
+
+        public void actionPerformed(ActionEvent e) {
+          Object tempItem = combo.getSelectedItem();
+          if (!((ComboBoxItem)tempItem).isEnable()) {
+            combo.setSelectedItem(currentItem);
+          } else {
+            currentItem = tempItem;
+          }
+        }
+      }
 }

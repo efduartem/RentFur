@@ -23,8 +23,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -58,7 +60,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
     private final JButton cancelButton;
     private DecimalFormat amountFormat;
     
-    public FurnitureShowAndEdit(FurnitureController furnitureController, final int furnitureId){
+    public FurnitureShowAndEdit(FurnitureController furnitureController, final int furnitureId, UserRoles userRoles){
         this.furnitureController = furnitureController;
         
         HashMap furnituteMap = furnitureController.getFurnitureById(furnitureId);
@@ -266,6 +268,13 @@ public class FurnitureShowAndEdit extends JInternalFrame{
                 enabledEditActions(e);
             }
         });
+        
+        if((Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_FURNITURE)){
+            String message = "Su usuario solo cuenta con permiso de consultas";
+            editButton.setEnabled(false);
+            editButton.setToolTipText(message);
+        }
+        
         furnitureShowAndEditPanel.add(editButton);
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));

@@ -21,6 +21,7 @@ import rentfur.furnitureFamily.FurnitureFamilyCreate;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -44,17 +45,17 @@ public class FurnitureController {
         return furnitureCreate;
     }
     
-    public FurnitureIndex getFurnitureIndex(MainWindowController mainWindowController){
+    public FurnitureIndex getFurnitureIndex(MainWindowController mainWindowController, UserRoles userRoles){
         if(furnitureIndex == null){
-            furnitureIndex = new FurnitureIndex(this);
+            furnitureIndex = new FurnitureIndex(this, userRoles);
         }
         this.mainWindowController = mainWindowController;
         return furnitureIndex;
     }
     
-    public FurnitureShowAndEdit getFurnitureShowAndEdit(int furnitureId){
+    public FurnitureShowAndEdit getFurnitureShowAndEdit(int furnitureId, UserRoles userRoles){
         if(furnitureShowAndEdit == null){
-            furnitureShowAndEdit = new FurnitureShowAndEdit(this, furnitureId);
+            furnitureShowAndEdit = new FurnitureShowAndEdit(this, furnitureId, userRoles);
         }
         return furnitureShowAndEdit;
     }

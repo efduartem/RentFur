@@ -94,7 +94,7 @@ public class UserController {
         try{
             int rows = 0;
             connRentFur = DbConnectUtil.getConnection();
-            String positionString = "SELECT id, description FROM position ORDER BY description";
+            String positionString = "SELECT p.id, p.description, CASE WHEN (SELECT count(*) FROM position_role pr where pr.position_id = p.id) > 0 THEN true ELSE false END as haveRole FROM position p ORDER BY p.description";
             
             ps = connRentFur.prepareStatement(positionString, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             rs = ps.executeQuery();
@@ -110,7 +110,7 @@ public class UserController {
                 positions[0].setKey(ALL_VALUES);
                 positions[0].setValue(ALL_VALUES);
                 while(rs.next()){
-                    positions[rs.getRow()] =  new ComboBoxItem();
+                    positions[rs.getRow()] =  new ComboBoxItem(rs.getBoolean("haveRole"));
                     positions[rs.getRow()].setKey(rs.getString("id"));
                     positions[rs.getRow()].setValue(rs.getString("description"));
                 }
@@ -118,7 +118,7 @@ public class UserController {
                 positions = new ComboBoxItem[rows];
                 
                 while(rs.next()){
-                    positions[rs.getRow()-1] =  new ComboBoxItem();
+                    positions[rs.getRow()-1] =  new ComboBoxItem(rs.getBoolean("haveRole"));
                     positions[rs.getRow()-1].setKey(rs.getString("id"));
                     positions[rs.getRow()-1].setValue(rs.getString("description"));
                 }

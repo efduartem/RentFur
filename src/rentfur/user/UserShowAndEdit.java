@@ -6,6 +6,7 @@
 
 package rentfur.user;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
@@ -15,11 +16,15 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
+import javax.swing.UIManager;
 import static javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE;
+import javax.swing.border.EmptyBorder;
 import rentfur.util.ComboBoxItem;
 
 /**
@@ -50,6 +55,9 @@ public class UserShowAndEdit extends JInternalFrame{
     private final JButton editButton;
     private final JButton saveButton;
     private final JButton cancelButton;
+    String[] tooltips;
+    private int positionComboBoxDefaultItemIndex = 0;
+            
     public UserShowAndEdit(UserController userController, final int userId){
         this.userController = userController;
         
@@ -59,29 +67,29 @@ public class UserShowAndEdit extends JInternalFrame{
         HashMap usersMap = userController.getUserById(userId);        
         
         codeLabel = new JLabel("Codigo:");
-        codeLabel.setBounds(50,20, 100, 25);
+        codeLabel.setBounds(50,20, 120, 25);
         userShowAndEditPanel.add(codeLabel);
         
         userTextField = new JTextField((String) usersMap.get("code"));
-        userTextField.setBounds(180, 20, 160, 25);
+        userTextField.setBounds(200, 20, 160, 25);
         userTextField.setEditable(false);
         userShowAndEditPanel.add(userTextField);
         
         usernameLabel = new JLabel("Nombre usuario:");
-        usernameLabel.setBounds(50,50, 100, 25);
+        usernameLabel.setBounds(50,50, 120, 25);
         userShowAndEditPanel.add(usernameLabel);
         
         usernameTextField = new JTextField((String) usersMap.get("username"));
-        usernameTextField.setBounds(180, 50, 160, 25);
+        usernameTextField.setBounds(200, 50, 160, 25);
         usernameTextField.setEditable(false);
         userShowAndEditPanel.add(usernameTextField);
         
         fullnameLabel = new JLabel("Nombre completo:");
-        fullnameLabel.setBounds(50,80, 100, 25);
+        fullnameLabel.setBounds(50,80, 140, 25);
         userShowAndEditPanel.add(fullnameLabel);
         
         fullnameTextField = new JTextField((String) usersMap.get("fullname"));
-        fullnameTextField.setBounds(180, 80, 160, 25);
+        fullnameTextField.setBounds(200, 80, 160, 25);
         fullnameTextField.setEditable(false);
         userShowAndEditPanel.add(fullnameTextField);
         
@@ -91,15 +99,31 @@ public class UserShowAndEdit extends JInternalFrame{
         
         ComboBoxItem[] positionsComboBox = userController.getPositionForComboBox(false);
         ComboBoxItem positionComboBoxItem = null;
-        for (ComboBoxItem positionsComboBoxFor : positionsComboBox) {
-            positionComboBoxItem = positionsComboBoxFor;
+        
+        tooltips = new String[positionsComboBox.length];//{ "Javanese ", "Japanese ", "Latin " };
+        
+        for (int i = 0; i < positionsComboBox.length; i++) {
+            positionComboBoxItem = positionsComboBox[i];
+            if(positionComboBoxItem.isEnable()){
+                tooltips[i] = "";
+            }else{
+                tooltips[i] = "El Cargo no cuenta con permisos asignados";
+            }
+            
+        }
+        
+        for (int i = 0; i < positionsComboBox.length; i++) {
+            positionComboBoxItem = positionsComboBox[i];
             if(positionComboBoxItem.getKey().equals(usersMap.get("positionId").toString())){
+                positionComboBoxDefaultItemIndex = i;
                 break;
             }
         }
+        
         positionComboBox = new JComboBox(positionsComboBox);
-        positionComboBox.setSelectedItem(positionComboBoxItem);
-        positionComboBox.setBounds(180, 110, 160, 25);
+        positionComboBox.addActionListener(new ComboListener(positionComboBox));
+        positionComboBox.setRenderer(new ComboRenderer());
+        positionComboBox.setBounds(200, 110, 160, 25);
         positionComboBox.setEnabled(false);
         userShowAndEditPanel.add(positionComboBox);
         
@@ -110,7 +134,7 @@ public class UserShowAndEdit extends JInternalFrame{
         boolean status = Boolean.valueOf(usersMap.get("active").toString());
         
         statusCheckBox = new JCheckBox("", status);
-        statusCheckBox.setBounds(180, 140, 160, 25);
+        statusCheckBox.setBounds(200, 140, 160, 25);
         statusCheckBox.setEnabled(false);
         userShowAndEditPanel.add(statusCheckBox);
                 
@@ -119,22 +143,22 @@ public class UserShowAndEdit extends JInternalFrame{
         userShowAndEditPanel.add(passwordLabel);
         
         newPasswordLabel = new JLabel("Nueva Contraseña:");
-        newPasswordLabel.setBounds(50,170, 100, 25);
+        newPasswordLabel.setBounds(50,170, 140, 25);
         newPasswordLabel.setVisible(false);
         userShowAndEditPanel.add(newPasswordLabel);
         
         passwordPasswordField = new JPasswordField((String) usersMap.get("password"));
-        passwordPasswordField.setBounds(180, 170, 160, 25);
+        passwordPasswordField.setBounds(200, 170, 160, 25);
         passwordPasswordField.setEditable(false);
         userShowAndEditPanel.add(passwordPasswordField);
         
         confirmPasswordLabel = new JLabel("Confirmar contraseña:");
-        confirmPasswordLabel.setBounds(50,200, 110, 25);
+        confirmPasswordLabel.setBounds(50,200, 140, 25);
         confirmPasswordLabel.setVisible(false);
         userShowAndEditPanel.add(confirmPasswordLabel);
         
         confirmPasswordField = new JPasswordField((String) usersMap.get("password"));
-        confirmPasswordField.setBounds(180, 200, 160, 25);
+        confirmPasswordField.setBounds(200, 200, 160, 25);
         confirmPasswordField.setVisible(false);
         userShowAndEditPanel.add(confirmPasswordField);
         
@@ -247,4 +271,54 @@ public class UserShowAndEdit extends JInternalFrame{
         userController.setEnabledIndexView();
         userController.searchUserButtonAction();
     }
+    
+    class ComboRenderer extends JLabel implements ListCellRenderer {
+
+        public ComboRenderer() {
+          setOpaque(true);
+          setBorder(new EmptyBorder(1, 1, 1, 1));
+        }
+
+        public Component getListCellRendererComponent(JList list, Object value,
+            int index, boolean isSelected, boolean cellHasFocus) {
+          if (isSelected) {
+            setBackground(list.getSelectionBackground());
+            setForeground(list.getSelectionForeground());
+            if (-1 < index) {
+                list.setToolTipText(tooltips[index]);
+            }
+          } else {
+            setBackground(list.getBackground());
+            setForeground(list.getForeground());
+          }
+          if (!((ComboBoxItem) value).isEnable()) {
+            setBackground(list.getBackground());
+            setForeground(UIManager.getColor("Label.disabledForeground"));
+          }
+          setFont(list.getFont());
+          setText((value == null) ? "" : value.toString());
+          return this;
+        }
+      }
+     
+     class ComboListener implements ActionListener {
+        JComboBox combo;
+
+        Object currentItem;
+
+        ComboListener(JComboBox combo) {
+          this.combo = combo;
+          combo.setSelectedIndex(positionComboBoxDefaultItemIndex);
+          currentItem = combo.getSelectedItem();
+        }
+
+        public void actionPerformed(ActionEvent e) {
+          Object tempItem = combo.getSelectedItem();
+          if (!((ComboBoxItem)tempItem).isEnable()) {
+            combo.setSelectedItem(currentItem);
+          } else {
+            currentItem = tempItem;
+          }
+        }
+      }
 }

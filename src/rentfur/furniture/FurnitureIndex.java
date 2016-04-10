@@ -27,7 +27,9 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -53,10 +55,14 @@ public class FurnitureIndex extends JInternalFrame{
     private final JTable furnituresResultTable;
     private DefaultTableModel furnituresResultDefaultTableModel;
     private final JScrollPane furnituresResultTableJScrollPane;
+    private boolean onlyQuery = false;
     
-    
-    public FurnitureIndex(FurnitureController furnitureController){
+    public FurnitureIndex(FurnitureController furnitureController, UserRoles userRoles){
         this.furnitureController = furnitureController;
+        
+        if((Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_FURNITURE)){
+            onlyQuery = true;
+        }
         
         furnitureIndexParamsPanel = new JPanel();
         furnitureIndexParamsPanel.setLayout(null);
@@ -119,6 +125,7 @@ public class FurnitureIndex extends JInternalFrame{
                 getFurnitureCreate();
             }
         });
+        
         furnitureIndexParamsPanel.add(createFurnitureButton);
         
         //BOTON PARA CREAR FAMILIA DE MOBILIARIOS
@@ -131,6 +138,14 @@ public class FurnitureIndex extends JInternalFrame{
             }
         });
         furnitureIndexParamsPanel.add(createFurnitureFamilyButton);
+        
+        if(onlyQuery){
+            String message = "Su usuario solo cuenta con permiso de consultas";
+            createFurnitureButton.setEnabled(false);
+            createFurnitureFamilyButton.setEnabled(false);
+            createFurnitureButton.setToolTipText(message);
+            createFurnitureFamilyButton.setToolTipText(message);
+        }
         
         //TABLA DE RESULTADOS
         furnituresResultDefaultTableModel = new furnituresIndextResultDefaultTableModel();
@@ -391,6 +406,13 @@ public class FurnitureIndex extends JInternalFrame{
           } else {
             setForeground(table.getForeground());
             setBackground(UIManager.getColor("Button.background"));
+          }
+          if(column==9){
+              if(onlyQuery){
+                    String message = "Su usuario solo cuenta con permiso de consultas";
+                    setEnabled(false);
+                    setToolTipText(message);
+                }
           }
           setText((value == null) ? "" : value.toString());
           return this;

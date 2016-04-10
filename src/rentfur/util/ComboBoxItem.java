@@ -13,14 +13,29 @@ package rentfur.util;
 public class ComboBoxItem {
     private String key;
     private String value;
+    private boolean enable;
 
     public ComboBoxItem() {
+        this.enable = true;
+    }
+    
+    public ComboBoxItem(boolean enable)
+    {
+        this.enable = enable;
     }
 
     public ComboBoxItem(String key, String value)
     {
         this.key = key;
         this.value = value;
+        this.enable = true;
+    }
+    
+    public ComboBoxItem(String key, String value, boolean enable)
+    {
+        this.key = key;
+        this.value = value;
+        this.enable = enable;
     }
 
     public void setKey(String key) {
@@ -46,5 +61,12 @@ public class ComboBoxItem {
         return value;
     }
     
+    public boolean isEnable() {
+        return enable;
+    }
+
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
     
 }

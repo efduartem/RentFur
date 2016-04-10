@@ -17,7 +17,6 @@ public class MainWindowController {
         if(mainWindow==null){
             mainWindow = new MainWindow(this);
         }
-        
         return mainWindow;
     }
     

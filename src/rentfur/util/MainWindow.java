@@ -113,7 +113,7 @@ public class MainWindow extends JFrame{
         menuBar.add(furnitureMenu);
             furnitureMenu.add(manageFurnitureItem);
         
-        if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_FURNITURE)){
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_FURNITURE)){
             manageFurnitureItem.setEnabled(false);
             manageFurnitureItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Mobiliarios");
         }
@@ -124,7 +124,7 @@ public class MainWindow extends JFrame{
         menuBar.add(subjectMenu);
             subjectMenu.add(manageSubjectItem);
         
-        if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_SUBJECT)){
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_SUBJECT)){
             manageSubjectItem.setEnabled(false);
             manageSubjectItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Clientes");
         }
@@ -135,7 +135,7 @@ public class MainWindow extends JFrame{
         menuBar.add(providerMenu);
             providerMenu.add(manageProviderItem);
         
-        if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_PROVIDER)){
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_PROVIDER)){
             manageProviderItem.setEnabled(false);
             manageProviderItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Proveedores");
         }
@@ -150,7 +150,7 @@ public class MainWindow extends JFrame{
         manageUserItem.setIcon(userIconImage);
         organizationMenu.add(manageUserItem);
 
-        if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_USER)){
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_USER)){
             manageUserItem.setEnabled(false);
             manageUserItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Usuarios");
         }
@@ -253,7 +253,7 @@ public class MainWindow extends JFrame{
     
     //SUBJECT
     public void setVisibleSubjectIndexInternalFrame(){
-        subjectIndex = subjectController.getSubjectIndex(this.mainWindowController);
+        subjectIndex = subjectController.getSubjectIndex(this.mainWindowController, userRoles);
         desktop.add(subjectIndex);
     }
     
@@ -266,7 +266,7 @@ public class MainWindow extends JFrame{
     
     //Muestra InternalFrame de Detalles de un Cliente
     public void setVisibleSubjectShowAndEditInternalFrame(int subjectId){
-        subjectShowAndEdit = subjectController.getSubjectShowAndEdit(subjectId);
+        subjectShowAndEdit = subjectController.getSubjectShowAndEdit(subjectId, userRoles);
         subjectController.setDisabledIndexView();
         desktop.add(subjectShowAndEdit, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);

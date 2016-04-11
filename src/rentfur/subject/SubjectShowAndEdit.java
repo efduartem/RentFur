@@ -25,7 +25,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import rentfur.position.PositionController;
 import rentfur.util.NumericTextField;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -63,7 +65,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
     private HashMap subjectMap;
     private boolean rucIsEnabled = false;
      
-    public SubjectShowAndEdit(SubjectController subjectController, final int subjectId){
+    public SubjectShowAndEdit(SubjectController subjectController, final int subjectId, UserRoles userRoles){
         this.subjectController = subjectController;
         
         subjectShowAndEditPanel = new JPanel();
@@ -92,6 +94,13 @@ public class SubjectShowAndEdit extends JInternalFrame{
                 enabledEditActions(e);
             }
         });
+        
+        if((Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_SUBJECT)){
+            String message = "Su usuario solo cuenta con permiso de consultas";
+            editButton.setEnabled(false);
+            editButton.setToolTipText(message);
+        }
+        
         subjectShowAndEditPanel.add(editButton);
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));

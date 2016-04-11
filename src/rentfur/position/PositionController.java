@@ -32,10 +32,10 @@ public class PositionController {
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public static final String ROLE_RF_FURNITURE = "ROLE_RF_FURNITURE";
-    public final String ROLE_RF_PROVIDER = "ROLE_RF_PROVIDER";
-    public final String ROLE_RF_SUBJECT = "ROLE_RF_SUBJECT";
-    public final String ROLE_RF_POSITION = "ROLE_RF_POSITION";
-    public final String ROLE_RF_USER = "ROLE_RF_USER";
+    public static final String ROLE_RF_PROVIDER = "ROLE_RF_PROVIDER";
+    public static final String ROLE_RF_SUBJECT = "ROLE_RF_SUBJECT";
+    public static final String ROLE_RF_POSITION = "ROLE_RF_POSITION";
+    public static final String ROLE_RF_USER = "ROLE_RF_USER";
     public final String ALL_VALUES = "Todos";
     
     

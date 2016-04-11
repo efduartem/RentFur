@@ -30,8 +30,10 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -64,10 +66,15 @@ public class SubjectIndex extends JInternalFrame{
     private final DefaultTableModel subjectsResultDefaultTableModel;
     private final JScrollPane subjectsResultTableJScrollPane;
     private final DecimalFormat amountFormat;
+    private boolean onlyQuery = false;
     
     
-    public SubjectIndex(SubjectController subjectController){
+    public SubjectIndex(SubjectController subjectController, UserRoles userRoles){
         this.subjectController = subjectController;
+        
+        if((Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_SUBJECT)){
+            onlyQuery = true;
+        }
         
         subjectIndexParamsPanel = new JPanel();
         subjectIndexParamsPanel.setLayout(null);
@@ -198,6 +205,12 @@ public class SubjectIndex extends JInternalFrame{
             }
         });
         subjectIndexParamsPanel.add(createButton);
+        
+        if(onlyQuery){
+            String message = "Su usuario solo cuenta con permiso de consultas";
+            createButton.setEnabled(false);
+            createButton.setToolTipText(message);
+        }
         
         //TABLA DE RESULTADOS
         subjectsResultDefaultTableModel = new subjectsIndextResultDefaultTableModel();
@@ -358,6 +371,9 @@ public class SubjectIndex extends JInternalFrame{
     }
     
     public void setEnableddElements(){
+        if(!onlyQuery){
+            createButton.setEnabled(true);
+        }
         codeTextField.setEditable(true);
         nameTextField.setEditable(true);
         tradenameTextField.setEditable(true);
@@ -367,7 +383,6 @@ public class SubjectIndex extends JInternalFrame{
         fiscalNumberTextField.setEditable(true);
         subjectStatusComboBox.setEnabled(true);
         searchButton.setEnabled(true);
-        createButton.setEnabled(true);
         this.setClosable(true);
         subjectsResultTable.setEnabled(true);
     }
@@ -434,6 +449,13 @@ public class SubjectIndex extends JInternalFrame{
             setForeground(table.getForeground());
             setBackground(UIManager.getColor("Button.background"));
           }
+          if(column==9){
+              if(onlyQuery){
+                    String message = "Su usuario solo cuenta con permiso de consultas";
+                    setEnabled(false);
+                    setToolTipText(message);
+                }
+          }
           setText((value == null) ? "" : value.toString());
           return this;
         }
@@ -483,7 +505,9 @@ public class SubjectIndex extends JInternalFrame{
         public Object getCellEditorValue() {
           if (isPushed) {
             if(column==9){
-                label = updateSubjectStatus(row, label);
+                if(!onlyQuery){
+                    label = updateSubjectStatus(row, label);
+                }
             }else if(column==10){
                 showSubjectShowAndEditView(row);
             }

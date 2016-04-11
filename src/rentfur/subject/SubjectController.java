@@ -22,6 +22,7 @@ import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
 import rentfur.util.SQLUtilService;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -39,9 +40,9 @@ public class SubjectController {
     public final String TABLE_NAME = "subject";
     public final String ALL_VALUES = "Todos";
     
-    public SubjectIndex getSubjectIndex(MainWindowController mainWindowController){
+    public SubjectIndex getSubjectIndex(MainWindowController mainWindowController, UserRoles userRoles){
         if( subjectIndex == null){
-            subjectIndex = new SubjectIndex(this);
+            subjectIndex = new SubjectIndex(this, userRoles);
         }
         this.mainWindowController = mainWindowController;
         return subjectIndex;
@@ -54,9 +55,9 @@ public class SubjectController {
         return subjectCreate;
     }
     
-    public SubjectShowAndEdit getSubjectShowAndEdit(int subjectId){
+    public SubjectShowAndEdit getSubjectShowAndEdit(int subjectId, UserRoles userRoles){
         if(subjectShowAndEdit == null){
-            subjectShowAndEdit = new SubjectShowAndEdit(this, subjectId);
+            subjectShowAndEdit = new SubjectShowAndEdit(this, subjectId, userRoles);
         }
         return subjectShowAndEdit;
     }

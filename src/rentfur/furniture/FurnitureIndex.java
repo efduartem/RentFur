@@ -329,12 +329,14 @@ public class FurnitureIndex extends JInternalFrame{
     }
     
     public void setEnableddElements(){
+        if(!onlyQuery){
+            createFurnitureButton.setEnabled(true);
+            createFurnitureFamilyButton.setEnabled(true);
+        }
         codeTextField.setEditable(true);
         descriptionTextField.setEditable(true);
         furnitureFamilyComboBox.setEnabled(true);
-        createFurnitureButton.setEnabled(true);
-        searchFurnitureButton.setEnabled(true);
-        createFurnitureFamilyButton.setEnabled(true);
+        searchFurnitureButton.setEnabled(true);        
         this.setClosable(true);
         furnituresResultTable.setEnabled(true);
         furnitureStatusComboBox.setEnabled(true);
@@ -463,7 +465,9 @@ public class FurnitureIndex extends JInternalFrame{
         public Object getCellEditorValue() {
           if (isPushed) {
                 if(column==9){
-                    label = updateFurnitureStatus(row, label);
+                    if(!onlyQuery){
+                        label = updateFurnitureStatus(row, label);
+                    }
                 }else if(column==10){
                     showFurnitureShowAndEditView(row);
                 }

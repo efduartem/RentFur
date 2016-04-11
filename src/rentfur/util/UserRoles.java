@@ -14,7 +14,16 @@ import java.util.HashMap;
  */
 public class UserRoles {
     public static HashMap rolesMap = new HashMap();
+    private static User user;
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+    
     public UserRoles() {
     }
     

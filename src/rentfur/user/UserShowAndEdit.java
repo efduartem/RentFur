@@ -25,7 +25,9 @@ import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import static javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE;
 import javax.swing.border.EmptyBorder;
+import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -58,7 +60,7 @@ public class UserShowAndEdit extends JInternalFrame{
     String[] tooltips;
     private int positionComboBoxDefaultItemIndex = 0;
             
-    public UserShowAndEdit(UserController userController, final int userId){
+    public UserShowAndEdit(UserController userController, final int userId, final UserRoles userRoles){
         this.userController = userController;
         
         userShowAndEditPanel = new JPanel();
@@ -173,6 +175,11 @@ public class UserShowAndEdit extends JInternalFrame{
                 editButtonAction(e);
             }
         });
+        if((Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_USER)){
+            String message = "Su usuario solo cuenta con permiso de consultas";
+            editButton.setEnabled(false);
+            editButton.setToolTipText(message);
+        }
         userShowAndEditPanel.add(editButton);
         
         saveIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
@@ -181,7 +188,7 @@ public class UserShowAndEdit extends JInternalFrame{
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                saveButtonAction(e, userId);
+                saveButtonAction(e, userId, userRoles);
             }
         });
         saveButton.setVisible(false);
@@ -226,7 +233,7 @@ public class UserShowAndEdit extends JInternalFrame{
         cancelButton.setVisible(true);
     }
     
-     private void saveButtonAction(ActionEvent e, int userId) {
+     private void saveButtonAction(ActionEvent e, int userId, UserRoles userRoles) {
         String username = usernameTextField.getText();
         String fullname = fullnameTextField.getText();
         String password = String.valueOf(passwordPasswordField.getPassword());
@@ -242,6 +249,8 @@ public class UserShowAndEdit extends JInternalFrame{
         HashMap mapReturn = userController.updateUser(userId, username, fullname, password, confirmPassword, positionId, status);
         if((Integer) mapReturn.get("status") == userController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
+            userRoles.getUser().setUserName(username);
+            userRoles.getUser().setFullName(fullname);
             cancelButtonAction(null);
         }else if((Integer)mapReturn.get("status") == userController.ERROR_IN_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);

@@ -25,7 +25,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import rentfur.position.PositionController;
 import rentfur.util.NumericTextField;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -62,7 +64,7 @@ public class ProviderShowAndEdit extends JInternalFrame{
     private final ImageIcon editIconImage;
     private final ImageIcon cancelIconImage;
     HashMap providerMap;
-    public ProviderShowAndEdit(ProviderController providerController, final int providerId){
+    public ProviderShowAndEdit(ProviderController providerController, final int providerId, UserRoles userRoles){
         this.providerController = providerController;
         
         providerShowAndEditPanel = new JPanel();
@@ -237,6 +239,11 @@ public class ProviderShowAndEdit extends JInternalFrame{
                 enabledEditActions(e);
             }
         });
+        if((Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_PROVIDER)){
+            String message = "Su usuario solo cuenta con permiso de consultas";
+            editButton.setEnabled(false);
+            editButton.setToolTipText(message);
+        }
         providerShowAndEditPanel.add(editButton);
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));

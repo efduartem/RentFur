@@ -20,6 +20,7 @@ import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
 import rentfur.util.SQLUtilService;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -35,9 +36,9 @@ public class ProviderController {
     public final boolean IS_ACTIVE = true;
     public final String ALL_VALUES = "Todos";
     
-    public ProviderIndex getProviderIndex(MainWindowController mainWindowController){
+    public ProviderIndex getProviderIndex(MainWindowController mainWindowController, UserRoles userRoles){
         if(providerIndex == null){
-            providerIndex = new ProviderIndex(this);
+            providerIndex = new ProviderIndex(this, userRoles);
         }
         this.mainWindowController = mainWindowController;
         return providerIndex;
@@ -66,9 +67,9 @@ public class ProviderController {
         providerIndex = null;
     }
     
-    public ProviderShowAndEdit getProviderShowAndEdit(int providerId){
+    public ProviderShowAndEdit getProviderShowAndEdit(int providerId, UserRoles userRoles){
          if(providerShowAndEdit == null){
-            providerShowAndEdit = new ProviderShowAndEdit(this, providerId);
+            providerShowAndEdit = new ProviderShowAndEdit(this, providerId, userRoles);
         }
         return providerShowAndEdit;
     }

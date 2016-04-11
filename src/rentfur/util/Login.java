@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -270,21 +269,34 @@ public class Login extends JFrame {
             PreparedStatement ps = null;
             ResultSet rs = null;
             HashMap rolesMap = new HashMap();
+            int userId = 0;
             String userCode = "";
+            String username = "";
+            String fullname = "";
+            String position = "";
+            boolean active = false;
             int positionId = 0;
             try{
                 String password = new String(passwordPasswordField.getPassword());
                 usuariosConnection=DbConnectUtil.getConnection();
-                String validacionUsuario = "SELECT code, position_id FROM users WHERE username = ? AND password = ?";
+                String validacionUsuario = "SELECT id, code, username, fullname, active, (SELECT description FROM position p WHERE p.id = position_id) as position, position_id FROM users WHERE username = ? AND password = ?";
                 ps = usuariosConnection.prepareStatement(validacionUsuario);
                 ps.setString(1, usernameTextField.getText());
                 ps.setString(2, password);
                 rs = ps.executeQuery();
                 if(rs.next()){
+                    userId = rs.getInt("id");
                     userCode = rs.getString("code");
+                    username = rs.getString("username");
+                    fullname = rs.getString("fullname");
+                    active = rs.getBoolean("active");
+                    position = rs.getString("position");
                     positionId = rs.getInt("position_id");
                 }
-                if(!userCode.equals("")){
+                
+                User user = new User(userId, userCode, username, fullname, active, position);
+                
+                if(!userCode.equals("") && active){
                     String query="SELECT (SELECT code FROM role WHERE id = pr.role_id) as code, pr.only_query FROM position_role pr WHERE pr.position_id = ?";
                     ps = usuariosConnection.prepareStatement(query);
                     ps.setInt(1, positionId);
@@ -293,8 +305,13 @@ public class Login extends JFrame {
                         rolesMap.put(rs.getString("code"), rs.getBoolean("only_query"));
                     }
                     roles.setRolesMap(rolesMap);
+                    roles.setUser(user);
                     showMainWindow();
                     this.dispose();
+                }else if(!active){
+                    JOptionPane.showMessageDialog(null,"Usuario desactivado, favor comunicarse con el Administrador del Sistema",
+                    "Acceso al Sistema", JOptionPane.WARNING_MESSAGE);
+                    this.passwordPasswordField.setText("");
                 }else{
                     JOptionPane.showMessageDialog(null,"Nombre de usuario o contraseña incorrectos",
                     "Acceso al Sistema", JOptionPane.WARNING_MESSAGE);

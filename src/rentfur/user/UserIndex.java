@@ -30,7 +30,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -56,9 +58,14 @@ public class UserIndex extends JInternalFrame{
     private final JTable usersResultTable;
     private DefaultTableModel usersResultDefaultTableModel;
     private final JScrollPane usersResultTableJScrollPane;
+    private boolean onlyQuery = false;
     
-    public UserIndex(UserController userController){
+    public UserIndex(UserController userController, UserRoles userRoles){
         this.userController = userController;
+        
+        if((Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_USER)){
+            onlyQuery = true;
+        }
         
         userIndexParamsPanel = new JPanel();
         userIndexParamsPanel.setLayout(null);
@@ -128,6 +135,12 @@ public class UserIndex extends JInternalFrame{
             }
         });
         userIndexParamsPanel.add(createUserButton);
+        
+        if(onlyQuery){
+            String message = "Su usuario solo cuenta con permiso de consultas";
+            createUserButton.setEnabled(false);
+            createUserButton.setToolTipText(message);
+        }
         
         //TABLA DE RESULTADOS
         usersResultDefaultTableModel = new usersIndextResultDefaultTableModel();
@@ -276,11 +289,13 @@ public class UserIndex extends JInternalFrame{
     }
     
     public void setEnableddElements(){
+        if(!onlyQuery){
+            createUserButton.setEnabled(true);
+        }
         codeTextField.setEditable(true);
         fullnameTextField.setEditable(true);
         usernameTextField.setEditable(true);
         positionComboBox.setEnabled(true);
-        createUserButton.setEnabled(true);
         searchUserButton.setEnabled(true);
         this.setClosable(true);
         usersResultTable.setEnabled(true);
@@ -344,6 +359,13 @@ public class UserIndex extends JInternalFrame{
             setForeground(table.getForeground());
             setBackground(UIManager.getColor("Button.background"));
           }
+          if(column==6){
+              if(onlyQuery){
+                    String message = "Su usuario solo cuenta con permiso de consultas";
+                    setEnabled(false);
+                    setToolTipText(message);
+                }
+          }
           setText((value == null) ? "" : value.toString());
           return this;
         }
@@ -393,7 +415,9 @@ public class UserIndex extends JInternalFrame{
         public Object getCellEditorValue() {
           if (isPushed) {
                 if(column==6){
-                    label = updateUserStatus(row, label);
+                    if(!onlyQuery){
+                        label = updateUserStatus(row, label);
+                    }
                 }else if(column==7){
                     showUserShowAndEditView(row);
                 }

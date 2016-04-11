@@ -10,9 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -21,6 +19,7 @@ import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
 import rentfur.util.SQLUtilService;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -43,16 +42,16 @@ public class UserController {
         return userCreate;
     }
     
-    public UserShowAndEdit getUserShowAndEdit(int userId){
+    public UserShowAndEdit getUserShowAndEdit(int userId, UserRoles userRoles){
         if(userShowAndEdit == null){
-            userShowAndEdit = new UserShowAndEdit(this,userId);
+            userShowAndEdit = new UserShowAndEdit(this,userId, userRoles);
         }
         return userShowAndEdit;
     }
     
-    public UserIndex getUserIndex(MainWindowController mainWindowController){
+    public UserIndex getUserIndex(MainWindowController mainWindowController, UserRoles userRoles){
         if(userIndex == null){
-            userIndex = new UserIndex(this);
+            userIndex = new UserIndex(this, userRoles);
         }
         this.mainWindowController = mainWindowController;
         return userIndex;
@@ -236,6 +235,7 @@ public class UserController {
                 ps.close();
                 mapToReturn.put("status", SUCCESFULLY_SAVED);
                 mapToReturn.put("message", "Usuario modificado correctamente");
+                
             }
             
         }catch(Throwable th){

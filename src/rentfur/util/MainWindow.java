@@ -9,6 +9,7 @@ package rentfur.util;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
@@ -96,7 +97,8 @@ public class MainWindow extends JFrame{
         /*permite iniciar las propiedades de los componentes*/
         initComponents();
         /*Asigna un titulo a la barra de titulo*/
-        setTitle("RentFur");
+        setTitle("RentFur ["+userRoles.getUser().getUserName()+" - "+userRoles.getUser().getFullName()+"] - "+userRoles.getUser().getPosition());
+        setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/rentfur/util/image/rentfur_icon.png")));
         /*tamaño de la ventana*/
         setSize(1350,850);
         desktop.setBackground(new Color(204, 204, 204));
@@ -274,7 +276,7 @@ public class MainWindow extends JFrame{
     
     //PROVIDER
     public void setVisibleProviderIndexInternalFrame(){
-        providerIndex = providerController.getProviderIndex(this.mainWindowController);
+        providerIndex = providerController.getProviderIndex(this.mainWindowController, userRoles);
         desktop.add(providerIndex);
     }
     
@@ -286,7 +288,7 @@ public class MainWindow extends JFrame{
     }
     
     public void setVisibleProviderShowAndEditInternalFrame(int providerId){
-        providerShowAndEdit = providerController.getProviderShowAndEdit(providerId);
+        providerShowAndEdit = providerController.getProviderShowAndEdit(providerId, userRoles);
         providerController.setDisabledIndexView();
         desktop.add(providerShowAndEdit, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);
@@ -295,7 +297,7 @@ public class MainWindow extends JFrame{
     
     //USER
     public void setVisibleUserIndexInternalFrame(){
-        userIndex = userController.getUserIndex(this.mainWindowController);
+        userIndex = userController.getUserIndex(this.mainWindowController, userRoles);
         desktop.add(userIndex);
     }
     
@@ -309,7 +311,7 @@ public class MainWindow extends JFrame{
     
     //Muestra InternalFrame de Detalles de un Mobiliario
     public void setVisibleUserShowAndEditInternalFrame(int userId){
-        userShowAndEdit = userController.getUserShowAndEdit(userId);
+        userShowAndEdit = userController.getUserShowAndEdit(userId, userRoles);
         userController.setDisabledIndexView();
         desktop.add(userShowAndEdit, JLayeredPane.MODAL_LAYER);
         getContentPane().add(desktop);

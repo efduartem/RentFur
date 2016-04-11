@@ -30,8 +30,10 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
+import rentfur.util.UserRoles;
 
 
 /**
@@ -65,10 +67,14 @@ public class ProviderIndex extends JInternalFrame{
     private final JButton searchButton;
     private final ImageIcon createIconImage;
     private final JButton createButton;
+    private boolean onlyQuery = false;
     
-    
-    public ProviderIndex(ProviderController providerController){
+    public ProviderIndex(ProviderController providerController, UserRoles userRoles){
         this.providerController = providerController;
+        
+        if((Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_PROVIDER)){
+            onlyQuery = true;
+        }
         
         providerIndexParamsPanel = new JPanel();
         providerIndexParamsPanel.setLayout(null);
@@ -199,6 +205,12 @@ public class ProviderIndex extends JInternalFrame{
             }
         });
         providerIndexParamsPanel.add(createButton);
+        
+        if(onlyQuery){
+            String message = "Su usuario solo cuenta con permiso de consultas";
+            createButton.setEnabled(false);
+            createButton.setToolTipText(message);
+        }
         
         //TABLA DE RESULTADOS
         providerResultDefaultTableModel = new providerIndextResultDefaultTableModel();
@@ -352,6 +364,13 @@ public class ProviderIndex extends JInternalFrame{
             setForeground(table.getForeground());
             setBackground(UIManager.getColor("Button.background"));
           }
+          if(column==9){
+              if(onlyQuery){
+                    String message = "Su usuario solo cuenta con permiso de consultas";
+                    setEnabled(false);
+                    setToolTipText(message);
+                }
+          }
           setText((value == null) ? "" : value.toString());
           return this;
         }
@@ -397,7 +416,9 @@ public class ProviderIndex extends JInternalFrame{
         public Object getCellEditorValue() {
           if (isPushed) {
             if(column==9){
-                label = updateProviderStatus(row, label);
+                if(!onlyQuery){
+                    label = updateProviderStatus(row, label);
+                }
             }else if(column==10){
                 showProviderShowAndEditView(row);
             }
@@ -480,6 +501,9 @@ public class ProviderIndex extends JInternalFrame{
     }
     
     public void setEnabledElements(){
+        if(!onlyQuery){
+            createButton.setEnabled(true);
+        }
         codeTextField.setEditable(true);
         nameTextField.setEditable(true);
         tradenameTextField.setEditable(true);
@@ -489,7 +513,6 @@ public class ProviderIndex extends JInternalFrame{
         fiscalNumberTextField.setEditable(true);
         providerStatusComboBox.setEnabled(true);
         searchButton.setEnabled(true);
-        createButton.setEnabled(true);
         this.setClosable(true);
         providerResultTable.setEnabled(true);
     }

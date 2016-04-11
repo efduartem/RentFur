@@ -25,7 +25,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
 
 /**
@@ -261,7 +260,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         setMaximizable(false);
         setResizable(false);
         setClosable(true);
-        setTitle("Crear Cliente");
+        setTitle("Detalles ["+subjectMap.get("code").toString()+" - "+subjectMap.get("name").toString()+"]");
         setBounds(400,220,450,380);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);

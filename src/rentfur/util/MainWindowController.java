@@ -59,4 +59,14 @@ public class MainWindowController {
     public void setVisiblePositionShowAndEditInternalFrame(int positionId){
         mainWindow.setVisiblePositionShowAndEditInternalFrame(positionId);
     }
+    
+    //PROVIDER
+    public void setVisibleProviderCreateInternalFrame(){
+        mainWindow.setVisibleProviderCreateInternalFrame();
+    }
+    
+    public void setVisibleProviderShowAndEditInternalFrame(int providerId){
+        mainWindow.setVisibleProviderShowAndEditInternalFrame(providerId);
+    }
+    
 }

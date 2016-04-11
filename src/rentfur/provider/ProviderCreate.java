@@ -221,6 +221,7 @@ public class ProviderCreate extends JInternalFrame{
         HashMap mapReturn = providerController.saveProvider(tradename, name, fiscalNumber, address, telephone, city, documentNumberSelectedItem, verifyDigit);
          if((Integer) mapReturn.get("status") == providerController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
+            cancelButtonAction(null);
         }else if((Integer)mapReturn.get("status") == providerController.ERROR_IN_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
         }
@@ -234,6 +235,8 @@ public class ProviderCreate extends JInternalFrame{
      private void cancelButtonAction(ActionEvent e) {
         this.dispose();
         providerController.viewClosed();
+        providerController.setEnabledIndexView();
+        providerController.searchProviderButtonAction();
     }
     
     private void generateVerificationDidgit(){

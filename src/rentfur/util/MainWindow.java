@@ -9,13 +9,11 @@ package rentfur.util;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -31,6 +29,8 @@ import rentfur.position.PositionIndex;
 import rentfur.position.PositionShowAndEdit;
 import rentfur.provider.ProviderController;
 import rentfur.provider.ProviderCreate;
+import rentfur.provider.ProviderIndex;
+import rentfur.provider.ProviderShowAndEdit;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
@@ -87,6 +87,8 @@ public class MainWindow extends JFrame{
     //PROVIDER
     ProviderController providerController = new ProviderController();
     ProviderCreate providerCreate;
+    ProviderIndex providerIndex;
+    ProviderShowAndEdit providerShowAndEdit;
     
     public MainWindow(MainWindowController mainWindowController){
         
@@ -272,8 +274,22 @@ public class MainWindow extends JFrame{
     
     //PROVIDER
     public void setVisibleProviderIndexInternalFrame(){
+        providerIndex = providerController.getProviderIndex(this.mainWindowController);
+        desktop.add(providerIndex);
+    }
+    
+    public void setVisibleProviderCreateInternalFrame(){
         providerCreate = providerController.getProviderCreate();
-        desktop.add(providerCreate);
+        providerController.setDisabledIndexView();
+        desktop.add(providerCreate, JLayeredPane.MODAL_LAYER);
+        getContentPane().add(desktop);
+    }
+    
+    public void setVisibleProviderShowAndEditInternalFrame(int providerId){
+        providerShowAndEdit = providerController.getProviderShowAndEdit(providerId);
+        providerController.setDisabledIndexView();
+        desktop.add(providerShowAndEdit, JLayeredPane.MODAL_LAYER);
+        getContentPane().add(desktop);
     }
 
     

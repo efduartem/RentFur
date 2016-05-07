@@ -85,4 +85,39 @@ public class SQLUtilService {
         
         return valueToReturn;
     }
+    
+    public static String getSystemConfigurationValue(String key){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        String valueToReturn = "";
+        try{
+                connRentFur = DbConnectUtil.getConnection();    
+                StringBuilder countQuery = new StringBuilder();
+                countQuery.append("SELECT value FROM system_configuration WHERE key = ? ");
+                ps = connRentFur.prepareStatement(countQuery.toString());
+                ps.setString(1, key);
+                
+                rs = ps.executeQuery();
+                if(rs.next()){
+                    valueToReturn = rs.getString("value");
+                }
+                ps.close();
+                rs.close();
+        }catch(SQLException e){
+            System.err.println(e.getMessage());
+            System.err.println(e);
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return valueToReturn;
+    }
 }

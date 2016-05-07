@@ -58,7 +58,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
     private final JButton saveButton;
     private final JButton editButton;
     private final JButton cancelButton;
-    private DecimalFormat amountFormat;
+    private final DecimalFormat amountFormat;
     
     public FurnitureShowAndEdit(FurnitureController furnitureController, final int furnitureId, UserRoles userRoles){
         this.furnitureController = furnitureController;

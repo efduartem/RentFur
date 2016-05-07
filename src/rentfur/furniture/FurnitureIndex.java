@@ -45,7 +45,7 @@ public class FurnitureIndex extends JInternalFrame{
     private final JLabel statusLabel;
     private final JTextField codeTextField;
     private final JTextField descriptionTextField;
-    private JComboBox furnitureFamilyComboBox;
+    private final JComboBox furnitureFamilyComboBox;
     private final JComboBox furnitureStatusComboBox;
     private final ImageIcon searchFurnitureIconImage;
     private final JButton searchFurnitureButton;
@@ -53,7 +53,7 @@ public class FurnitureIndex extends JInternalFrame{
     private final JButton createFurnitureButton;
     private final JButton createFurnitureFamilyButton;
     private final JTable furnituresResultTable;
-    private DefaultTableModel furnituresResultDefaultTableModel;
+    private final DefaultTableModel furnituresResultDefaultTableModel;
     private final JScrollPane furnituresResultTableJScrollPane;
     private boolean onlyQuery = false;
     

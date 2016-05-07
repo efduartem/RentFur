@@ -34,7 +34,7 @@ import rentfur.util.UserRoles;
  * @author hp
  */
 public class SubjectShowAndEdit extends JInternalFrame{
-    private SubjectController subjectController;
+    private final SubjectController subjectController;
     private final JPanel subjectShowAndEditPanel;
     private final JLabel codeLabel;
     private final JLabel nameLabel;
@@ -60,9 +60,9 @@ public class SubjectShowAndEdit extends JInternalFrame{
     private final JButton saveButton;
     private final JButton editButton;
     private final JButton cancelButton;
-    private String fiscalNumber;
+    private final String fiscalNumber;
     private String fiscalNumberVerificationDigit = "";
-    private HashMap subjectMap;
+    private final HashMap subjectMap;
     private boolean rucIsEnabled = false;
      
     public SubjectShowAndEdit(SubjectController subjectController, final int subjectId, UserRoles userRoles){
@@ -71,7 +71,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         subjectShowAndEditPanel = new JPanel();
         subjectShowAndEditPanel.setLayout(null);
         
-        subjectMap = subjectController.getSubjectById(subjectId);
+        subjectMap = SubjectController.getSubjectById(subjectId);
         
         saveIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
         saveButton = new JButton(" Guardar", saveIconImage);

@@ -6,26 +6,16 @@
 
 package rentfur.furniture;
 
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.FieldPosition;
-import java.text.Format;
-import java.text.NumberFormat;
-import java.text.ParsePosition;
 import java.util.HashMap;
-import java.util.Locale;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -33,14 +23,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.InternalFrameListener;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.DocumentFilter;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
 
@@ -57,6 +39,7 @@ public class FurnitureCreate extends JInternalFrame{
     private final JLabel unitPriceLabel;
     private final JLabel unitCostPriceLabel;
     private final JLabel fineAmountPerUnitLabel;
+    private final JLabel taxRateLabel;
     private final JLabel activeLabel;
     private final JLabel observationLabel;
     private final JTextField descriptionTextField;
@@ -64,6 +47,7 @@ public class FurnitureCreate extends JInternalFrame{
     private final NumericTextField unitPriceTextField;
     private final NumericTextField unitCostPriceTextField;
     private final NumericTextField fineAmountPerUnitTextField;
+    private final JComboBox taxRateComboBox;
     private final JCheckBox activeCheckBox;
     private final JTextArea observationTextArea;
     private final ImageIcon createIconImage;
@@ -91,7 +75,7 @@ public class FurnitureCreate extends JInternalFrame{
         familyLabel.setBounds(50,50, 100, 25);
         furnitureCreatePanel.add(familyLabel);
         
-        ComboBoxItem[] familiesComboBox = furnitureController.getFurnitureFamiliesForComboBox(false);
+        ComboBoxItem[] familiesComboBox = FurnitureController.getFurnitureFamiliesForComboBox(false);
         familyComboBox = new JComboBox(familiesComboBox);
         familyComboBox.setBounds(180, 50, 160, 25);
         furnitureCreatePanel.add(familyComboBox);
@@ -210,29 +194,38 @@ public class FurnitureCreate extends JInternalFrame{
                  });
         furnitureCreatePanel.add(fineAmountPerUnitTextField);
         
+        taxRateLabel = new JLabel("Tasa de Impuesto:");
+        taxRateLabel.setBounds(50, 170, 80, 25);
+        furnitureCreatePanel.add(taxRateLabel);
+        
+        ComboBoxItem[] taxRatesComboBox = FurnitureController.getFurnitureTaxRatesForComboBox(false);
+        taxRateComboBox = new JComboBox(taxRatesComboBox);
+        taxRateComboBox.setBounds(180, 170, 160, 25);
+        furnitureCreatePanel.add(taxRateComboBox);
+        
         activeLabel = new JLabel("Activo:");
-        activeLabel.setBounds(50,170, 80, 25);
+        activeLabel.setBounds(50,200, 80, 25);
         furnitureCreatePanel.add(activeLabel);
         
         activeCheckBox = new JCheckBox("", true);
-        activeCheckBox.setBounds(178,170, 80, 25);
+        activeCheckBox.setBounds(178,200, 80, 25);
         furnitureCreatePanel.add(activeCheckBox);        
         
         observationLabel = new JLabel("Observacion:");
-        observationLabel.setBounds(50,200, 80, 25);
+        observationLabel.setBounds(50,230, 80, 25);
         furnitureCreatePanel.add(observationLabel);
         
         observationTextArea = new JTextArea(0,0);
         observationTextArea.setLineWrap(true);
         observationTextArea.setWrapStyleWord(true);
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(180, 200, 160, 90);
+        scrollPane.setBounds(180, 230, 160, 90);
         scrollPane.setViewportView(observationTextArea);
         furnitureCreatePanel.add(scrollPane);
         
         createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
         saveButton = new JButton(" Crear", createIconImage);
-        saveButton.setBounds(60, 310, 120, 32);
+        saveButton.setBounds(60, 340, 120, 32);
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -243,7 +236,7 @@ public class FurnitureCreate extends JInternalFrame{
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelButton = new JButton(" Cancelar", cancelIconImage);
-        cancelButton.setBounds(200, 310, 120, 32);
+        cancelButton.setBounds(200, 340, 120, 32);
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -260,7 +253,7 @@ public class FurnitureCreate extends JInternalFrame{
         setClosable(true);
         //setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setTitle("Crear Mobiliario");
-        setBounds(360,200,460,400);
+        setBounds(360,200,460,430);
         //pack();
         setVisible(true);
     }
@@ -275,10 +268,17 @@ public class FurnitureCreate extends JInternalFrame{
         String unitPrice = unitPriceTextField.getText();
         String unitCostPrice = unitCostPriceTextField.getText();
         String fineAmountPerUnit = fineAmountPerUnitTextField.getText();
+        
+        ComboBoxItem taxRateCombo = (ComboBoxItem) taxRateComboBox.getSelectedItem();
+        String taxRate = "";
+        if(taxRateCombo!=null){
+            taxRate = taxRateCombo.getKey();
+        }
+        
         String observation = observationTextArea.getText();
         boolean active = activeCheckBox.isSelected();
         
-        HashMap mapReturn = furnitureController.saveFurniture(description, familyId, unitPrice, unitCostPrice,fineAmountPerUnit, observation, active);
+        HashMap mapReturn = furnitureController.saveFurniture(description, familyId, unitPrice, unitCostPrice,fineAmountPerUnit, observation, active, taxRate);
         if((Integer) mapReturn.get("status") == furnitureController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
             cancelButtonAction(null);

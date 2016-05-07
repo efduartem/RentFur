@@ -19,6 +19,8 @@ import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import rentfur.event.EventController;
+import rentfur.event.EventCreate;
 import rentfur.furniture.FurnitureController;
 import rentfur.furniture.FurnitureCreate;
 import rentfur.furniture.FurnitureShowAndEdit;
@@ -40,6 +42,8 @@ import rentfur.user.UserController;
 import rentfur.user.UserCreate;
 import rentfur.user.UserIndex;
 import rentfur.user.UserShowAndEdit;
+import rentfur.util.searches.SearchController;
+import rentfur.util.searches.SubjectSearch;
 
 /**
  *
@@ -54,11 +58,16 @@ public class MainWindow extends JFrame{
     private final JMenu subjectMenu = new JMenu("Clientes");
     private final JMenu providerMenu = new JMenu("Proveedores");
     private final JMenu organizationMenu = new JMenu("Organización");
+    private final JMenu eventsMenu = new JMenu("Eventos");
+
     private final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
     private final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
     private final JMenuItem manageProviderItem = new JMenuItem("Administrar Proveedores");
     private final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
     private final JMenuItem managePositionItem = new JMenuItem("Administrar Cargos");
+    
+    private final JMenuItem manageEvents = new JMenuItem("Administrar Eventos");
+    
     UserRoles userRoles = new UserRoles();
     //FURNITURE 
     FurnitureController furnitureController = new FurnitureController();
@@ -91,6 +100,10 @@ public class MainWindow extends JFrame{
     ProviderIndex providerIndex;
     ProviderShowAndEdit providerShowAndEdit;
     
+    //EVENTS
+    EventController eventController = new EventController();
+    EventCreate eventCreate;
+    
     public MainWindow(MainWindowController mainWindowController){
         
         this.mainWindowController = mainWindowController;
@@ -105,6 +118,7 @@ public class MainWindow extends JFrame{
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         /*pone la ventana en el Centro de la pantalla*/
         setLocationRelativeTo(null);
+        setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
     }
     
     public void initComponents(){
@@ -167,6 +181,9 @@ public class MainWindow extends JFrame{
             managePositionItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Cargos");
         }*/
         
+        menuBar.add(eventsMenu);
+                eventsMenu.add(manageEvents);
+        
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
         
@@ -208,6 +225,14 @@ public class MainWindow extends JFrame{
                 setVisiblePositionIndexInternalFrame();
             }
         });
+        
+        manageEvents.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleEventsIndexInternalFrame();
+            }
+        });
+        
         container=getContentPane();/*instanciamos el contenedor*/
         /*con esto definmos nosotros mismos los tamaños y posicion
           de los componentes*/
@@ -219,7 +244,6 @@ public class MainWindow extends JFrame{
     private void makeDesktop() {
        desktop = new JDesktopPane();
     }
-    
     
     //FURNITURE
     //Muestra InternalFrame de Busqueda de Mobiliatios
@@ -339,4 +363,9 @@ public class MainWindow extends JFrame{
         getContentPane().add(desktop);
     }
     
+    //EVENTS
+    public void setVisibleEventsIndexInternalFrame(){
+        eventCreate = eventController.getEventCreate();
+        desktop.add(eventCreate);
+    }
 }

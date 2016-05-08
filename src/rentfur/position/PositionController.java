@@ -19,6 +19,8 @@ import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
 import rentfur.util.RoleEntry;
+import rentfur.util.User;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -29,6 +31,7 @@ public class PositionController {
     private PositionCreate positionCreate;
     private PositionIndex positionIndex;
     private PositionShowAndEdit positionShowAndEdit;
+    private UserRoles userRoles;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public static final String ROLE_RF_FURNITURE = "ROLE_RF_FURNITURE";
@@ -100,6 +103,8 @@ public class PositionController {
         ResultSet rs;
         
         try{
+            userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
             
@@ -110,10 +115,12 @@ public class PositionController {
                 connRentFur = DbConnectUtil.getConnection();
                 
                 StringBuilder furnitureInsertSb = new StringBuilder();
-                furnitureInsertSb.append("INSERT INTO position(id, code, description)");
-                furnitureInsertSb.append(" VALUES (nextval('position_seq'), LPAD(nextval('position_code_seq')::text, 4, '0'), ?)");
+                furnitureInsertSb.append("INSERT INTO position(id, code, description, creator_user_id, creation_date, last_modification_user_id, last_modification_date)");
+                furnitureInsertSb.append(" VALUES (nextval('position_seq'), LPAD(nextval('position_code_seq')::text, 4, '0'), ?, ?, current_timestamp, ?, current_timestamp)");
                 ps = connRentFur.prepareStatement(furnitureInsertSb.toString(), PreparedStatement.RETURN_GENERATED_KEYS);
                 ps.setString(1, description);
+                ps.setInt(2, loggedUser.getId());
+                ps.setInt(3, loggedUser.getId());
                 ps.executeUpdate();
                 
                 int positionId = 0;
@@ -504,6 +511,9 @@ public class PositionController {
         Connection connRentFur = null;
         PreparedStatement ps;
          try{
+            userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
+            
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
             
@@ -577,10 +587,11 @@ public class PositionController {
                 connRentFur = DbConnectUtil.getConnection();
                 
                 StringBuilder positionUpdateSb = new StringBuilder();
-                positionUpdateSb.append("UPDATE position SET description = ? WHERE id = ?");
+                positionUpdateSb.append("UPDATE position SET description = ?, last_modification_user_id = ?, last_modification_date = current_timestamp WHERE id = ?");
                 ps = connRentFur.prepareStatement(positionUpdateSb.toString());
                 ps.setString(1, description);
-                ps.setInt(2, positionId);
+                ps.setInt(2, loggedUser.getId());
+                ps.setInt(3, positionId);
                 ps.executeUpdate();
                 ps.close();
                 mapToReturn.put("status", SUCCESFULLY_SAVED);

@@ -6,14 +6,12 @@
 
 package rentfur.subject;
 
-import java.awt.Color;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -22,6 +20,7 @@ import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
 import rentfur.util.SQLUtilService;
+import rentfur.util.User;
 import rentfur.util.UserRoles;
 
 /**
@@ -33,6 +32,7 @@ public class SubjectController {
     private SubjectCreate subjectCreate;
     private SubjectIndex subjectIndex;
     private SubjectShowAndEdit subjectShowAndEdit;
+    private UserRoles userRoles;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public final boolean IS_ACTIVE = true;
@@ -87,6 +87,9 @@ public class SubjectController {
          Connection connRentFur = null;
          PreparedStatement ps;
          try{
+             userRoles = new UserRoles();
+             User loggedUser = userRoles.getUser();
+             
              mapToReturn.put("status", ERROR_IN_SAVED);
              mapToReturn.put("message", "");
              
@@ -105,8 +108,8 @@ public class SubjectController {
                    connRentFur = DbConnectUtil.getConnection();
                    
                    StringBuilder subjectCreateSb = new StringBuilder();
-                   subjectCreateSb.append("INSERT INTO subject(id, code, name, address, telephone, fiscal_number, city, is_active, tradename)");
-                   subjectCreateSb.append("VALUES ((select nextval('subject_seq')), LPAD(nextval('subject_code_seq')::text, 4, '0'), ?, ?, ?, ?, ?, ?, ?)");
+                   subjectCreateSb.append("INSERT INTO subject(id, code, name, address, telephone, fiscal_number, city, is_active, tradename, creator_user_id, creation_date, last_modification_user_id, last_modification_date)");
+                   subjectCreateSb.append("VALUES ((select nextval('subject_seq')), LPAD(nextval('subject_code_seq')::text, 4, '0'), ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, ?, current_timestamp)");
              
                    ps = connRentFur.prepareStatement(subjectCreateSb.toString());
                    ps.setString(1, name);
@@ -116,6 +119,8 @@ public class SubjectController {
                    ps.setString(5, city);
                    ps.setBoolean(6, IS_ACTIVE);
                    ps.setString(7, tradename);
+                   ps.setInt(8, loggedUser.getId());
+                   ps.setInt(9, loggedUser.getId());
                    ps.executeUpdate();
                    ps.close();
                    
@@ -382,14 +387,18 @@ public class SubjectController {
         PreparedStatement ps;
         
         try{
+            userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
+            
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
             active = !active;
             connRentFur = DbConnectUtil.getConnection();
-            String userUpdate = "UPDATE subject SET is_active = ? WHERE id = ?";
+            String userUpdate = "UPDATE subject SET is_active = ?, last_modification_user_id = ?, last_modification_date = current_timestamp WHERE id = ?";
             ps = connRentFur.prepareStatement(userUpdate);
             ps.setBoolean(1, active);
-            ps.setInt(2, subjectId);
+            ps.setInt(2, loggedUser.getId());
+            ps.setInt(3, subjectId);
             ps.executeUpdate();
             ps.close();
             mapToReturn.put("status", SUCCESFULLY_SAVED);
@@ -566,6 +575,9 @@ public class SubjectController {
         PreparedStatement ps;
         
         try{
+            userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
+            
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
             fiscalNumber = fiscalNumber.replaceAll("\\.", "");
@@ -588,9 +600,7 @@ public class SubjectController {
                 
                 StringBuilder subjectUpdateSb = new StringBuilder();
                 subjectUpdateSb.append("UPDATE subject SET  name=?, tradename=?, address=?, telephone=?, fiscal_number=?,");
-                subjectUpdateSb.append(" city=?, is_active=? WHERE id = ?");
-                
-                
+                subjectUpdateSb.append(" city=?, is_active=?, last_modification_user_id = ?, last_modification_date = current_timestamp WHERE id = ?");
                 
                 ps = connRentFur.prepareStatement(subjectUpdateSb.toString());
                 ps.setString(1, name);
@@ -600,8 +610,8 @@ public class SubjectController {
                 ps.setString(5, fiscalNumber);
                 ps.setString(6, city);
                 ps.setBoolean(7, active);
-                ps.setInt(8, subjectId);
-                
+                ps.setInt(8, loggedUser.getId());
+                ps.setInt(9, subjectId);
                 ps.executeUpdate();
                 ps.close();
                 mapToReturn.put("status", SUCCESFULLY_SAVED);

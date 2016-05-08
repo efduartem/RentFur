@@ -20,6 +20,7 @@ import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
 import rentfur.util.SQLUtilService;
+import rentfur.util.User;
 import rentfur.util.UserRoles;
 
 /**
@@ -31,6 +32,7 @@ public class ProviderController {
     private ProviderCreate providerCreate;
     private ProviderIndex providerIndex;
     private ProviderShowAndEdit providerShowAndEdit;
+    private UserRoles userRoles;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public final boolean IS_ACTIVE = true;
@@ -87,6 +89,9 @@ public class ProviderController {
          Connection connRentFur = null;
          PreparedStatement ps;
          try{
+             userRoles = new UserRoles();
+             User loggedUser = userRoles.getUser();
+             
              mapToReturn.put("status", ERROR_IN_SAVED);
              mapToReturn.put("message", "");
              
@@ -103,8 +108,8 @@ public class ProviderController {
                        fiscalNumber += "-"+verifyDigit;
                    }
                    StringBuilder providerCreateSb = new StringBuilder();
-                   providerCreateSb.append("INSERT INTO provider(id, code, name, address, telephone, fiscal_number, city, is_active, tradename)");
-                   providerCreateSb.append("VALUES ((select nextval('provider_code_seq')), LPAD(nextval('provider_code_seq')::text, 4, '0'), ?, ?, ?, ?, ?, ?, ?)");
+                   providerCreateSb.append("INSERT INTO provider(id, code, name, address, telephone, fiscal_number, city, is_active, tradename, creator_user_id, creation_date, last_modification_user_id, last_modification_date)");
+                   providerCreateSb.append("VALUES ((select nextval('provider_code_seq')), LPAD(nextval('provider_code_seq')::text, 4, '0'), ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, ?, current_timestamp)");
              
                    ps = connRentFur.prepareStatement(providerCreateSb.toString());
                    ps.setString(1, name);
@@ -114,6 +119,8 @@ public class ProviderController {
                    ps.setString(5, city);
                    ps.setBoolean(6, IS_ACTIVE);
                    ps.setString(7, tradename);
+                   ps.setInt(8, loggedUser.getId());
+                   ps.setInt(9, loggedUser.getId());
                    ps.executeUpdate();
                    ps.close();
                    
@@ -372,14 +379,18 @@ public class ProviderController {
         PreparedStatement ps;
         
         try{
+            userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
+             
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
             active = !active;
             connRentFur = DbConnectUtil.getConnection();
-            String userUpdate = "UPDATE provider SET is_active = ? WHERE id = ?";
+            String userUpdate = "UPDATE provider SET is_active = ?, last_modification_user_id = ?, last_modification_date = current_timestamp WHERE id = ?";
             ps = connRentFur.prepareStatement(userUpdate);
             ps.setBoolean(1, active);
             ps.setInt(2, providerId);
+            ps.setInt(3, loggedUser.getId());
             ps.executeUpdate();
             ps.close();
             mapToReturn.put("status", SUCCESFULLY_SAVED);
@@ -458,6 +469,9 @@ public class ProviderController {
         PreparedStatement ps;
         
         try{
+            userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
+            
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
             fiscalNumber = fiscalNumber.replaceAll("\\.", "");
@@ -480,10 +494,8 @@ public class ProviderController {
                 
                 StringBuilder providerUpdateSb = new StringBuilder();
                 providerUpdateSb.append("UPDATE provider SET  name=?, tradename=?, address=?, telephone=?, fiscal_number=?,");
-                providerUpdateSb.append(" city=?, is_active=? WHERE id = ?");
-                
-                
-                
+                providerUpdateSb.append(" city=?, is_active=?, last_modification_user_id = ?, last_modification_date = current_timestamp WHERE id = ?");
+
                 ps = connRentFur.prepareStatement(providerUpdateSb.toString());
                 ps.setString(1, name);
                 ps.setString(2, tradename);
@@ -492,7 +504,8 @@ public class ProviderController {
                 ps.setString(5, fiscalNumber);
                 ps.setString(6, city);
                 ps.setBoolean(7, active);
-                ps.setInt(8, providerId);
+                ps.setInt(8, loggedUser.getId());
+                ps.setInt(9, providerId);
                 
                 ps.executeUpdate();
                 ps.close();

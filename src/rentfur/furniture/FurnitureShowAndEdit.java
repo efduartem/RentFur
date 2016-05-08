@@ -42,6 +42,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
     private final JLabel unitPriceLabel;
     private final JLabel unitCostPriceLabel;
     private final JLabel fineAmountPerUnitLabel;
+    private final JLabel totalStockLabel;
     private final JLabel activeLabel;
     private final JLabel observationLabel;
     private final JTextField codeTextField;
@@ -50,6 +51,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
     private final NumericTextField unitPriceTextField;
     private final NumericTextField unitCostPriceTextField;
     private final NumericTextField fineAmountPerUnitTextField;
+    private final NumericTextField totalStockTextField; 
     private final JCheckBox activeCheckBox;
     private final JTextArea observationTextArea;
     private final ImageIcon saveIconImage;
@@ -225,17 +227,54 @@ public class FurnitureShowAndEdit extends JInternalFrame{
                  });
         furnitureShowAndEditPanel.add(fineAmountPerUnitTextField);
         
+        totalStockLabel = new JLabel("Stock Total:");
+        totalStockLabel.setBounds(50,200, 80, 25);
+        furnitureShowAndEditPanel.add(totalStockLabel);
+        
+        totalStockTextField = new NumericTextField(amountFormat.format(furnituteMap.get("totalStock")), 20, amountFormat);
+        totalStockTextField.setEditable(false);
+        totalStockTextField.setBounds(180, 200, 160, 25);
+        totalStockTextField.addKeyListener(new KeyListener() {
+
+                     @Override
+                     public void keyTyped(KeyEvent e) {
+                     }
+
+                     @Override
+                     public void keyPressed(KeyEvent e) {
+                     }
+
+                     @Override
+                     public void keyReleased(KeyEvent e) {
+                         update(e);
+                     }
+                     
+                     public void update(KeyEvent e){
+                         String texto = totalStockTextField.getText();
+                         texto = texto.replaceAll("\\.", "");
+                         if(e.getKeyChar()!=','){
+                            texto = texto.replaceAll(",", ".");
+                            if(!texto.isEmpty()){
+                                totalStockTextField.setValue(Double.valueOf(texto));
+                            }
+                         }else{
+                             texto = texto.replaceAll(",", ".");
+                         }
+                     }
+                 });
+        furnitureShowAndEditPanel.add(totalStockTextField);
+        
         activeLabel = new JLabel("Activo:");
-        activeLabel.setBounds(50,200, 80, 25);
+        activeLabel.setBounds(50,230, 80, 25);
         furnitureShowAndEditPanel.add(activeLabel);
         
         activeCheckBox = new JCheckBox("", Boolean.valueOf(furnituteMap.get("active").toString()));
         activeCheckBox.setEnabled(false);
-        activeCheckBox.setBounds(178,200, 80, 25);
+        activeCheckBox.setBounds(178,230, 80, 25);
         furnitureShowAndEditPanel.add(activeCheckBox);        
         
         observationLabel = new JLabel("Observacion:");
-        observationLabel.setBounds(50,230, 80, 25);
+        observationLabel.setBounds(50,260, 80, 25);
         furnitureShowAndEditPanel.add(observationLabel);
         
         observationTextArea = new JTextArea(furnituteMap.get("observation").toString(),0,0);
@@ -243,13 +282,13 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         observationTextArea.setWrapStyleWord(true);
         observationTextArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(180, 230, 160, 90);
+        scrollPane.setBounds(180, 260, 160, 90);
         scrollPane.setViewportView(observationTextArea);
         furnitureShowAndEditPanel.add(scrollPane);
         
         saveIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
         saveButton = new JButton(" Guardar", saveIconImage);
-        saveButton.setBounds(60, 340, 120, 32);
+        saveButton.setBounds(60, 360, 120, 32);
         saveButton.setVisible(false);
         saveButton.addActionListener(new ActionListener() {
             @Override
@@ -261,7 +300,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         
         editIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/edit_24x24.png"));
         editButton = new JButton("     Editar", editIconImage);
-        editButton.setBounds(110, 340, 200, 35);
+        editButton.setBounds(110, 360, 200, 35);
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -279,7 +318,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelButton = new JButton(" Cancelar", cancelIconImage);
-        cancelButton.setBounds(200, 340, 120, 32);
+        cancelButton.setBounds(200, 360, 120, 32);
         cancelButton.setVisible(false);
         cancelButton.addActionListener(new ActionListener() {
             @Override

@@ -22,6 +22,7 @@ import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
 import rentfur.util.SQLUtilService;
+import rentfur.util.User;
 import rentfur.util.UserRoles;
 
 /**
@@ -34,6 +35,7 @@ public class FurnitureController {
     private FurnitureCreate furnitureCreate;
     private FurnitureIndex furnitureIndex;
     private FurnitureFamilyCreate furnitureFamilyCreate;
+    private UserRoles userRoles;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public final String TABLE_NAME = "furniture";
@@ -234,6 +236,9 @@ public class FurnitureController {
         PreparedStatement ps;
         
         try{
+            userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
+            System.out.println("Codigo: "+userRoles.getUser().getCode()+" - Nombre: "+userRoles.getUser().getFullName());
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
             
@@ -254,8 +259,9 @@ public class FurnitureController {
                 connRentFur = DbConnectUtil.getConnection();
                 
                 StringBuilder furnitureInsertSb = new StringBuilder();
-                furnitureInsertSb.append("INSERT INTO furniture(id, code, description, furniture_family_id, unit_price, fine_amount_per_unit, unit_cost_price,  observation, active, tax_rate)");
-                furnitureInsertSb.append(" VALUES (nextval('furniture_seq'), LPAD(nextval('furniture_code_seq')::text, 4, '0'), ?, ?, ?, ?, ?, ?, ?, ?)");
+                furnitureInsertSb.append("INSERT INTO furniture(id, code, description, furniture_family_id, unit_price, fine_amount_per_unit, unit_cost_price,  observation, active, tax_rate");
+                furnitureInsertSb.append("creator_user_id, creation_date, last_modification_user_id, last_modification_date)");
+                furnitureInsertSb.append(" VALUES (nextval('furniture_seq'), LPAD(nextval('furniture_code_seq')::text, 4, '0'), ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, ?, current_timestamp)");
                 
                 ps = connRentFur.prepareStatement(furnitureInsertSb.toString());
                 ps.setString(1, description);
@@ -265,7 +271,10 @@ public class FurnitureController {
                 ps.setDouble(5, Double.valueOf(nf.parse(unitCostPrice).toString()));
                 ps.setString(6, observation);
                 ps.setBoolean(7, active);
-                ps.setInt(8, Integer.valueOf(taxRate));
+		ps.setInt(8, Integer.valueOf(taxRate));
+                ps.setInt(9, loggedUser.getId());
+                ps.setInt(10, loggedUser.getId());
+                System.out.println("PrepareStatement: "+ps);
                 ps.executeUpdate();
                 ps.close();
                 mapToReturn.put("status", SUCCESFULLY_SAVED);
@@ -296,6 +305,9 @@ public class FurnitureController {
         PreparedStatement ps;
         
         try{
+            userRoles = new UserRoles();
+            User loggerUser = userRoles.getUser();
+            
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
             
@@ -315,7 +327,7 @@ public class FurnitureController {
                 
                 StringBuilder furnitureUpdateSb = new StringBuilder();
                 furnitureUpdateSb.append("UPDATE furniture SET description = ?, furniture_family_id = ?, unit_price = ?, fine_amount_per_unit = ?, ");
-                furnitureUpdateSb.append(" unit_cost_price = ?, observation = ?,  active = ? WHERE id = ?");
+                furnitureUpdateSb.append(" unit_cost_price = ?, observation = ?,  active = ?, last_modification_user_id = ?, last_modification_date = current_timestamp WHERE id = ?");
                 
                 ps = connRentFur.prepareStatement(furnitureUpdateSb.toString());
                 ps.setString(1, description);
@@ -325,8 +337,9 @@ public class FurnitureController {
                 ps.setDouble(5, Double.valueOf(nf.parse(unitCostPrice).toString()));
                 ps.setString(6, observation);
                 ps.setBoolean(7, active);
-                ps.setInt(8, furnitureId);
                 
+                ps.setInt(8, loggerUser.getId());
+                ps.setInt(9, furnitureId);
                 ps.executeUpdate();
                 ps.close();
                 mapToReturn.put("status", SUCCESFULLY_SAVED);
@@ -555,6 +568,8 @@ public class FurnitureController {
         PreparedStatement ps;
         
         try{
+            userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
 
@@ -562,9 +577,11 @@ public class FurnitureController {
                 mapToReturn.put("message", "No ha ingresado una Descripcion, favor registre el nombre de la Familia");
             }else{
                 connRentFur = DbConnectUtil.getConnection();
-                String furnitureFamilyInsert = "INSERT INTO furniture_family (id, code, description) values (nextval('furniture_family_seq'), LPAD(nextval('furniture_family_code_seq')::text, 4, '0'), ?)";
+                String furnitureFamilyInsert = "INSERT INTO furniture_family (id, code, description,creator_user_id, creation_date, last_modification_user_id, last_modification_date) values (nextval('furniture_family_seq'), LPAD(nextval('furniture_family_code_seq')::text, 4, '0'), ?, ?, current_timestamp, ?, current_timestamp)";
                 ps = connRentFur.prepareStatement(furnitureFamilyInsert);
                 ps.setString(1, description);
+                ps.setInt(2, loggedUser.getId());
+                ps.setInt(3, loggedUser.getId());
                 ps.executeUpdate();
                 ps.close();
                 mapToReturn.put("status", SUCCESFULLY_SAVED);

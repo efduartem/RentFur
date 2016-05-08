@@ -259,7 +259,7 @@ public class FurnitureController {
                 connRentFur = DbConnectUtil.getConnection();
                 
                 StringBuilder furnitureInsertSb = new StringBuilder();
-                furnitureInsertSb.append("INSERT INTO furniture(id, code, description, furniture_family_id, unit_price, fine_amount_per_unit, unit_cost_price,  observation, active, tax_rate");
+                furnitureInsertSb.append("INSERT INTO furniture(id, code, description, furniture_family_id, unit_price, fine_amount_per_unit, unit_cost_price,  observation, active, tax_rate, ");
                 furnitureInsertSb.append("creator_user_id, creation_date, last_modification_user_id, last_modification_date)");
                 furnitureInsertSb.append(" VALUES (nextval('furniture_seq'), LPAD(nextval('furniture_code_seq')::text, 4, '0'), ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, ?, current_timestamp)");
                 

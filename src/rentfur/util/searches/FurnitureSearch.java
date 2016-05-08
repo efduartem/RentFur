@@ -28,6 +28,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -172,39 +174,48 @@ public class FurnitureSearch extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(0).setCellEditor(new RadioButtonEditor(new JCheckBox()));
         
         //Name
-        furnituresResultTable.getColumnModel().getColumn(1).setPreferredWidth(180);
+        furnituresResultTable.getColumnModel().getColumn(1).setMaxWidth(200);
+        furnituresResultTable.getColumnModel().getColumn(1).setMinWidth(200);
+        furnituresResultTable.getColumnModel().getColumn(1).setPreferredWidth(200);
         
-        //Tradename
+        //Family
         furnituresResultTable.getColumnModel().getColumn(2).setPreferredWidth(180);
         
-        //Address
-        furnituresResultTable.getColumnModel().getColumn(3).setPreferredWidth(180);
+        //TaxRate
+        furnituresResultTable.getColumnModel().getColumn(3).setMaxWidth(130);
+        furnituresResultTable.getColumnModel().getColumn(3).setMinWidth(130);
+        furnituresResultTable.getColumnModel().getColumn(3).setPreferredWidth(130);
+        furnituresResultTable.getColumnModel().getColumn(3).setCellRenderer(statusRenderer);
         
-        //City
-        furnituresResultTable.getColumnModel().getColumn(4).setMaxWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(4).setMinWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(4).setResizable(false);
+        //UnitPrice
+        furnituresResultTable.getColumnModel().getColumn(4).setPreferredWidth(180);
+        furnituresResultTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
         
-        //Telephone
+        //UnitCostPrice
         furnituresResultTable.getColumnModel().getColumn(5).setMaxWidth(100);
         furnituresResultTable.getColumnModel().getColumn(5).setMinWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(5).setResizable(false);
+        furnituresResultTable.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
         
-        //Fiscal Number
+        //FineAmountPerUnit
         furnituresResultTable.getColumnModel().getColumn(6).setMaxWidth(100);
         furnituresResultTable.getColumnModel().getColumn(6).setMinWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(6).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(6).setCellRenderer(statusRenderer);
+        furnituresResultTable.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
+        
+        //StockTotal
+        furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(80);
+        furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(80);
+        furnituresResultTable.getColumnModel().getColumn(7).setResizable(false);
+        furnituresResultTable.getColumnModel().getColumn(7).setCellRenderer(statusRenderer);
         
         //ID
-        furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(0);
-        furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(0);
-        furnituresResultTable.getColumnModel().getColumn(7).setPreferredWidth(0);
-        
-        //CODIGO PARA FILTRO
         furnituresResultTable.getColumnModel().getColumn(8).setMaxWidth(0);
         furnituresResultTable.getColumnModel().getColumn(8).setMinWidth(0);
         furnituresResultTable.getColumnModel().getColumn(8).setPreferredWidth(0);
+        
+        //CODIGO PARA FILTRO
+        furnituresResultTable.getColumnModel().getColumn(9).setMaxWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(9).setMinWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(9).setPreferredWidth(0);
         
         furnituresResultTableJScrollPane = new JScrollPane();
         furnituresResultTableJScrollPane.setBounds(30, 140, 900, 220);
@@ -224,7 +235,7 @@ public class FurnitureSearch extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Busqueda de Mobiliarios");
-        setBounds(110,90,1000,460);
+        setBounds(350,150,1000,460);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(false);
         
@@ -293,7 +304,7 @@ public class FurnitureSearch extends JInternalFrame{
             andFilter.add(rf);
         }
         
-        rf = RowFilter.regexFilter("(?i)" + furnitureCodeTextField.getText(), 8);
+        rf = RowFilter.regexFilter("(?i)" + furnitureCodeTextField.getText(), 9);
         andFilter.add(rf);
         
 	RowFilter<TableModel, Object> rowf = RowFilter.andFilter(andFilter);

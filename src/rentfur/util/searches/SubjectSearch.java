@@ -323,7 +323,7 @@ public class SubjectSearch extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Busqueda de Clientes");
-        setBounds(110,90,1000,520);
+        setBounds(350,150,1000,520);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(false);
         

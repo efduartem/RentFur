@@ -218,6 +218,7 @@ public class SearchController {
                 furnituresResultDefaultTableModel.addColumn("Código");
                 furnituresResultDefaultTableModel.addColumn("Descripción");
                 furnituresResultDefaultTableModel.addColumn("Familia");
+                furnituresResultDefaultTableModel.addColumn("Tasa de Impuesto");
                 furnituresResultDefaultTableModel.addColumn("Precio Unitario");
                 furnituresResultDefaultTableModel.addColumn("Costo Unitario");
                 furnituresResultDefaultTableModel.addColumn("Multa");
@@ -245,13 +246,14 @@ public class SearchController {
                     row[0] = new JCheckBox(resultValueMap.get("code").toString());
                     row[1] = resultValueMap.get("description");
                     row[2] = resultValueMap.get("family");
-                    row[3] = amountFormat.format((Double)resultValueMap.get("unitPrice"));
-                    row[4] = amountFormat.format((Double)resultValueMap.get("unitCostPrice"));
-                    row[5] = amountFormat.format((Double)resultValueMap.get("fineAmountPerUnit"));
-                    row[6] = amountFormat.format((Double)resultValueMap.get("totalStock"));
+                    row[3] = resultValueMap.get("taxRate");
+                    row[4] = amountFormat.format((Double)resultValueMap.get("unitPrice"));
+                    row[5] = amountFormat.format((Double)resultValueMap.get("unitCostPrice"));
+                    row[6] = amountFormat.format((Double)resultValueMap.get("fineAmountPerUnit"));
+                    row[7] = amountFormat.format((Double)resultValueMap.get("totalStock"));
                     
-                    row[7] = resultValueMap.get("id");
-                    row[8] = resultValueMap.get("code");
+                    row[8] = resultValueMap.get("id");
+                    row[9] = resultValueMap.get("code");
                     
                     furnituresResultDefaultTableModel.addRow(row);
 
@@ -284,7 +286,7 @@ public class SearchController {
             }
             
             StringBuilder furnituriesQuery = new StringBuilder();
-            furnituriesQuery.append("SELECT f.id, f.code, f.description, f.unit_price, f.fine_amount_per_unit, f.unit_cost_price, f.total_stock, (SELECT description FROM furniture_family ff WHERE ff.id = f.furniture_family_id) as family, f.active FROM furniture f WHERE f.code ilike ? AND f.description ilike ?");
+            furnituriesQuery.append("SELECT f.id, f.code, f.tax_rate, f.description, f.unit_price, f.fine_amount_per_unit, f.unit_cost_price, f.total_stock, (SELECT description FROM furniture_family ff WHERE ff.id = f.furniture_family_id) as family, f.active FROM furniture f WHERE f.code ilike ? AND f.description ilike ?");
             if(familyId!= null && !familyId.equals(FurnitureController.ALL_VALUES)){
                 furnituriesQuery.append(" AND furniture_family_id = ").append(familyId);
             }
@@ -311,6 +313,7 @@ public class SearchController {
                 resultValuesMap.put("totalStock", rs.getDouble("total_stock"));
                 resultValuesMap.put("family", rs.getString("family"));
                 resultValuesMap.put("active", rs.getBoolean("active"));
+                resultValuesMap.put("taxRate", rs.getInt("tax_rate"));
                 listToReturn.add(resultValuesMap);
             }
             rs.close();

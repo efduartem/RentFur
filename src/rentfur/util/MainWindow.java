@@ -21,6 +21,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import rentfur.event.EventController;
 import rentfur.event.EventCreate;
+import rentfur.event.EventShowAndEdit;
 import rentfur.furniture.FurnitureController;
 import rentfur.furniture.FurnitureCreate;
 import rentfur.furniture.FurnitureShowAndEdit;
@@ -103,6 +104,7 @@ public class MainWindow extends JFrame{
     //EVENTS
     EventController eventController = new EventController();
     EventCreate eventCreate;
+    EventShowAndEdit eventShowAndEdit;
     
     public MainWindow(MainWindowController mainWindowController){
         
@@ -365,7 +367,14 @@ public class MainWindow extends JFrame{
     
     //EVENTS
     public void setVisibleEventsIndexInternalFrame(){
+        eventController.getEventIndex(this.mainWindowController);
         eventCreate = eventController.getEventCreate();
         desktop.add(eventCreate);
     }
+    
+    public void setVisibleEventShowAndEditInternalFrame(int eventId){
+        eventShowAndEdit = eventController.getEventShowAndEdit(eventId);
+        desktop.add(eventShowAndEdit);
+    }
+    
 }

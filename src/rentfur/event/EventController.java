@@ -6,8 +6,26 @@
 
 package rentfur.event;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.security.sasl.Sasl;
+import rentfur.furniture.FurnitureController;
 import rentfur.util.ComboBoxItem;
+import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
+import rentfur.util.User;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -18,8 +36,18 @@ public class EventController {
     public static final int BUDGETED = 0;
     public static final int CONFIRMED = 1;
     public static final int CANCELED = 2;
+    public static final int FINISHED = 3;
+    
+    public static final int SUCCESFULLY_SAVED = 0;
+    public static final int ERROR_IN_SAVED = 1;
+    
     public static final String ALL_VALUES = "Todos";
     private EventCreate eventCreate;
+    private EventShowAndEdit eventShowAndEdit;
+    
+    public void getEventIndex(MainWindowController mainWindowController){
+        this.mainWindowController = mainWindowController;
+    }
     
     public EventCreate getEventCreate(){
         if(eventCreate == null){
@@ -32,13 +60,28 @@ public class EventController {
         eventCreate = null;
     }
     
-    public static ComboBoxItem[] getEventStatusAvailablesForComboBox(boolean addAllOption){
+    public void eventShowAndEditClosed(){
+        eventShowAndEdit = null;
+    }
+    
+    public EventShowAndEdit getEventShowAndEdit(int eventId){
+        if(eventShowAndEdit == null){
+            eventShowAndEdit = new EventShowAndEdit(this, eventId);
+        }
+        return eventShowAndEdit;
+    }
+    
+    public void setEventShowAndEditInMainWindow(int eventId){
+        mainWindowController.setVisibleEventShowAndEditInternalFrame(eventId);
+    }
+    
+    public static ComboBoxItem[] getEventStatusAvailablesForCreateEvent(boolean addAllOption){
         
         ComboBoxItem[] statusAvailables = null;
         try{
             
             if(addAllOption){
-                statusAvailables = new ComboBoxItem[4];
+                statusAvailables = new ComboBoxItem[3];
                 
                 statusAvailables[0] =  new ComboBoxItem();
                 statusAvailables[0].setKey(ALL_VALUES);
@@ -52,11 +95,8 @@ public class EventController {
                 statusAvailables[2].setKey(String.valueOf(CONFIRMED));
                 statusAvailables[2].setValue("Confirmado");
                 
-                statusAvailables[3] =  new ComboBoxItem();
-                statusAvailables[3].setKey(String.valueOf(CANCELED));
-                statusAvailables[3].setValue("Cancelado");
             }else{
-                statusAvailables = new ComboBoxItem[3];
+                statusAvailables = new ComboBoxItem[2];
                          
                 statusAvailables[0] =  new ComboBoxItem();
                 statusAvailables[0].setKey(String.valueOf(BUDGETED));
@@ -66,9 +106,6 @@ public class EventController {
                 statusAvailables[1].setKey(String.valueOf(CONFIRMED));
                 statusAvailables[1].setValue("Confirmado");
                 
-                statusAvailables[2] =  new ComboBoxItem();
-                statusAvailables[2].setKey(String.valueOf(CANCELED));
-                statusAvailables[2].setValue("Cancelado");
             }
 
         }catch(Throwable th){
@@ -77,6 +114,339 @@ public class EventController {
         }
         
         return statusAvailables;
+    }
+    
+    public HashMap createEvent(HashMap subjectMap, Date deliveryDate, int status, String placeOfDelivery, ArrayList furnitureList, double netTotal, double totalTax, double totalTax5, double totalTax10, double totalTaxable5, double totalTaxable10, double totalTaxable){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        PreparedStatement psContractNumber = null;
+        ResultSet rs;
+        ResultSet rsContractNumber = null;
+        int eventId = 0;
+        
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+            UserRoles userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+            
+            String contractNumberNextVal;
+            int contractNumber = 0;
+            
+            StringBuilder eventInsertSb = new StringBuilder();
+            eventInsertSb.append("INSERT INTO event(id, number, creation_date, delivery_date, pickup_date, status, place_of_delivery, observation, contract_number, net_total, total_tax_5, total_tax_10, total_tax, total_taxable_5, total_taxable_10, total_taxable, subject_code, subject_name, subject_address, subject_fiscal_number, subject_telephone, subject_city, subject_tradename, creator_user_id, last_modification_user_id, last_modification_date, balance)");
+            eventInsertSb.append(" VALUES (nextval('event_seq'), nextval('event_number_seq'), current_timestamp, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, ?)");
+
+            ps = connRentFur.prepareStatement(eventInsertSb.toString(), Statement.RETURN_GENERATED_KEYS);
+            ps.setDate(1, new java.sql.Date (deliveryDate.getTime())); //Fecha de Entrega
+            ps.setDate(2, new java.sql.Date (deliveryDate.getTime()));//Fecha de Recoleccion
+            ps.setInt(3, status); //Estado
+            ps.setString(4, placeOfDelivery); //Lugar de Entrega
+            ps.setString(5, "");
+            if(status == BUDGETED){
+                //Si no esta confirmado no es guardado nada como numero de contrato
+                ps.setNull(6, java.sql.Types.INTEGER);
+            }else{
+                //Si ya esta confirmado se obtiene el numero de contrato para guardarlo
+                contractNumberNextVal = "SELECt nextval('contract_number_seq')";
+                psContractNumber = connRentFur.prepareStatement(contractNumberNextVal);
+                rsContractNumber = psContractNumber.executeQuery();
+                if(rsContractNumber.next()){
+                   contractNumber = rsContractNumber.getInt(1);
+                }
+                ps.setInt(6, contractNumber);
+            }
+            ps.setDouble(7, netTotal);
+            ps.setDouble(8, totalTax5);
+            ps.setDouble(9, totalTax10);
+            ps.setDouble(10, totalTax);
+            ps.setDouble(11, totalTaxable5);
+            ps.setDouble(12, totalTaxable10);
+            ps.setDouble(13, totalTaxable);
+            ps.setString(14, subjectMap.get("code").toString());
+            ps.setString(15, subjectMap.get("name").toString());
+            ps.setString(16, subjectMap.get("address").toString());
+            ps.setString(17, subjectMap.get("fiscalNumber").toString());
+            ps.setString(18, subjectMap.get("telephone").toString());
+            ps.setString(19, subjectMap.get("city").toString());
+            ps.setString(20, subjectMap.get("tradename").toString());
+            ps.setInt(21, loggedUser.getId());
+            ps.setInt(22, loggedUser.getId());
+            ps.setDouble(23, netTotal);
+            ps.executeUpdate();
+            
+            rs = ps.getGeneratedKeys();
+            while(rs != null && rs.next()){
+                eventId = rs.getInt(1);
+            }
+            
+            StringBuilder eventDetailInsertSb = new StringBuilder();
+            HashMap furnitureMap = new HashMap();
+            eventDetailInsertSb.append("INSERT INTO event_detail(id, furniture_code, furniture_description, unit_price, fine_amount_per_unit, quantity, total_amount, tax_amount_5, tax_amount_10, tax_amount, taxable_amount_5, taxable_amount_10, taxable_amount, observation, penalty, billable, event_id) VALUES (nextval('event_detail_seq'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+            ps = connRentFur.prepareStatement(eventDetailInsertSb.toString());
+            
+            for(int i = 0 ; i < furnitureList.size(); i++){
+                furnitureMap = (HashMap) furnitureList.get(i);
+                furnitureMap = deepMerge(furnitureMap, FurnitureController.getFurnitureByCode(furnitureMap.get("code").toString()));
+                ps.setString(1, furnitureMap.get("code").toString());
+                ps.setString(2, furnitureMap.get("description").toString());
+                ps.setDouble(3, Double.valueOf(furnitureMap.get("unitPrice").toString()));
+                ps.setDouble(4, Double.valueOf(furnitureMap.get("fineAmountPerUnit").toString()));
+                ps.setInt(5, Integer.valueOf(furnitureMap.get("quantity").toString()));
+                ps.setDouble(6, Double.valueOf(furnitureMap.get("subTotal").toString()));
+                ps.setDouble(7, Double.valueOf(furnitureMap.get("tax5").toString()));
+                ps.setDouble(8, Double.valueOf(furnitureMap.get("tax10").toString()));
+                if(Double.valueOf(furnitureMap.get("taxRate").toString())==5){
+                    //tax_amount
+                    ps.setDouble(9, Double.valueOf(furnitureMap.get("tax5").toString()));
+                    
+                    //taxable_amount_5
+                    ps.setDouble(10, Double.valueOf(furnitureMap.get("subTotal").toString()));
+                    
+                    //taxable_amount_10
+                    ps.setDouble(11, Double.valueOf("0"));
+                    
+                    //taxable_amount
+                    ps.setDouble(12, Double.valueOf(furnitureMap.get("subTotal").toString()));
+                    
+                }else if(Double.valueOf(furnitureMap.get("taxRate").toString())==10){
+                    //tax_amount
+                    ps.setDouble(9, Double.valueOf(furnitureMap.get("tax10").toString()));
+                    
+                    //taxable_amount_5
+                    ps.setDouble(10, Double.valueOf("0"));
+                    
+                    //taxable_amount_10
+                    ps.setDouble(11, Double.valueOf(furnitureMap.get("subTotal").toString()));
+                    
+                    //taxable_amount
+                    ps.setDouble(12, Double.valueOf(furnitureMap.get("subTotal").toString()));
+                    
+                }else{
+                    ps.setDouble(9, Double.valueOf("0"));
+                    ps.setDouble(10, Double.valueOf("0"));
+                    ps.setDouble(11, Double.valueOf("0"));
+                    ps.setDouble(12, Double.valueOf("0"));
+                }
+                
+                ps.setString(13, "");
+                ps.setBoolean(14, Boolean.FALSE);
+                ps.setBoolean(15, Boolean.TRUE);
+                ps.setInt(16, eventId);
+                ps.addBatch();
+                
+                if(status == CONFIRMED){
+                    //Actualizar stock para el dia 
+                    updateDayStock(furnitureMap.get("id").toString(), deliveryDate, furnitureMap.get("quantity").toString());
+                }
+            }
+            ps.executeBatch();
+            ps.clearBatch();
+            connRentFur.commit();
+            ps.close();
+            
+            if(rs!=null){
+                rs.close();
+            }
+            
+            if(psContractNumber!=null){
+                psContractNumber.close();
+            }
+            
+            if(rsContractNumber!=null){
+                rsContractNumber.close();
+            }
+            
+            mapToReturn.put("id", eventId);
+            mapToReturn.put("status", SUCCESFULLY_SAVED);
+            mapToReturn.put("message", "Mobiliriario creado correctamente");
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(EventController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+            mapToReturn.put("message", th.getMessage());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return mapToReturn;
+    }
+    
+    public static HashMap deepMerge(HashMap original, HashMap newMap) {
+        for (Object key : newMap.keySet()) {
+            if (newMap.get(key) instanceof HashMap && original.get(key) instanceof HashMap) {
+                HashMap originalChild = (HashMap) original.get(key);
+                HashMap newChild = (HashMap) newMap.get(key);
+                original.put(key, deepMerge(originalChild, newChild));
+            } else {
+                original.put(key, newMap.get(key));
+            }
+        }
+        return original;
+    }
+    
+    public void updateDayStock(String id, Date deliveryDate, String quantity){
+        
+        Connection connRentFur = null;
+        PreparedStatement ps;
+
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+
+            StringBuilder furnitureStockUpdateSb = new StringBuilder();
+            furnitureStockUpdateSb.append("UPDATE furniture_stock SET stock_available = (stock_available - ?), stock_committed = (stock_committed + ?) WHERE furniture_id = ? AND day = ?");
+
+            ps = connRentFur.prepareStatement(furnitureStockUpdateSb.toString());
+            ps.setInt(1, Integer.valueOf(quantity));
+            ps.setInt(2, Integer.valueOf(quantity));
+            ps.setInt(3, Integer.valueOf(id));
+            ps.setDate(4, new java.sql.Date (deliveryDate.getTime())); //Fecha de Entrega
+            ps.executeUpdate();
+            connRentFur.commit();
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(EventController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+    }
+    
+    public static HashMap getEventById(int eventId){
+        
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        HashMap eventMap = new HashMap();    
+        
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+
+            StringBuilder eventHeaderSelectSb = new StringBuilder();
+            eventHeaderSelectSb.append("SELECT id, \"number\" as eventNumber, creation_date, delivery_date, pickup_date, status, place_of_delivery, observation, contract_number, net_total, total_tax_5, total_tax_10, total_tax, total_taxable_5, total_taxable_10, total_taxable, subject_code, subject_name, subject_address, subject_fiscal_number, subject_telephone, subject_city, subject_tradename, creator_user_id, last_modification_date, last_modification_user_id, balance FROM event WHERE id = ?");
+
+            ps = connRentFur.prepareStatement(eventHeaderSelectSb.toString());
+            ps.setInt(1, eventId);
+            
+            rs = ps.executeQuery();
+            if(rs.next()){
+                eventMap.put("id", rs.getInt("id"));
+                eventMap.put("number", rs.getInt("eventNumber"));
+                eventMap.put("creationDate", rs.getTimestamp("creation_date"));
+                eventMap.put("deliveryDate", rs.getTimestamp("delivery_date"));
+                eventMap.put("pickupDate", rs.getTimestamp("pickup_date"));
+                eventMap.put("status", rs.getInt("status"));
+                eventMap.put("placeOfDelivery", rs.getString("place_of_delivery"));
+                eventMap.put("observation", rs.getString("observation"));
+                eventMap.put("contractNumber", rs.getInt("contract_number"));
+                eventMap.put("netTotal", rs.getDouble("net_total"));
+                eventMap.put("totalTax5", rs.getDouble("total_tax_5"));
+                eventMap.put("totalTax10", rs.getDouble("total_tax_10"));
+                eventMap.put("totalTax", rs.getDouble("total_tax"));
+                eventMap.put("totalTaxable5", rs.getDouble("total_taxable_5"));
+                eventMap.put("totalTaxable10", rs.getDouble("total_taxable_10"));
+                eventMap.put("totalTaxable", rs.getDouble("total_taxable"));
+                eventMap.put("subjectCode", rs.getString("subject_code"));
+                eventMap.put("creatorUserId", rs.getInt("creator_user_id"));
+                eventMap.put("lastModificationUserId", rs.getString("last_modification_user_id"));
+                eventMap.put("lastModificationDate", rs.getTimestamp("last_modification_date"));
+                eventMap.put("balance", rs.getDouble("balance"));
+            }
+            
+            StringBuilder eventDetailSelectSb = new StringBuilder();
+            eventDetailSelectSb.append("SELECT id, furniture_code, furniture_description, unit_price, fine_amount_per_unit, quantity, total_amount, tax_amount_5, tax_amount_10, tax_amount, taxable_amount_5, taxable_amount_10, taxable_amount, observation, penalty, billable, event_id FROM event_detail WHERE event_id = ?");
+            ArrayList eventDetailList = new ArrayList();
+            HashMap eventDetailMap;
+            ps = connRentFur.prepareStatement(eventDetailSelectSb.toString());
+            ps.setInt(1, eventId);
+            
+            rs = ps.executeQuery();
+            while(rs.next()){
+                eventDetailMap = new HashMap();
+                eventDetailMap.put("id", rs.getInt("id"));
+                eventDetailMap.put("furnitureCode", rs.getString("furniture_code"));
+                eventDetailMap.put("furnitureDescription", rs.getString("furniture_description"));
+                eventDetailMap.put("unitPrice", rs.getDouble("unit_price"));
+                eventDetailMap.put("fineAmountPerUnit", rs.getDouble("fine_amount_per_unit"));
+                eventDetailMap.put("quantity", rs.getInt("quantity"));
+                eventDetailMap.put("totalAmount", rs.getDouble("total_amount"));
+                eventDetailMap.put("taxAmount5", rs.getDouble("tax_amount_5"));
+                eventDetailMap.put("taxAmount10", rs.getDouble("tax_amount_10"));
+                eventDetailMap.put("taxAmount", rs.getDouble("tax_amount"));
+                eventDetailMap.put("taxableAmount5", rs.getDouble("taxable_amount_5"));
+                eventDetailMap.put("taxableAmount10", rs.getDouble("taxable_amount_10"));
+                eventDetailMap.put("taxableAmount", rs.getDouble("taxable_amount"));
+                eventDetailMap.put("observation", rs.getString("observation"));
+                eventDetailMap.put("penalty", rs.getBoolean("penalty"));
+                eventDetailMap.put("billable", rs.getBoolean("billable"));
+                eventDetailMap = deepMerge(eventDetailMap, FurnitureController.getFurnitureByCode(rs.getString("furniture_code").toString()));
+                eventDetailList.add(eventDetailMap);
+            }
+            
+            eventMap.put("detail", eventDetailList);
+            
+            connRentFur.commit();
+            rs.close();
+            ps.close();
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(EventController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return eventMap;
     }
     
 }

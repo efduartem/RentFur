@@ -69,4 +69,9 @@ public class MainWindowController {
         mainWindow.setVisibleProviderShowAndEditInternalFrame(providerId);
     }
     
+    //EVENT
+    public void setVisibleEventShowAndEditInternalFrame(int eventId){
+        mainWindow.setVisibleEventShowAndEditInternalFrame(eventId);
+    }
+    
 }

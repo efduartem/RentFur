@@ -15,6 +15,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -65,7 +66,7 @@ public class FurnitureSearch extends JInternalFrame{
     private final JButton cancelButton;
     private final ArrayList currentSelectedCode = new ArrayList();
     
-    public FurnitureSearch(SearchController searchController, ArrayList furnitureCodesAdded){
+    public FurnitureSearch(SearchController searchController, ArrayList furnitureCodesAdded, Date day){
         this.searchController = searchController;
         
         furnitureParamPanel = new JPanel();
@@ -163,7 +164,7 @@ public class FurnitureSearch extends JInternalFrame{
         DefaultTableCellRenderer statusRenderer = new DefaultTableCellRenderer();
         statusRenderer.setHorizontalAlignment(JLabel.CENTER);
         
-        searchController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null, furnitureCodesAdded);
+        searchController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null, furnitureCodesAdded, day);
         furnituresResultTable.setRowHeight(22);
         
         //Code
@@ -201,9 +202,9 @@ public class FurnitureSearch extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(6).setMinWidth(100);
         furnituresResultTable.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
         
-        //StockTotal
-        furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(80);
-        furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(80);
+        //StockDisponible
+        furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(110);
+        furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(110);
         furnituresResultTable.getColumnModel().getColumn(7).setResizable(false);
         furnituresResultTable.getColumnModel().getColumn(7).setCellRenderer(statusRenderer);
         

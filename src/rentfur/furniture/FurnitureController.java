@@ -14,6 +14,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import javax.swing.table.DefaultTableModel;
@@ -523,7 +524,7 @@ public class FurnitureController {
             StringBuilder furnituriesQuery = new StringBuilder();
             furnituriesQuery.append("SELECT f.id, f.code, f.description, f.tax_rate, f.unit_price, f.fine_amount_per_unit, f.unit_cost_price, f.total_stock, (SELECT description FROM furniture_family ff WHERE ff.id = f.furniture_family_id) as family, f.active FROM furniture f WHERE f.code = ANY (?) AND f.active = true");
             furnituriesQuery.append(" ORDER BY f.code, f.description, f.active");
-            ps = connRentFur.prepareStatement(furnituriesQuery.toString());
+            ps = connRentFur.prepareStatement(furnituriesQuery.toString());            
             ps.setArray(1, connRentFur.createArrayOf("text", furnittureCodes.toArray()));
             
             rs = ps.executeQuery();
@@ -539,6 +540,60 @@ public class FurnitureController {
                 resultValuesMap.put("family", rs.getString("family"));
                 resultValuesMap.put("active", rs.getBoolean("active"));
                 resultValuesMap.put("taxRate", rs.getInt("tax_rate"));
+                listToReturn.add(resultValuesMap);
+            }
+            rs.close();
+            ps.close();
+
+        }catch(SQLException th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return listToReturn;
+    }
+    
+    public static ArrayList getFurnitureListByCodeWithDayStock(ArrayList furnittureCodes, Date day){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        ArrayList listToReturn = new ArrayList();
+        
+        try{
+            HashMap resultValuesMap;
+            connRentFur = DbConnectUtil.getConnection();
+            
+            StringBuilder furnituriesQuery = new StringBuilder();
+            furnituriesQuery.append("SELECT f.id, f.code, f.description, f.tax_rate, f.unit_price, f.fine_amount_per_unit, f.unit_cost_price, f.total_stock, (SELECT description FROM furniture_family ff WHERE ff.id = f.furniture_family_id) as family, f.active, (SELECT stock_available FROM furniture_stock WHERE furniture_id = f.id AND day = ?) as stock_available FROM furniture f WHERE f.code = ANY (?) AND f.active = true");
+            furnituriesQuery.append(" ORDER BY f.code, f.description, f.active");
+            ps = connRentFur.prepareStatement(furnituriesQuery.toString());
+            ps.setDate(1, new java.sql.Date(day.getTime()));
+            ps.setArray(2, connRentFur.createArrayOf("text", furnittureCodes.toArray()));
+            
+            rs = ps.executeQuery();
+            while(rs.next()){
+                resultValuesMap = new HashMap();
+                resultValuesMap.put("id", rs.getInt("id"));
+                resultValuesMap.put("code", rs.getString("code"));
+                resultValuesMap.put("description", rs.getString("description"));
+                resultValuesMap.put("unitPrice", rs.getDouble("unit_price"));
+                resultValuesMap.put("fineAmountPerUnit", rs.getDouble("fine_amount_per_unit"));
+                resultValuesMap.put("unitCostPrice", rs.getDouble("unit_cost_price"));
+                resultValuesMap.put("totalStock", rs.getDouble("total_stock"));
+                resultValuesMap.put("family", rs.getString("family"));
+                resultValuesMap.put("active", rs.getBoolean("active"));
+                resultValuesMap.put("taxRate", rs.getInt("tax_rate"));
+                resultValuesMap.put("stockAvailable", rs.getInt("stock_available"));
                 listToReturn.add(resultValuesMap);
             }
             rs.close();
@@ -704,7 +759,7 @@ public class FurnitureController {
             connRentFur = DbConnectUtil.getConnection();
             StringBuilder furnitureQuery = new StringBuilder();
             furnitureQuery.append("SELECT f.id, f.code, f.description, f.unit_price, f.total_stock, f.observation, f.fine_amount_per_unit, f.unit_cost_price,");
-            furnitureQuery.append(" f.active, f.furniture_family_id, (SELECT ff.description FROM furniture_family ff WHERE ff.id = f.furniture_family_id) as family");
+            furnitureQuery.append(" f.active, f.furniture_family_id, (SELECT ff.description FROM furniture_family ff WHERE ff.id = f.furniture_family_id) as family, tax_rate");
             furnitureQuery.append(" FROM furniture f WHERE f.code = ?");
             ps = connRentFur.prepareStatement(furnitureQuery.toString());
             ps.setString(1, furnitureCode);
@@ -721,6 +776,7 @@ public class FurnitureController {
                 mapToReturn.put("active", rs.getBoolean("active"));
                 mapToReturn.put("furnitureFamilyId", rs.getInt("furniture_family_id"));
                 mapToReturn.put("family", rs.getString("family"));
+                mapToReturn.put("taxRate", rs.getDouble("tax_rate"));
             }
             
             rs.close();

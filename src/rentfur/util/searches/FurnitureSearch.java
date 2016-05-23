@@ -6,6 +6,7 @@
 
 package rentfur.util.searches;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -183,9 +184,9 @@ public class FurnitureSearch extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(2).setPreferredWidth(180);
         
         //TaxRate
-        furnituresResultTable.getColumnModel().getColumn(3).setMaxWidth(130);
-        furnituresResultTable.getColumnModel().getColumn(3).setMinWidth(130);
-        furnituresResultTable.getColumnModel().getColumn(3).setPreferredWidth(130);
+        furnituresResultTable.getColumnModel().getColumn(3).setMaxWidth(120);
+        furnituresResultTable.getColumnModel().getColumn(3).setMinWidth(120);
+        furnituresResultTable.getColumnModel().getColumn(3).setPreferredWidth(120);
         furnituresResultTable.getColumnModel().getColumn(3).setCellRenderer(statusRenderer);
         
         //UnitPrice
@@ -198,15 +199,16 @@ public class FurnitureSearch extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
         
         //FineAmountPerUnit
-        furnituresResultTable.getColumnModel().getColumn(6).setMaxWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(6).setMinWidth(100);
+        furnituresResultTable.getColumnModel().getColumn(6).setMaxWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(6).setMinWidth(90);
         furnituresResultTable.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
         
         //StockDisponible
+        furnituresResultTable.getColumnModel().getColumn(7).setHeaderRenderer(new AvailableSimpleHeaderRenderer());
         furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(110);
         furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(110);
         furnituresResultTable.getColumnModel().getColumn(7).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(7).setCellRenderer(statusRenderer);
+        furnituresResultTable.getColumnModel().getColumn(7).setCellRenderer(new AvailableCellRenderer());
         
         //ID
         furnituresResultTable.getColumnModel().getColumn(8).setMaxWidth(0);
@@ -359,5 +361,40 @@ public class FurnitureSearch extends JInternalFrame{
           super.fireEditingStopped();
         }
       }
+      
+      class AvailableCellRenderer extends JTextField implements TableCellRenderer {
+
+        public AvailableCellRenderer() {
+            setOpaque(true);
+            setBackground(new Color(227, 231, 249));
+            setHorizontalAlignment(JLabel.RIGHT);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+            setToolTipText("Cantidad");
+            setHorizontalAlignment(JLabel.RIGHT);
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
+      
+    private class AvailableSimpleHeaderRenderer extends JLabel implements TableCellRenderer {
+ 
+        public AvailableSimpleHeaderRenderer() {
+            setOpaque(true);
+            setHorizontalAlignment(JLabel.CENTER);
+            setBackground(new Color(141, 170, 201));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            setText(value.toString());
+            return this;
+        }
+
+    }
     
 }

@@ -102,7 +102,7 @@ public class EventCreate extends JInternalFrame{
     private final JButton addFurnituresButton;
     private final JButton saveButton;
     private final JButton cancelButton;
-    private JDesktopPane pane;
+    private JDesktopPane eventPane;
     
     private final JTable eventDetailTable;
     private final DefaultTableModel eventDetailDefaultTableModel;
@@ -357,6 +357,7 @@ public class EventCreate extends JInternalFrame{
         headerLabel.setHorizontalAlignment(JLabel.CENTER);
         
         eventDetailTable.getColumnModel().getColumn(QUANTITY_COLUMN).setHeaderRenderer(new SimpleHeaderRenderer());
+        eventDetailTable.getColumnModel().getColumn(STOCK_AVAILABLE_COLUMN).setHeaderRenderer(new AvailableSimpleHeaderRenderer());
         
         //ID
         eventDetailTable.getColumnModel().getColumn(0).setMaxWidth(0);
@@ -371,7 +372,7 @@ public class EventCreate extends JInternalFrame{
         eventDetailTable.getColumnModel().getColumn(TAX_RATE_COLUMN).setCellRenderer(rightRenderer);
         
         //STOCK
-        eventDetailTable.getColumnModel().getColumn(STOCK_AVAILABLE_COLUMN).setCellRenderer(rightRenderer);
+        eventDetailTable.getColumnModel().getColumn(STOCK_AVAILABLE_COLUMN).setCellRenderer(new AvailableCellRenderer());
         
         //UNIT PRICE
         eventDetailTable.getColumnModel().getColumn(UNIT_PRICE).setCellRenderer(rightRenderer);
@@ -522,6 +523,23 @@ public class EventCreate extends JInternalFrame{
         
     }
     
+    private class AvailableSimpleHeaderRenderer extends JLabel implements TableCellRenderer {
+ 
+        public AvailableSimpleHeaderRenderer() {
+            setOpaque(true);
+            setHorizontalAlignment(JLabel.CENTER);
+            setBackground(new Color(141, 170, 201));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            setText(value.toString());
+            return this;
+        }
+
+    }
+    
     private class SimpleHeaderRenderer extends JLabel implements TableCellRenderer {
  
         public SimpleHeaderRenderer() {
@@ -588,9 +606,9 @@ public class EventCreate extends JInternalFrame{
     }
     
     private void showSearchDialog(Object dialogView){
-        pane = getDesktopPane();
-        pane.add((JInternalFrame) dialogView, JLayeredPane.MODAL_LAYER);
-        pane.setVisible(true);
+        eventPane = this.getDesktopPane();
+        eventPane.add((JInternalFrame) dialogView, JLayeredPane.POPUP_LAYER);
+        eventPane.setVisible(true);
     }
     
     private void saveEventButtonAction(){
@@ -669,9 +687,12 @@ public class EventCreate extends JInternalFrame{
             }
             
             HashMap returnMap = eventController.createEvent(subjectMap, deliveryDate, status, placeOfDelivery, furnitureList, netTotal, totalTax, totalTax5, totalTax10, totalTaxable5, totalTaxable10, totalTaxable);
-            if(returnMap.get("status").toString().equals(EventController.SUCCESFULLY_SAVED)){
+            
+            if(((Integer)returnMap.get("status"))==EventController.SUCCESFULLY_SAVED){
+                JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
                 doDefaultCloseAction();
-                //eventController.setEventShowAndEditInMainWindow(Integer.valueOf(returnMap.get("id").toString()));
+            }else if((Integer)returnMap.get("status") == EventController.ERROR_IN_SAVED){
+                JOptionPane.showMessageDialog(null, returnMap.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
             }
         }
     }
@@ -684,7 +705,6 @@ public class EventCreate extends JInternalFrame{
     public void doDefaultCloseAction() {
         this.dispose();
         eventController.eventCreateClosed();
-        eventController.setEventShowAndEditInMainWindow(30);
         //furnitureController.setEnabledIndexView();
         //furnitureController.searchFurnitureButtonAction();
     }
@@ -903,6 +923,24 @@ public class EventCreate extends JInternalFrame{
         public QuantityCellRenderer() {
             setOpaque(true);
             setBackground(new Color(237, 247, 243));
+            setHorizontalAlignment(JLabel.RIGHT);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+            setToolTipText("Cantidad");
+            setHorizontalAlignment(JLabel.RIGHT);
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
+    
+    class AvailableCellRenderer extends JTextField implements TableCellRenderer {
+
+        public AvailableCellRenderer() {
+            setOpaque(true);
+            setBackground(new Color(227, 231, 249));
             setHorizontalAlignment(JLabel.RIGHT);
         }
 

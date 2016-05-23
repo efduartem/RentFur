@@ -57,10 +57,15 @@ public class SQLUtilService {
         try{
                 connRentFur = DbConnectUtil.getConnection();    
                 StringBuilder countQuery = new StringBuilder();
-                countQuery.append("SELECT count(*) FROM subject WHERE fiscal_number = ? ");
+                countQuery.append("SELECT count(*) FROM subject WHERE split_part(fiscal_number, '-', 1) = ? ");
                 ps = connRentFur.prepareStatement(countQuery.toString());
-                ps.setString(1, fiscalNumber);
                 
+                if(fiscalNumber.contains("-")){
+                    fiscalNumber = fiscalNumber.split("-")[0];
+                }
+                
+                ps.setString(1, fiscalNumber);
+                System.out.println("ps: "+ps.toString());
                 rs = ps.executeQuery();
                 if(rs.next()){
                     if(rs.getInt(1)==0){
@@ -82,7 +87,7 @@ public class SQLUtilService {
                 System.err.println(sqle);
             }
         }
-        
+        System.out.println("valueToReturn: "+valueToReturn);
         return valueToReturn;
     }
     

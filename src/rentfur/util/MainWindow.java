@@ -21,6 +21,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import rentfur.event.EventController;
 import rentfur.event.EventCreate;
+import rentfur.event.EventIndex;
 import rentfur.event.EventShowAndEdit;
 import rentfur.furniture.FurnitureController;
 import rentfur.furniture.FurnitureCreate;
@@ -59,7 +60,7 @@ public class MainWindow extends JFrame{
     private final JMenu subjectMenu = new JMenu("Clientes");
     private final JMenu providerMenu = new JMenu("Proveedores");
     private final JMenu organizationMenu = new JMenu("Organización");
-    private final JMenu eventsMenu = new JMenu("Eventos");
+    private final JMenu eventsMenu = new JMenu(" Eventos");
 
     private final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
     private final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
@@ -103,6 +104,7 @@ public class MainWindow extends JFrame{
     
     //EVENTS
     EventController eventController = new EventController();
+    EventIndex eventIndex;
     EventCreate eventCreate;
     EventShowAndEdit eventShowAndEdit;
     
@@ -183,9 +185,11 @@ public class MainWindow extends JFrame{
             managePositionItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Cargos");
         }*/
         
+        //Events
+        ImageIcon eventsIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/events_calendar_24x24.png"));
+        eventsMenu.setIcon(eventsIconImage);
         menuBar.add(eventsMenu);
                 eventsMenu.add(manageEvents);
-        
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
         
@@ -367,9 +371,9 @@ public class MainWindow extends JFrame{
     
     //EVENTS
     public void setVisibleEventsIndexInternalFrame(){
-        eventController.getEventIndex(this.mainWindowController);
-        eventCreate = eventController.getEventCreate();
-        desktop.add(eventCreate);
+        eventIndex = eventController.getEventIndex(this.mainWindowController);
+        //eventCreate = eventController.getEventCreate();
+        desktop.add(eventIndex);
     }
     
     public void setVisibleEventShowAndEditInternalFrame(int eventId){

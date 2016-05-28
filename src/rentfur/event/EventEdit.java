@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -68,7 +69,7 @@ import rentfur.util.searches.SubjectSearch;
  *
  * @author FDuarte
  */
-public class EventCreate extends JInternalFrame{
+public class EventEdit extends JInternalFrame{
     private final EventController eventController;
     private final SearchController searchController;
     private SubjectSearch subjectSearch;
@@ -116,24 +117,28 @@ public class EventCreate extends JInternalFrame{
     
     private final ArrayList furnitureCodesAdded = new ArrayList();
     
+    private final int ID_COLUMN = 0;
     private final int CODE_COLUMN = 1;
+    private final int DESCRIPTION_COLUMN = 2;
     private final int TAX_RATE_COLUMN = 3;
     private final int STOCK_AVAILABLE_COLUMN = 4;
     private final int UNIT_PRICE = 5;
+    private final int FINE_AMOUNT_COLUMN = 6;
     private final int QUANTITY_COLUMN = 7;
     private final int SUB_TOTAL_COLUMN = 8;
-    private final int TAX_10_COLUMN = 9;
-    private final int TAX_5_COLUMN = 10;
+    private final int TAX_5_COLUMN = 9;
+    private final int TAX_10_COLUMN = 10;
     private final int DELETE_BUTTON_COLUMN = 11;
     
     
     private ArrayList taxList = new ArrayList(); //Tasas de IVA
     private HashMap taxRatioMap = new HashMap(); //Cocientes para IVA
     private HashMap taxableRatioMap = new HashMap();//Cocientes para Gravadas
-    private Date currentDeliveryDateSelected;
     
+    private HashMap eventMap;
+    private HashMap subjectMap;
     
-    public EventCreate(EventController eventController){
+    public EventEdit(EventController eventController, int eventId){
         this.eventController = eventController;
         searchController = new SearchController();
         
@@ -144,6 +149,9 @@ public class EventCreate extends JInternalFrame{
         eventCreatePanel = new JPanel();
         eventCreatePanel.setLayout(null);
         
+        eventMap = EventController.getEventById(eventId);
+        subjectMap = SubjectController.getSubjectByCode(eventMap.get("subjectCode").toString());
+        
         titleLabel = new JLabel("<HTML><U>Datos del Evento</U></HTML>");
         titleLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 25));
         titleLabel.setBounds(600, 20, 200, 25);
@@ -153,7 +161,8 @@ public class EventCreate extends JInternalFrame{
         eventDateLabel.setBounds(30, 60, 130, 25);
         eventCreatePanel.add(eventDateLabel);
         
-        UtilDateModel model = new UtilDateModel(new Date());
+        Date deliveryDate = new Date(((Timestamp) eventMap.get("deliveryDate")).getTime());
+        UtilDateModel model = new UtilDateModel(deliveryDate);
         Properties p = new Properties();
         p.put("text.today", "Today");
         p.put("text.month", "Month");
@@ -161,15 +170,15 @@ public class EventCreate extends JInternalFrame{
         JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
         // Don't know about the formatter, but there it is...
         datePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter("yyyy-MM-dd"));
+        //datePicker.getComponent(1).setEnabled(false);
+//        datePicker.setEnabled(false);
+        //Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+//        datePicker.getModel().setDate(Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.MONTH), 30);
         datePicker.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(eventDetailDefaultTableModel.getRowCount()>0){
-                    showDayChangeWarning();
-                }else{
-                    updateCurrentDeliveryDateSelected();
-                }
+                showDayChangeWarning();
             }
         });
         datePicker.setBounds(160, 60, 170, 25);
@@ -180,7 +189,17 @@ public class EventCreate extends JInternalFrame{
         eventCreatePanel.add(statusLabel);
         
         ComboBoxItem[] eventStatusAvailableComboBox = EventController.getEventStatusAvailablesForCreateEvent(false);
+        
+        ComboBoxItem eventStatusComboBoxItem = null;
+        for (ComboBoxItem eventStatusComboBoxFor : eventStatusAvailableComboBox) {
+            eventStatusComboBoxItem = eventStatusComboBoxFor;
+            if(eventStatusComboBoxItem.getKey().equals(eventMap.get("status").toString())){
+                break;
+            }
+        }
+        
         statusComboBox = new JComboBox(eventStatusAvailableComboBox);
+        statusComboBox.setSelectedItem(eventStatusComboBoxItem);
         //statusComboBox.setEnabled(false);
         statusComboBox.setBounds(490, 60, 170, 25);
         statusComboBox.addActionListener(new ActionListener() {
@@ -197,6 +216,7 @@ public class EventCreate extends JInternalFrame{
         eventCreatePanel.add(placeOfDeliveryLabel);
         
         placeOfDeliveryTextArea = new JTextArea(0,0);
+        placeOfDeliveryTextArea.setText(eventMap.get("placeOfDelivery").toString());
         placeOfDeliveryTextArea.setLineWrap(true);
         placeOfDeliveryTextArea.setWrapStyleWord(true);
         JScrollPane placeOfDeliveryScrollPane = new JScrollPane();
@@ -209,6 +229,7 @@ public class EventCreate extends JInternalFrame{
         eventCreatePanel.add(observationLabel);
         
         observationTextArea = new JTextArea(0,0);
+        observationTextArea.setText(eventMap.get("observation").toString());
         observationTextArea.setLineWrap(true);
         observationTextArea.setWrapStyleWord(true);
         JScrollPane observationScrollPane = new JScrollPane();
@@ -231,7 +252,7 @@ public class EventCreate extends JInternalFrame{
         subjectCodeLabel.setBounds(30, 150, 80, 25);
         eventCreatePanel.add(subjectCodeLabel);
         
-        subjectCodeTextField = new JTextField();
+        subjectCodeTextField = new JTextField(subjectMap.get("code").toString());
         subjectCodeTextField.setEditable(false);
         subjectCodeTextField.setBounds(160, 150, 170, 25);
         eventCreatePanel.add(subjectCodeTextField);
@@ -240,7 +261,7 @@ public class EventCreate extends JInternalFrame{
         subjectAddressLabel.setBounds(370, 150, 160, 25);
         eventCreatePanel.add(subjectAddressLabel);
         
-        subjectAddressTextField = new JTextField();
+        subjectAddressTextField = new JTextField(subjectMap.get("address").toString());
         subjectAddressTextField.setEditable(false);
         subjectAddressTextField.setBounds(490, 150, 170, 25);
         eventCreatePanel.add(subjectAddressTextField);
@@ -250,7 +271,7 @@ public class EventCreate extends JInternalFrame{
         totalLabel.setBounds(1100, 150, 80, 25);
         eventCreatePanel.add(totalLabel);
         
-        totalTextField = new JTextField("0");
+        totalTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("netTotal").toString())));
         totalTextField.setEditable(false);
         totalTextField.setHorizontalAlignment(JLabel.RIGHT);
         totalTextField.setBounds(1200, 150, 170, 25);
@@ -261,7 +282,7 @@ public class EventCreate extends JInternalFrame{
         subjectNameLabel.setBounds(30, 180, 100, 25);
         eventCreatePanel.add(subjectNameLabel);
         
-        subjectNameTextField = new JTextField();
+        subjectNameTextField = new JTextField(subjectMap.get("name").toString());
         subjectNameTextField.setEditable(false);
         subjectNameTextField.setBounds(160, 180, 170, 25);
         eventCreatePanel.add(subjectNameTextField);
@@ -270,7 +291,7 @@ public class EventCreate extends JInternalFrame{
         subjectTelephoneLabel.setBounds(370, 180, 100, 25);
         eventCreatePanel.add(subjectTelephoneLabel);
         
-        subjectTelephoneTextField = new JTextField();
+        subjectTelephoneTextField = new JTextField(subjectMap.get("telephone").toString());
         subjectTelephoneTextField.setEditable(false);
         subjectTelephoneTextField.setBounds(490, 180, 170, 25);
         eventCreatePanel.add(subjectTelephoneTextField);
@@ -280,7 +301,7 @@ public class EventCreate extends JInternalFrame{
         totalTaxLabel.setBounds(1100, 180, 80, 25);
         eventCreatePanel.add(totalTaxLabel);
         
-        totalTaxTextField = new JTextField("0");
+        totalTaxTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("totalTax").toString())));
         totalTaxTextField.setEditable(false);
         totalTaxTextField.setHorizontalAlignment(JLabel.RIGHT);
         totalTaxTextField.setBounds(1200, 180, 170, 25);
@@ -291,7 +312,7 @@ public class EventCreate extends JInternalFrame{
         subjectTradenameLabel.setBounds(30, 210, 120, 25);
         eventCreatePanel.add(subjectTradenameLabel);
         
-        subjectTradenameTextField = new JTextField();
+        subjectTradenameTextField = new JTextField(subjectMap.get("tradename").toString());
         subjectTradenameTextField.setEditable(false);
         subjectTradenameTextField.setBounds(160, 210, 170, 25);
         eventCreatePanel.add(subjectTradenameTextField);
@@ -301,6 +322,14 @@ public class EventCreate extends JInternalFrame{
         eventCreatePanel.add(subjectFiscalNumberLabel);
         
         subjectFiscalNumberTextField = new JTextField();
+        String fiscalNumber; 
+        if(((String)subjectMap.get("fiscalNumber")).contains("-")){
+            fiscalNumber = amountFormat.format(Double.valueOf(((String)subjectMap.get("fiscalNumber")).split("-")[0]));
+            subjectFiscalNumberTextField.setText(fiscalNumber+"-"+((String)subjectMap.get("fiscalNumber")).split("-")[1]);
+        }else{
+            fiscalNumber = amountFormat.format(Double.valueOf(((String)subjectMap.get("fiscalNumber"))));
+            subjectFiscalNumberTextField.setText(fiscalNumber);
+        }
         subjectFiscalNumberTextField.setEditable(false);
         subjectFiscalNumberTextField.setBounds(490, 210, 170, 25);
         eventCreatePanel.add(subjectFiscalNumberTextField);
@@ -310,7 +339,7 @@ public class EventCreate extends JInternalFrame{
         subjectCityLabel.setBounds(30, 240, 80, 25);
         eventCreatePanel.add(subjectCityLabel);
         
-        subjectCityTextField = new JTextField();
+        subjectCityTextField = new JTextField(subjectMap.get("city").toString());
         subjectCityTextField.setEditable(false);
         subjectCityTextField.setBounds(160, 240, 170, 25);
         eventCreatePanel.add(subjectCityTextField);
@@ -340,7 +369,7 @@ public class EventCreate extends JInternalFrame{
                 addFurnituresButtonAction();
             }
         });
-        addFurnituresButton.setText(" Agregar Mobiliario");
+        addFurnituresButton.setText("Agregar Mobiliario");
         eventCreatePanel.add(addFurnituresButton);
         
         //TABLA DE DETALLES
@@ -355,15 +384,18 @@ public class EventCreate extends JInternalFrame{
         DefaultTableCellRenderer statusRenderer = new DefaultTableCellRenderer();
         statusRenderer.setHorizontalAlignment(JLabel.CENTER);
         
-        eventDetailDefaultTableModel.addColumn("Id");
-        eventDetailDefaultTableModel.addColumn("Código");
-        eventDetailDefaultTableModel.addColumn("Descripción");
-        eventDetailDefaultTableModel.addColumn("Tasa de Impuesto");
-        eventDetailDefaultTableModel.addColumn("Disponibilidad");
-        eventDetailDefaultTableModel.addColumn("Precio Unitario");
-        eventDetailDefaultTableModel.addColumn("Multa");
-        eventDetailDefaultTableModel.addColumn("Cantidad");
-        eventDetailDefaultTableModel.addColumn("Subtotal");
+        eventDetailDefaultTableModel.addColumn("Id");//0
+        eventDetailDefaultTableModel.addColumn("Código");//1
+        eventDetailDefaultTableModel.addColumn("Descripción");//2
+        eventDetailDefaultTableModel.addColumn("Tasa de Impuesto");//3
+        eventDetailDefaultTableModel.addColumn("Disponibilidad");//4
+        eventDetailDefaultTableModel.addColumn("Precio Unitario");//5
+        eventDetailDefaultTableModel.addColumn("Multa");//6
+        eventDetailDefaultTableModel.addColumn("Cantidad");//7
+        eventDetailDefaultTableModel.addColumn("Subtotal");//8
+        eventDetailDefaultTableModel.addColumn("5 %");//9
+        eventDetailDefaultTableModel.addColumn("10 %");//10
+        eventDetailDefaultTableModel.addColumn("");//11
         
         String taxRateColumns = SQLUtilService.getSystemConfigurationValue("furniture.tax.rates");
          
@@ -378,12 +410,9 @@ public class EventCreate extends JInternalFrame{
                 //Configuration Value viene en formato "10,11,1.1" --> Ejemplo para tasa al 10%
                 //En el mapa de cocientes para gravadas de impuestos se guaradan entonces asi "10":"1.1"
                 taxableRatioMap.put(taxRateColumns.split(";")[i].split(",")[0], taxRateColumns.split(";")[i].split(",")[2]);
-
-                eventDetailDefaultTableModel.addColumn(taxRateColumns.split(";")[i].split(",")[0]+" %");
+        
             }
         }        
-        
-        eventDetailDefaultTableModel.addColumn("");
         
         eventDetailTable.setRowHeight(22);
         
@@ -395,9 +424,9 @@ public class EventCreate extends JInternalFrame{
         eventDetailTable.getColumnModel().getColumn(STOCK_AVAILABLE_COLUMN).setHeaderRenderer(new AvailableSimpleHeaderRenderer());
         
         //ID
-        eventDetailTable.getColumnModel().getColumn(0).setMaxWidth(0);
-        eventDetailTable.getColumnModel().getColumn(0).setMinWidth(0);
-        eventDetailTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+        eventDetailTable.getColumnModel().getColumn(ID_COLUMN).setMaxWidth(0);
+        eventDetailTable.getColumnModel().getColumn(ID_COLUMN).setMinWidth(0);
+        eventDetailTable.getColumnModel().getColumn(ID_COLUMN).setPreferredWidth(0);
         
         //CODE
         eventDetailTable.getColumnModel().getColumn(CODE_COLUMN).setMaxWidth(80);
@@ -413,22 +442,23 @@ public class EventCreate extends JInternalFrame{
         eventDetailTable.getColumnModel().getColumn(UNIT_PRICE).setCellRenderer(rightRenderer);
         
         //FINE AMOUNT
-        eventDetailTable.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
+        eventDetailTable.getColumnModel().getColumn(FINE_AMOUNT_COLUMN).setCellRenderer(rightRenderer);
         
         //QUANTITY
         eventDetailTable.getColumnModel().getColumn(QUANTITY_COLUMN).setCellEditor(new QuantityCellEditor());
         eventDetailTable.getColumnModel().getColumn(QUANTITY_COLUMN).setCellRenderer(new QuantityCellRenderer());
         
         //SUB TOTAL
-        eventDetailTable.getColumnModel().getColumn(8).setCellRenderer(rightRenderer);
+        eventDetailTable.getColumnModel().getColumn(SUB_TOTAL_COLUMN).setCellRenderer(rightRenderer);
         
-        for(int i = 0; i < taxRateColumns.split(";").length; i++){
-            if(!taxRateColumns.split(";")[i].split(",")[0].trim().equals("0")){
-                eventDetailTable.getColumnModel().getColumn(9+i).setMaxWidth(90);
-                eventDetailTable.getColumnModel().getColumn(9+i).setMinWidth(90);
-                eventDetailTable.getColumnModel().getColumn(9+i).setCellRenderer(rightRenderer);
-            }
-        }
+        
+        eventDetailTable.getColumnModel().getColumn(TAX_5_COLUMN).setMaxWidth(90);
+        eventDetailTable.getColumnModel().getColumn(TAX_5_COLUMN).setMinWidth(90);
+        eventDetailTable.getColumnModel().getColumn(TAX_5_COLUMN).setCellRenderer(rightRenderer);
+                
+        eventDetailTable.getColumnModel().getColumn(TAX_10_COLUMN).setMaxWidth(90);
+        eventDetailTable.getColumnModel().getColumn(TAX_10_COLUMN).setMinWidth(90);
+        eventDetailTable.getColumnModel().getColumn(TAX_10_COLUMN).setCellRenderer(rightRenderer);
         
         //DELETE BUTTON in Table
         eventDetailTable.getColumnModel().getColumn(DELETE_BUTTON_COLUMN).setMaxWidth(80);
@@ -443,9 +473,11 @@ public class EventCreate extends JInternalFrame{
         
         add(eventDetailTableJScrollPane);
         
+        ArrayList furnitureDetailList = (ArrayList) eventMap.get("detail");
+        addFuritureDetailToChargesTable(furnitureDetailList);
         
         ImageIcon saveIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
-        saveButton = new JButton(" Crear Evento", saveIconImage);
+        saveButton = new JButton(" Guardar", saveIconImage);
         saveButton.setBounds(1050, 690, 150, 32);
         saveButton.addActionListener(new ActionListener() {
 
@@ -474,41 +506,10 @@ public class EventCreate extends JInternalFrame{
         setMaximizable(false);
         setResizable(false);
         setClosable(true);
-        setTitle("Crear Evento");
+        setTitle("Editar Presupuesto");
         setBounds(150,50,1450,800);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
-    }
-    
-    private void showDayChangeWarning(){
-        int respuesta = JOptionPane.showConfirmDialog(this, "Con esta accion se eliminaran los mobiliarios precargados para este presupuesto, debido a que las disponibilidades se veran afectadas. Confirmar accion?","Confirmar cambio de Fecha", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if(respuesta == JOptionPane.YES_OPTION){
-            try{
-                int rowCount = eventDetailDefaultTableModel.getRowCount();
-                for(int i = (rowCount-1); i >= 0; i-- ){
-                    removeRow(i);
-                }
-                updateCurrentDeliveryDateSelected();
-            }catch (ParseException ex) {
-                Logger.getLogger(EventEdit.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }else{
-            Date deliveryDate = currentDeliveryDateSelected;
-            Calendar c = dateToCalendar(deliveryDate);
-            datePicker.getModel().setDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
-        }
-    }
-    
-    private Calendar dateToCalendar(Date date) {
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
-            return calendar;
-
-    }
-    
-    private void updateCurrentDeliveryDateSelected(){
-        currentDeliveryDateSelected = (Date)datePicker.getModel().getValue();
     }
     
     private void selectSubjectButtonAction(){
@@ -545,6 +546,32 @@ public class EventCreate extends JInternalFrame{
             public void internalFrameDeactivated(InternalFrameEvent e) {}
         });
     };
+    
+    private void addFuritureDetailToChargesTable(ArrayList furnitureDetailList){
+        HashMap furnitureMap;
+        
+        Date deliveryDate = new Date(((Timestamp) eventMap.get("deliveryDate")).getTime());
+        int stockAvailable = 0;
+        Object[] row = new Object[eventDetailTable.getColumnCount()];        
+        for(int i = 0; i < furnitureDetailList.size(); i++){
+            furnitureMap = (HashMap) furnitureDetailList.get(i);
+            row[ID_COLUMN] = furnitureMap.get("id");
+            row[CODE_COLUMN] = furnitureMap.get("code");
+            row[DESCRIPTION_COLUMN] = furnitureMap.get("description");
+            row[TAX_RATE_COLUMN] = amountFormat.format((Double)furnitureMap.get("taxRate"));
+            stockAvailable = FurnitureController.getFurnitureStockByCodeAndDay(furnitureMap.get("code").toString(), deliveryDate);
+            row[STOCK_AVAILABLE_COLUMN] = stockAvailable;
+            row[UNIT_PRICE] = amountFormat.format((Double)furnitureMap.get("unitPrice"));
+            row[FINE_AMOUNT_COLUMN] = amountFormat.format((Double)furnitureMap.get("fineAmountPerUnit"));
+            row[QUANTITY_COLUMN] = furnitureMap.get("quantity");
+            row[SUB_TOTAL_COLUMN] = amountFormat.format((Double)furnitureMap.get("totalAmount"));
+            row[TAX_5_COLUMN] = amountFormat.format((Double)furnitureMap.get("taxAmount5"));
+            row[TAX_10_COLUMN] = amountFormat.format((Double)furnitureMap.get("taxAmount10"));
+            row[DELETE_BUTTON_COLUMN] = "";
+            furnitureCodesAdded.add(furnitureMap.get("code"));
+            eventDetailDefaultTableModel.addRow(row);
+        }
+    }
     
     private void addFurnituresButtonAction(){
         
@@ -651,6 +678,26 @@ public class EventCreate extends JInternalFrame{
            
     }
     
+    private void showDayChangeWarning(){
+        int respuesta = JOptionPane.showConfirmDialog(this, "Con esta accion se eliminaran los mobiliarios precargados para este presupuesto, debido a que las disponibilidades se veran afectadas. Confirmar accion?","Confirmar cambio de Fecha", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if(respuesta == JOptionPane.YES_OPTION){
+            //removeA
+            try{
+                int rowCount = eventDetailDefaultTableModel.getRowCount();
+                for(int i = (rowCount-1); i >= 0; i-- ){
+                    removeRow(i);
+                }
+            }catch (ParseException ex) {
+                Logger.getLogger(EventEdit.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }else{
+            Date deliveryDate = new Date(((Timestamp) eventMap.get("deliveryDate")).getTime());
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(deliveryDate);
+            datePicker.getModel().setDate(Calendar.getInstance().get(Calendar.YEAR), Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+        }
+    }
+    
     private void inactivateElements(){
         setClosable(false);
         setIconifiable(false);
@@ -750,10 +797,10 @@ public class EventCreate extends JInternalFrame{
                 totalTax = amountFormat.parse(totalTaxTextField.getText()).doubleValue();
             
             } catch (ParseException ex) {
-                Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(EventEdit.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
-            HashMap returnMap = eventController.createEvent(subjectMap, deliveryDate, status, placeOfDelivery, furnitureList, netTotal, totalTax, totalTax5, totalTax10, totalTaxable5, totalTaxable10, totalTaxable, observation);
+            int eventId = (Integer) eventMap.get("id");
+            HashMap returnMap = eventController.updateEventBudgeted(subjectMap, deliveryDate, status, placeOfDelivery, furnitureList, netTotal, totalTax, totalTax5, totalTax10, totalTaxable5, totalTaxable10, totalTaxable, observation, eventId);
             
             if(((Integer)returnMap.get("status"))==EventController.SUCCESFULLY_SAVED){
                 JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
@@ -767,11 +814,12 @@ public class EventCreate extends JInternalFrame{
     private void cancelButtonAction(ActionEvent e) {
         doDefaultCloseAction();
     }
+    
 
     @Override
     public void doDefaultCloseAction() {
         this.dispose();
-        eventController.eventCreateClosed();
+        eventController.eventEditClosed();
         //furnitureController.setEnabledIndexView();
         //furnitureController.searchFurnitureButtonAction();
     }
@@ -786,7 +834,7 @@ public class EventCreate extends JInternalFrame{
                    }
            }
         } catch (ParseException ex) {
-            Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(EventEdit.class.getName()).log(Level.SEVERE, null, ex);
         }
         return true;
     }
@@ -823,7 +871,7 @@ public class EventCreate extends JInternalFrame{
             row[0] = furnitureMap.get("id");
             row[1] = furnitureMap.get("code");
             row[2] = furnitureMap.get("description");
-            row[TAX_RATE_COLUMN] = amountFormat.format((Double)furnitureMap.get("taxRate"));
+            row[TAX_RATE_COLUMN] = furnitureMap.get("taxRate");
             row[STOCK_AVAILABLE_COLUMN] = amountFormat.format(Long.valueOf(furnitureMap.get("stockAvailable").toString()));
             row[UNIT_PRICE] = amountFormat.format((Double)furnitureMap.get("unitPrice"));
             row[6] = amountFormat.format((Double)furnitureMap.get("fineAmountPerUnit"));
@@ -852,16 +900,20 @@ public class EventCreate extends JInternalFrame{
         double oldItemTaxAmount =0;
         double furnitureTaxRate = 0;
         double itemTax = 0;
-        int taxIndexIntable = 0;
-        if(!furnitureTaxRateString.equals("0")){
+        
+        if(furnitureTaxRateString.equals("10")){
             
-            taxIndexIntable = SUB_TOTAL_COLUMN + Integer.valueOf(taxList.indexOf(furnitureTaxRateString)) + 1;
-            oldItemTaxAmount = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, taxIndexIntable).toString()).doubleValue();
+            oldItemTaxAmount = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, TAX_10_COLUMN).toString()).doubleValue();
             
             furnitureTaxRate = Double.valueOf((String)taxRatioMap.get(furnitureTaxRateString));
             itemTax = new BigDecimal(subTotal / furnitureTaxRate).setScale(0, RoundingMode.HALF_UP).doubleValue();
-            eventDetailDefaultTableModel.setValueAt(amountFormat.format(itemTax), row, taxIndexIntable);
+            eventDetailDefaultTableModel.setValueAt(amountFormat.format(itemTax), row, TAX_10_COLUMN);
             
+        }else if(furnitureTaxRateString.equals("5")){
+            oldItemTaxAmount = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, TAX_5_COLUMN).toString()).doubleValue();
+            furnitureTaxRate = Double.valueOf((String)taxRatioMap.get(furnitureTaxRateString));
+            itemTax = new BigDecimal(subTotal / furnitureTaxRate).setScale(0, RoundingMode.HALF_UP).doubleValue();
+            eventDetailDefaultTableModel.setValueAt(amountFormat.format(itemTax), row, TAX_5_COLUMN);
         }
         
         //TOTAL
@@ -882,12 +934,11 @@ public class EventCreate extends JInternalFrame{
         //Item tax
         String furnitureTaxRateString = eventDetailDefaultTableModel.getValueAt(row, TAX_RATE_COLUMN).toString();
         double itemTaxAmount =0;
-        int taxIndexIntable = 0;
-        if(!furnitureTaxRateString.equals("0")){
-            
-            taxIndexIntable = SUB_TOTAL_COLUMN + Integer.valueOf(taxList.indexOf(furnitureTaxRateString)) + 1;
-            itemTaxAmount = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, taxIndexIntable).toString()).doubleValue();
-            
+        
+        if(furnitureTaxRateString.equals("10")){
+            itemTaxAmount = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, TAX_10_COLUMN).toString()).doubleValue();
+        }else if(furnitureTaxRateString.equals("5")){
+            itemTaxAmount = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, TAX_5_COLUMN).toString()).doubleValue();
         }
 
         //TOTAL
@@ -950,7 +1001,7 @@ public class EventCreate extends JInternalFrame{
             try {
                 ((NumericTextField) this.component).setValue(amountFormat.parse(value.toString()));
             } catch (ParseException ex) {
-                Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(EventEdit.class.getName()).log(Level.SEVERE, null, ex);
             }
            
             return component;
@@ -978,7 +1029,7 @@ public class EventCreate extends JInternalFrame{
                     updateSubTotal(newQuantity, row, column);
                 }
             } catch (Throwable th) {
-                Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, th);
+                Logger.getLogger(EventEdit.class.getName()).log(Level.SEVERE, null, th);
             }
             return ((JTextField) component).getText();
         }
@@ -1100,7 +1151,7 @@ public class EventCreate extends JInternalFrame{
             try {
                 removeRow(row);
             } catch (ParseException ex) {
-                Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(EventEdit.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
       }

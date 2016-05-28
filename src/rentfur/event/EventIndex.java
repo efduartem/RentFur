@@ -54,6 +54,7 @@ public class EventIndex extends JInternalFrame{
     private final EventController eventController;
     private EventShowAndEdit eventShowAndEdit;
     private EventCreate eventCreate;
+    private EventEdit eventEdit;
     private final JPanel eventHeaderPanel;
     private final JLabel eventDateLabel;
     private final JLabel eventsDayTitleLabel;
@@ -90,8 +91,9 @@ public class EventIndex extends JInternalFrame{
     private double budgetedDayTotal = 0;
     
     private final JButton createEventButton;
-    
-     public EventIndex(EventController eventController){
+    public static final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
+     
+    public EventIndex(EventController eventController){
         this.eventController = eventController;
         
         amountFormat.setGroupingUsed(true);
@@ -274,7 +276,7 @@ public class EventIndex extends JInternalFrame{
         eventsDayTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
         eventHeaderPanel.add(eventsDayTotalTextField);
         
-        budgetedDayLabel = new JLabel("Prespuestos: ");
+        budgetedDayLabel = new JLabel("Presupuestos: ");
         budgetedDayLabel.setBounds(1350, 560, 100, 25);
         eventHeaderPanel.add(budgetedDayLabel);
         
@@ -294,10 +296,12 @@ public class EventIndex extends JInternalFrame{
         budgetedDayTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
         eventHeaderPanel.add(budgetedDayTotalTextField);
         
+        TableCellRenderer renderer = new EvenOddRenderer();
+        
         //TABLA DE Eventos de Dia
         dayEventsDefaultTableModel = new DayEventsDefaultTableModel();
         dayEventsTable = new JTable(dayEventsDefaultTableModel);
-        
+        dayEventsTable.setDefaultRenderer(Object.class, renderer);
         dayEventsDefaultTableModel.addColumn("Id");
         dayEventsDefaultTableModel.addColumn("Código");
         dayEventsDefaultTableModel.addColumn("Cliente");
@@ -307,6 +311,7 @@ public class EventIndex extends JInternalFrame{
         dayEventsDefaultTableModel.addColumn("Lugar");
         dayEventsDefaultTableModel.addColumn("Observaciones");
         dayEventsDefaultTableModel.addColumn("");
+        dayEventsDefaultTableModel.addColumn("statusInt");
         
         dayEventsTable.setRowHeight(24);
                 
@@ -336,13 +341,13 @@ public class EventIndex extends JInternalFrame{
         dayEventsTable.getColumnModel().getColumn(4).setMaxWidth(180);
         dayEventsTable.getColumnModel().getColumn(4).setMinWidth(180);
         dayEventsTable.getColumnModel().getColumn(4).setPreferredWidth(180);
-        dayEventsTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
+        //dayEventsTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
         
         //Balance Column
         dayEventsTable.getColumnModel().getColumn(5).setMaxWidth(180);
         dayEventsTable.getColumnModel().getColumn(5).setMinWidth(180);
         dayEventsTable.getColumnModel().getColumn(5).setPreferredWidth(180);
-        dayEventsTable.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
+        //dayEventsTable.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
         
         //Place Of Delivery Column
         dayEventsTable.getColumnModel().getColumn(6).setPreferredWidth(300);
@@ -353,6 +358,11 @@ public class EventIndex extends JInternalFrame{
         //Show Button Column
         dayEventsTable.getColumnModel().getColumn(8).setCellRenderer(new ButtonRenderer());
         dayEventsTable.getColumnModel().getColumn(8).setCellEditor(new ButtonEditor(new JTextField()));
+        
+        //Status Int Column
+        dayEventsTable.getColumnModel().getColumn(9).setMaxWidth(0);
+        dayEventsTable.getColumnModel().getColumn(9).setMinWidth(0);
+        dayEventsTable.getColumnModel().getColumn(9).setPreferredWidth(0);
         
         ArrayList eventList = eventController.getEventsByDayForIndex(deliveryDate);
         HashMap eventMap;
@@ -368,6 +378,7 @@ public class EventIndex extends JInternalFrame{
             rowEvent[6] = eventMap.get("placeOfDelivery");
             rowEvent[7] = eventMap.get("observation");
             rowEvent[8] = "Ver";
+            rowEvent[9] = (Integer)eventMap.get("statusInt");
             if(((Integer)eventMap.get("statusInt"))==EventController.CONFIRMED){
                 eventsDayQuantity++;
                 eventsDayTotal = eventsDayTotal + (Double)eventMap.get("netTotal");
@@ -633,36 +644,75 @@ public class EventIndex extends JInternalFrame{
     private void showAndEditEventInternalFrameView(int row){
         Vector dataVector = (Vector) dayEventsDefaultTableModel.getDataVector().get(row);
         int eventId = (Integer) dataVector.get(0);
-        eventShowAndEdit = eventController.getEventShowAndEdit(eventId);
-        eventShowAndEdit.setVisible(true);
-        showSearchDialog(eventShowAndEdit);
-        inactivateElements();
-        eventShowAndEdit.addInternalFrameListener(new InternalFrameListener() {
+        int status = (Integer) dataVector.get(9);
+        iconifiedInternalFrame();
+        if(status==EventController.CONFIRMED || status==EventController.CANCELED){
+            eventShowAndEdit = eventController.getEventShowAndEdit(eventId);
+            eventShowAndEdit.setVisible(true);
+            showSearchDialog(eventShowAndEdit);
+            inactivateElements();
+            eventShowAndEdit.addInternalFrameListener(new InternalFrameListener() {
 
-            @Override
-            public void internalFrameOpened(InternalFrameEvent e) {}
+                @Override
+                public void internalFrameOpened(InternalFrameEvent e) {}
 
-            @Override
-            public void internalFrameClosing(InternalFrameEvent e) {}
+                @Override
+                public void internalFrameClosing(InternalFrameEvent e) {}
 
-            @Override
-            public void internalFrameClosed(InternalFrameEvent e) { 
-                activateElements();
-                deIconifiedInternalFrame();
-            }
+                @Override
+                public void internalFrameClosed(InternalFrameEvent e) { 
+                    activateElements();
+                    deIconifiedInternalFrame();
+                    updateDayEvents();
+                    updateDayStock();
+                }
 
-            @Override
-            public void internalFrameIconified(InternalFrameEvent e) {}
+                @Override
+                public void internalFrameIconified(InternalFrameEvent e) {}
 
-            @Override
-            public void internalFrameDeiconified(InternalFrameEvent e) {}
+                @Override
+                public void internalFrameDeiconified(InternalFrameEvent e) {}
 
-            @Override
-            public void internalFrameActivated(InternalFrameEvent e) {}
+                @Override
+                public void internalFrameActivated(InternalFrameEvent e) {}
 
-            @Override
-            public void internalFrameDeactivated(InternalFrameEvent e) {}
-        });
+                @Override
+                public void internalFrameDeactivated(InternalFrameEvent e) {}
+            });
+        }else{
+            eventEdit = eventController.getEventEdit(eventId);
+            eventEdit.setVisible(true);
+            showSearchDialog(eventEdit);
+            inactivateElements();
+            eventEdit.addInternalFrameListener(new InternalFrameListener() {
+
+                @Override
+                public void internalFrameOpened(InternalFrameEvent e) {}
+
+                @Override
+                public void internalFrameClosing(InternalFrameEvent e) {}
+
+                @Override
+                public void internalFrameClosed(InternalFrameEvent e) { 
+                    activateElements();
+                    deIconifiedInternalFrame();
+                    updateDayEvents();
+                    updateDayStock();
+                }
+
+                @Override
+                public void internalFrameIconified(InternalFrameEvent e) {}
+
+                @Override
+                public void internalFrameDeiconified(InternalFrameEvent e) {}
+
+                @Override
+                public void internalFrameActivated(InternalFrameEvent e) {}
+
+                @Override
+                public void internalFrameDeactivated(InternalFrameEvent e) {}
+            });
+        }
     }
     
     private void updateDayEvents(){
@@ -693,7 +743,7 @@ public class EventIndex extends JInternalFrame{
             row[6] = eventMap.get("placeOfDelivery");
             row[7] = eventMap.get("observation");
             row[8] = "Ver";
-            
+            row[9] = (Integer)eventMap.get("statusInt");
             if(((Integer)eventMap.get("statusInt"))==EventController.CONFIRMED){
                 eventsDayQuantity++;
                 eventsDayTotal = eventsDayTotal + (Double)eventMap.get("netTotal");
@@ -780,7 +830,6 @@ public class EventIndex extends JInternalFrame{
           if (isPushed) {
                 if(column==8){
                     showAndEditEventInternalFrameView(row);
-                    iconifiedInternalFrame();
                 }
           }
           isPushed = false;          
@@ -798,4 +847,42 @@ public class EventIndex extends JInternalFrame{
           super.fireEditingStopped();
         }
       }
+     
+     class EvenOddRenderer implements TableCellRenderer {
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            int status = Integer.valueOf(table.getModel().getValueAt(row, 9).toString());
+            Component renderer = DEFAULT_RENDERER.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            ((JLabel) renderer).setOpaque(true);
+            Color foreground;
+            Color background;
+            
+            if (status == EventController.BUDGETED) {
+                foreground = Color.black;
+                background = new Color(244, 249, 199);
+                renderer.setForeground(foreground);
+                renderer.setBackground(background);
+            }else if (status == EventController.CANCELED) {
+                foreground = Color.black;
+                background = new Color(255, 204, 204);
+                renderer.setForeground(foreground);
+                renderer.setBackground(background);
+            }else{
+                foreground = Color.black;
+                background = Color.white;
+                renderer.setForeground(foreground);
+                renderer.setBackground(background);
+            }
+
+            if(column == 4 || column == 5){
+                ((JLabel) renderer).setHorizontalAlignment(JLabel.RIGHT);
+            }else{
+                ((JLabel) renderer).setHorizontalAlignment(JLabel.LEFT);
+            }
+            
+            return renderer;
+        }
+      }
+
 }

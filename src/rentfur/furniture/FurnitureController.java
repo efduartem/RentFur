@@ -592,7 +592,7 @@ public class FurnitureController {
                 resultValuesMap.put("totalStock", rs.getDouble("total_stock"));
                 resultValuesMap.put("family", rs.getString("family"));
                 resultValuesMap.put("active", rs.getBoolean("active"));
-                resultValuesMap.put("taxRate", rs.getInt("tax_rate"));
+                resultValuesMap.put("taxRate", rs.getDouble("tax_rate"));
                 resultValuesMap.put("stockAvailable", rs.getInt("stock_available"));
                 listToReturn.add(resultValuesMap);
             }
@@ -747,6 +747,43 @@ public class FurnitureController {
             }
         }
         return mapToReturn;
+    }
+    
+    public static int getFurnitureStockByCodeAndDay(String code, Date day){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        int stockAvailable = 0;
+        try{
+            connRentFur = DbConnectUtil.getConnection();
+            StringBuilder furnitureQuery = new StringBuilder();
+            furnitureQuery.append("SELECT f.id, f.code, f.description, (SELECT stock_available FROM furniture_stock WHERE furniture_id = f.id AND day = ?) as stock FROM furniture f WHERE f.code = ?");
+            ps = connRentFur.prepareStatement(furnitureQuery.toString());
+            ps.setDate(1, new java.sql.Date (day.getTime()));
+            ps.setString(2, code);
+            
+            rs = ps.executeQuery();
+            if(rs.next()){
+                stockAvailable = rs.getInt("stock");
+            }
+            rs.close();
+            ps.close();
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return stockAvailable;
     }
     
     public static HashMap getFurnitureByCode(String furnitureCode){

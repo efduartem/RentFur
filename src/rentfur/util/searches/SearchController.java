@@ -27,8 +27,10 @@ import rentfur.util.DbConnectUtil;
 public class SearchController {
     private SubjectSearch subjectSearch;
     private FurnitureSearch furnitureSearch;
+    private FurniturePenaltySearch furniturePenaltySearch;
     private String subjetcSelectedCode = "";
     private ArrayList furnitureSelectedCodes = new ArrayList();
+    private ArrayList furniturePenalizedCodes = new ArrayList();
     
     public SubjectSearch getSubjectSearch(){
         if(subjectSearch == null){
@@ -42,6 +44,13 @@ public class SearchController {
             furnitureSearch = new FurnitureSearch(this, furnitureCodesAdded, day);
         }
         return furnitureSearch;
+    }
+    
+    public FurniturePenaltySearch getFurniturePenaltySearch(ArrayList furnitureCodesPenalized, ArrayList furnitureEventList){
+        if(furniturePenaltySearch == null){
+            furniturePenaltySearch = new FurniturePenaltySearch(this, furnitureEventList, furnitureCodesPenalized);
+        }
+        return furniturePenaltySearch;
     }
     
     public void setSubjectIndexResultsTable(DefaultTableModel subjectResultDefaultTableModel, boolean searchPressed, String code, String name, String tradename, String address, String city, String telephone, String fiscalNumber){
@@ -201,6 +210,10 @@ public class SearchController {
         furnitureSearch = null;
     }
     
+    public void setClosedFurniturePenaltySearch(){
+        furniturePenaltySearch = null;
+    }
+    
     public void setSubjetcSelectedCode(String subjetcSelectedCode){
         this.subjetcSelectedCode = subjetcSelectedCode;
     }
@@ -268,6 +281,57 @@ public class SearchController {
             th.printStackTrace();
         }
     }
+    
+    public void setFurniturePenaltyResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, ArrayList furnitureEventList, ArrayList furnitureCodesPenalized){
+        
+        try{
+            if(!searchPressed){
+                furnituresResultDefaultTableModel.addColumn("Código");
+                furnituresResultDefaultTableModel.addColumn("Descripción");
+                furnituresResultDefaultTableModel.addColumn("Familia");
+                furnituresResultDefaultTableModel.addColumn("Tasa de Impuesto");
+                furnituresResultDefaultTableModel.addColumn("Multa");
+                furnituresResultDefaultTableModel.addColumn("Contratado");
+                furnituresResultDefaultTableModel.addColumn("Id");
+                furnituresResultDefaultTableModel.addColumn("Código");
+            }
+            
+            int numeroRegistrosTablaPermisos=0;
+            numeroRegistrosTablaPermisos = furnituresResultDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistrosTablaPermisos;i++){
+                furnituresResultDefaultTableModel.removeRow(0);
+            }
+            
+            if(furnitureEventList!=null && !furnitureEventList.isEmpty()){
+                DecimalFormat amountFormat = new DecimalFormat("#,###");
+                HashMap resultValueMap;
+                Object[] row;
+                for(int rowNumber = 0; rowNumber < furnitureEventList.size(); rowNumber++){
+
+                    row = new Object[furnituresResultDefaultTableModel.getColumnCount()];
+                    resultValueMap = (HashMap) furnitureEventList.get(rowNumber);
+                    if(!furnitureCodesPenalized.contains(resultValueMap.get("furnitureCode").toString())){
+                        row[0] = new JCheckBox(resultValueMap.get("furnitureCode").toString());
+                        row[1] = resultValueMap.get("description");
+                        row[2] = resultValueMap.get("family");
+                        row[3] = amountFormat.format((Double)resultValueMap.get("taxRate"));
+                        row[4] = amountFormat.format((Double)resultValueMap.get("fineAmountPerUnit"));
+                        row[5] = amountFormat.format((Integer)resultValueMap.get("quantity"));
+                        row[6] = resultValueMap.get("id");
+                        row[7] = resultValueMap.get("furnitureCode");
+
+                        furnituresResultDefaultTableModel.addRow(row);
+                    }
+                }
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }
+    }
+    
     
     public ArrayList getSearchResultList(String code, String description, String familyId, ArrayList furnitureCodesAdded, Date day){
         Connection connRentFur = null;
@@ -346,4 +410,13 @@ public class SearchController {
     public ArrayList getFurnitureSelectedCode(){
         return this.furnitureSelectedCodes;
     }
+    
+    public ArrayList getFurniturePenalizedCodes() {
+        return furniturePenalizedCodes;
+    }
+
+    public void setFurniturePenalizedCodes(ArrayList furniturePenalizedCodes) {
+        this.furniturePenalizedCodes = furniturePenalizedCodes;
+    }
+    
 }

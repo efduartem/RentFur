@@ -15,8 +15,10 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractCellEditor;
@@ -39,11 +41,15 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
@@ -51,6 +57,7 @@ import javax.swing.table.TableCellRenderer;
 import rentfur.furniture.FurnitureController;
 import rentfur.receipt.ReceiptController;
 import rentfur.receipt.ReceiptCreate;
+import rentfur.receipt.ReceiptShow;
 import rentfur.subject.SubjectController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
@@ -65,6 +72,7 @@ import rentfur.util.searches.SearchController;
 public class EventShowAndEdit extends JInternalFrame{
     private final EventController eventController;
     private ReceiptCreate receiptCreate;
+    private ReceiptShow receiptShow;
     private ReceiptController receiptController;
     private final SearchController searchController;
     private FurnitureSearch furnitureSearch;
@@ -112,6 +120,12 @@ public class EventShowAndEdit extends JInternalFrame{
     private DefaultTableModel eventDetailPenaltyDefaultTableModel;
     private JTable eventDetailpenaltyTable;
     private JScrollPane eventDetailPenaltyTableJScrollPane;
+    private DefaultTableModel receiptDefaultTableModel;
+    private JTable receiptTable;
+    private JScrollPane receiptTableJScrollPane;
+    private DefaultTableModel paymentMethodDefaultTableModel;
+    private JTable paymentMethodTable;
+    private JScrollPane paymentMethodTableJScrollPane;
     
     private static final int ID_COLUMN = 0;
     private static final int CODE_COLUMN_CHARGES = 1;
@@ -129,19 +143,41 @@ public class EventShowAndEdit extends JInternalFrame{
     private static final int PENALTY_CODE_COLUMN_CHARGES = 1;
     private static final int PENALTY_DESCRIPTION_COLUMN = 2;
     private static final int PENALTY_TAX_RATE_COLUMN = 3;
-    private static final int PENALTY_PENALTY_COLUMN = 4;
+    private static final int PENALTY_CONFIRMED_COLUMN = 4;
     private static final int PENALTY_QUANTITY_COLUMN_CHARGES = 5;
-    private static final int PENALTY_SUBTOTAL_COLUMN = 6;
-    private static final int PENALTY_DELETE_BUTTON_COLUMN = 7;
+    private static final int PENALTY_PENALTY_COLUMN = 6;
+    private static final int PENALTY_SUBTOTAL_COLUMN = 7;
+    private static final int PENALTY_DELETE_BUTTON_COLUMN = 8;
+    
+    private static final int RECEIPT_ID_COLUMN = 0;
+    private static final int RECEIPT_DATE_COLUMN = 1;
+    private static final int RECEIPT_NUMBER_COLUMN = 2;
+    private static final int RECEIPT_AMOUNT_COLUMN = 3;
+    private static final int RECEIPT_CANCELLED_COLUMN = 4;
+    private static final int RECEIPT_CANCELLED_DATE_COLUMN = 5;
+    private static final int RECEIPT_CANCELLED_REASON_COLUMN = 6;
+    private static final int RECEIPT_CANCELLED_BUTTON_COLUMN = 7;
+    private static final int RECEIPT_SHOW_BUTTON_COLUMN = 8;
+    
+    
+    private final int PAYMENT_METHOD_COLUMN = 0;
+    private final int DOC_NUMBER_COLUMN = 1;
+    private final int DOC_EMITION_DATE_COLUMN = 2;
+    private final int DOC_PAYMENT_DATE_COLUMN = 3;
+    private final int DOC_DUE_DATE_COLUMN = 4;
+    private final int BANK_COLUMN = 5;
+    private final int AMOUNT_COLUMN = 6;
     
     private HashMap eventMap;
     private HashMap subjectMap;
+    private ArrayList receiptList;
+    private int eventId;
     private final DecimalFormat amountFormat = new DecimalFormat("#,###");
     
     private final ArrayList furnitureCodesAdded = new ArrayList();
     private final ArrayList furnitureCodesPenalized = new ArrayList();
     
-    public static final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
+    private static final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
     
     public EventShowAndEdit(EventController eventController, int eventId){
         this.eventController = eventController;
@@ -156,8 +192,10 @@ public class EventShowAndEdit extends JInternalFrame{
         eventHeaderPanel = new JPanel();
         eventHeaderPanel.setLayout(null);
         
+        this.eventId = eventId;
         eventMap = EventController.getEventById(eventId);
         subjectMap = SubjectController.getSubjectByCode(eventMap.get("subjectCode").toString());
+        receiptList = ReceiptController.getReceiptsByEventId(eventId);
         
         titleLabel = new JLabel("<HTML><U>Detalles del Evento</U></HTML>");
         titleLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 25));
@@ -178,7 +216,7 @@ public class EventShowAndEdit extends JInternalFrame{
         statusLabel.setBounds(370, 60, 130, 25);
         eventHeaderPanel.add(statusLabel);
         
-        ComboBoxItem[] eventStatusAvailableComboBox = EventController.getEventStatusAvailablesForShowAndEditEvent(false);
+        ComboBoxItem[] eventStatusAvailableComboBox = EventController.getEventStatusAvailablesForShowAndEditEvent(false, eventMap);
         
         ComboBoxItem eventStatusComboBoxItem = null;
         for (ComboBoxItem eventStatusComboBoxFor : eventStatusAvailableComboBox) {
@@ -191,13 +229,6 @@ public class EventShowAndEdit extends JInternalFrame{
         statusComboBox = new JComboBox(eventStatusAvailableComboBox);
         statusComboBox.setSelectedItem(eventStatusComboBoxItem);
         statusComboBox.setBounds(490, 60, 170, 25);
-        statusComboBox.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //filter();
-            }
-        });
         eventHeaderPanel.add(statusComboBox);
         
         placeOfDeliveryLabel = new JLabel("Lugar de Entrega:");
@@ -290,7 +321,7 @@ public class EventShowAndEdit extends JInternalFrame{
         subjectTelephoneTextField.setBounds(490, 180, 170, 25);
         eventHeaderPanel.add(subjectTelephoneTextField);
         
-        //Total IVA
+        //Total SALDO
         balanceTotalLabel = new JLabel("Saldo: ");
         balanceTotalLabel.setBounds(1100, 180, 80, 25);
         eventHeaderPanel.add(balanceTotalLabel);
@@ -339,7 +370,9 @@ public class EventShowAndEdit extends JInternalFrame{
         eventHeaderPanel.add(subjectCityTextField);
         
         //Boton para registrar pagos
-        paymentRecordButton = new JButton("Registrar Pago");
+        ImageIcon paymentRecordImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/money_24x24.png"));
+        paymentRecordButton = new JButton(" Registrar Pago");
+        paymentRecordButton.setIcon(paymentRecordImageIcon);
         paymentRecordButton.setBounds(1250, 330, 180, 35);
         paymentRecordButton.setVisible(false);
         paymentRecordButton.addActionListener(new ActionListener() {
@@ -405,8 +438,9 @@ public class EventShowAndEdit extends JInternalFrame{
         add(closeButton);
         
         if(((Integer)eventMap.get("status"))==EventController.CANCELED){
-            saveChangesButton.setVisible(false);
-            addFurnitureButton.setVisible(false);
+            saveChangesButton.setEnabled(false);
+            addFurnitureButton.setEnabled(false);
+            addPenaltyButton.setEnabled(false);
             statusComboBox.setEnabled(false);
         }
         //CREAMOS EL CONJUNTO DE PESTAÑAS
@@ -428,16 +462,22 @@ public class EventShowAndEdit extends JInternalFrame{
         public void stateChanged(ChangeEvent changeEvent) {
             JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
             int index = sourceTabbedPane.getSelectedIndex();
-            if(index==1 && ((Integer)eventMap.get("status"))!=EventController.CANCELED){
-                paymentRecordButton.setVisible(true);
-            }else{
-                paymentRecordButton.setVisible(false);
-            }
-            
-            if(index==0 && ((Integer)eventMap.get("status"))!=EventController.CANCELED){
-                addFurnitureButton.setVisible(true);
-            }else{
-                addFurnitureButton.setVisible(false);
+            switch(index){
+                case 0:
+                    addFurnitureButton.setVisible(true);
+                    addPenaltyButton.setVisible(true);
+                    paymentRecordButton.setVisible(false);
+                    break;
+                case 1:
+                    addFurnitureButton.setVisible(false);
+                    addPenaltyButton.setVisible(false);
+                    paymentRecordButton.setVisible(true);
+                break;
+                default:
+                    addFurnitureButton.setVisible(true);
+                    addPenaltyButton.setVisible(true);
+                    paymentRecordButton.setVisible(false);
+                
             }
           }
         };
@@ -456,6 +496,169 @@ public class EventShowAndEdit extends JInternalFrame{
         setBounds(150,30,1500,900);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
+    }
+    
+    private void addPaymentsTabComponent(){
+        //TABLA DE DETALLES DE PAGOS
+        receiptDefaultTableModel = new receiptDefaultTableModel();
+        receiptTable = new JTable(receiptDefaultTableModel);
+        
+        //TableCellRenderer renderer = new EvenOddRenderer();
+        //receiptTable.setDefaultRenderer(Object.class, renderer);
+        
+        receiptDefaultTableModel.addColumn("Id");
+        receiptDefaultTableModel.addColumn("Fecha");
+        receiptDefaultTableModel.addColumn("Numero");
+        receiptDefaultTableModel.addColumn("Monto");
+        receiptDefaultTableModel.addColumn("Anulado");
+        receiptDefaultTableModel.addColumn("Fecha de Anulación");
+        receiptDefaultTableModel.addColumn("Motivo de Anulación");
+        receiptDefaultTableModel.addColumn("");
+        receiptDefaultTableModel.addColumn("");
+        
+        receiptTable.setRowHeight(22);
+        receiptTable.setBorder(BorderFactory.createEtchedBorder());
+        receiptTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+            @Override
+            public void valueChanged(ListSelectionEvent event) {
+                    addPaymentsToReceiptTable((HashMap)receiptList.get(receiptTable.getSelectedRow()));
+                }
+            }
+        );
+        
+        //ID
+        receiptTable.getColumnModel().getColumn(RECEIPT_ID_COLUMN).setMaxWidth(0);
+        receiptTable.getColumnModel().getColumn(RECEIPT_ID_COLUMN).setMinWidth(0);
+        receiptTable.getColumnModel().getColumn(RECEIPT_ID_COLUMN).setPreferredWidth(0);
+        
+        //NUMBER
+        receiptTable.getColumnModel().getColumn(RECEIPT_NUMBER_COLUMN).setMaxWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_NUMBER_COLUMN).setMinWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_NUMBER_COLUMN).setPreferredWidth(160);
+        
+        //DATE
+        receiptTable.getColumnModel().getColumn(RECEIPT_DATE_COLUMN).setMaxWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_DATE_COLUMN).setMinWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_DATE_COLUMN).setPreferredWidth(160);
+        
+        //AMOUNT
+        receiptTable.getColumnModel().getColumn(RECEIPT_AMOUNT_COLUMN).setMaxWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_AMOUNT_COLUMN).setMinWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_AMOUNT_COLUMN).setPreferredWidth(160);
+        
+        //CANCELLED BUTTON
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setMaxWidth(130);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setMinWidth(130);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setPreferredWidth(130);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setCellRenderer(new ReceiptButtonRenderer());
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setCellEditor(new ReceiptButtonEditor(new JTextField()));
+        
+        //SHOW BUTTON
+        receiptTable.getColumnModel().getColumn(RECEIPT_SHOW_BUTTON_COLUMN).setMaxWidth(90);
+        receiptTable.getColumnModel().getColumn(RECEIPT_SHOW_BUTTON_COLUMN).setMinWidth(90);
+        receiptTable.getColumnModel().getColumn(RECEIPT_SHOW_BUTTON_COLUMN).setPreferredWidth(90);
+        receiptTable.getColumnModel().getColumn(RECEIPT_SHOW_BUTTON_COLUMN).setCellRenderer(new ReceiptButtonRenderer());
+        receiptTable.getColumnModel().getColumn(RECEIPT_SHOW_BUTTON_COLUMN).setCellEditor(new ReceiptButtonEditor(new JTextField()));
+        
+        addReceiptsToReceiptTable(receiptList);
+        
+        receiptTableJScrollPane = new JScrollPane();
+        receiptTableJScrollPane.setViewportView(receiptTable);
+        
+        JPanel headerPanel = new JPanel ();
+        headerPanel.setBorder (BorderFactory.createTitledBorder (BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Recibos", TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
+        
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setPreferredSize(new Dimension(100,30));
+        headerPanel.add(receiptTableJScrollPane);
+        
+        //TEST
+        //TABLA DE DETALLES PARA LA PRIMERO PESTAÑA QUE CONTENDRA LOS CARGOS DEL EVENTO
+        paymentMethodDefaultTableModel = new paymentDetailDefaultTableModel();
+        paymentMethodTable = new JTable(paymentMethodDefaultTableModel);
+        
+        paymentMethodDefaultTableModel.addColumn("Medio de Pago");
+        paymentMethodDefaultTableModel.addColumn("Numero de Documento");
+        paymentMethodDefaultTableModel.addColumn("Fecha de Emision");
+        paymentMethodDefaultTableModel.addColumn("Fecha de Cobro");
+        paymentMethodDefaultTableModel.addColumn("Vencimiento");
+        paymentMethodDefaultTableModel.addColumn("Banco");
+        paymentMethodDefaultTableModel.addColumn("Monto");
+        paymentMethodDefaultTableModel.addColumn("");
+        
+        paymentMethodTable.setRowHeight(22);
+        paymentMethodTable.setBorder(BorderFactory.createEtchedBorder());
+        
+        //paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setCellEditor(new PaymentMethodCellEditor(ReceiptController.getPaymentMethodAvailablesForCreateReceipt(false)));
+        //paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setCellRenderer(new PaymentMethodCellRenderer());
+        
+        paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setMinWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setMaxWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setPreferredWidth(160);
+        //paymentMethodTable.getColumnModel().getColumn(DOC_NUMBER_COLUMN).setCellRenderer(rightRenderer);
+        
+        //paymentMethodTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN)
+        //paymentMethodTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN)
+        
+        //paymentMethodTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setCellEditor(new DatePickerCell());
+        //paymentMethodTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setCellRenderer(new DatePickerCellRenderer());
+        
+        //paymentMethodTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setCellEditor(new DatePickerCell());
+        //paymentMethodTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setCellRenderer(new DatePickerCellRenderer());
+        
+        //paymentMethodTable.getColumnModel().getColumn(BANK_COLUMN).setCellEditor(new PaymentMethodCellEditor(ReceiptController.getBanksForComboBox(false)));
+        //paymentMethodTable.getColumnModel().getColumn(BANK_COLUMN).setCellRenderer(new PaymentMethodCellRenderer());
+        
+        //AMOUNT
+        //paymentMethodTable.getColumnModel().getColumn(AMOUNT_COLUMN).setCellEditor(new AmountCellEditor());
+        //paymentMethodTable.getColumnModel().getColumn(AMOUNT_COLUMN).setCellRenderer(new AmountCellRenderer());
+        
+        if(!receiptList.isEmpty()){
+            addPaymentsToReceiptTable((HashMap)receiptList.get(0));
+        }
+        
+        
+        paymentMethodTableJScrollPane = new JScrollPane();
+        paymentMethodTableJScrollPane.setViewportView(paymentMethodTable);
+        
+        JPanel panel2 = new JPanel ();
+        panel2.setBorder (BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Detalles" , TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
+        panel2.setPreferredSize(new Dimension(100,30));
+        panel2.setLayout(new BoxLayout(panel2, BoxLayout.Y_AXIS));
+        panel2.add(paymentMethodTableJScrollPane);
+        
+        JPanel eventItemsPanel=new JPanel();
+        eventItemsPanel.setLayout(new BoxLayout(eventItemsPanel, BoxLayout.Y_AXIS));        
+        eventItemsPanel.add(headerPanel);
+        eventItemsPanel.add(panel2);
+        
+        JScrollPane paymentsDetailJScrollPane = new JScrollPane();
+        paymentsDetailJScrollPane.setViewportView(eventItemsPanel);
+        tabs.addTab("", paymentsDetailJScrollPane);
+        
+        //AÑADIMOS UN NOMBRE A LA PESTAÑA DOS
+        JLabel lab = new JLabel("Abonos");
+        lab.setHorizontalAlignment(JLabel.CENTER);
+        lab.setPreferredSize(new Dimension(100, 30));
+        tabs.setTabComponentAt(1, lab);
+        
+    }
+    
+    private void addInvoicesTabComponent(){
+        //PANEL TEMPORAL PARA LA TERCERA PESTANHA QUE CONTENDRIA LAS FACTURAS
+        JPanel panel3=new JPanel();
+        //Componentes del panel3
+        JLabel et_p3=new JLabel("Estas en el panel 3");
+        panel3.add(et_p3);
+ 
+        //AÑADIMOS EL JPANEL 3
+        tabs.addTab("", panel3);
+        
+        //AÑADIMOS UN NOMBRE A LA PESTAÑA TRES
+        JLabel lab = new JLabel("Facturas");
+        lab.setHorizontalAlignment(JLabel.CENTER);
+        lab.setPreferredSize(new Dimension(100, 30));
+        tabs.setTabComponentAt(2, lab);
     }
     
     private void addChargesTabComponent(HashMap eventMap){
@@ -542,11 +745,7 @@ public class EventShowAndEdit extends JInternalFrame{
         eventDetailTableJScrollPane.setViewportView(eventDetailTable);
         
         JPanel panel = new JPanel ();
-        if(((Integer)eventMap.get("status"))==EventController.CONFIRMED){
-            panel.setBorder (BorderFactory.createTitledBorder (BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Mobiliarios Contratados", TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
-        }else{
-            panel.setBorder (BorderFactory.createTitledBorder (BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Mobiliarios a Contratar", TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
-        }
+        panel.setBorder (BorderFactory.createTitledBorder (BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Mobiliarios Contratados", TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
         
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setPreferredSize(new Dimension(100,30));
@@ -561,8 +760,9 @@ public class EventShowAndEdit extends JInternalFrame{
         eventDetailPenaltyDefaultTableModel.addColumn("Código");
         eventDetailPenaltyDefaultTableModel.addColumn("Descripción");
         eventDetailPenaltyDefaultTableModel.addColumn("Tasa de Impuesto");
+        eventDetailPenaltyDefaultTableModel.addColumn("Contratado");
+        eventDetailPenaltyDefaultTableModel.addColumn("Cantidad Multada");
         eventDetailPenaltyDefaultTableModel.addColumn("Multa");
-        eventDetailPenaltyDefaultTableModel.addColumn("Cantidad");
         eventDetailPenaltyDefaultTableModel.addColumn("Subtotal");
         eventDetailPenaltyDefaultTableModel.addColumn("");
         
@@ -594,6 +794,9 @@ public class EventShowAndEdit extends JInternalFrame{
         eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_DELETE_BUTTON_COLUMN).setResizable(false);
         eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_DELETE_BUTTON_COLUMN).setCellRenderer(new DeleteButtonRenderer());
         eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_DELETE_BUTTON_COLUMN).setCellEditor(new DeletePenaltyButtonEditor(new JTextField()));
+        
+        ArrayList penaltyFurnitureDetailList = (ArrayList) eventMap.get("penaltyDetail");
+        addFuritureDetailToPenaltyChargesTable(penaltyFurnitureDetailList);
         
         eventDetailPenaltyTableJScrollPane = new JScrollPane();
         eventDetailPenaltyTableJScrollPane.setViewportView(eventDetailpenaltyTable);
@@ -628,7 +831,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private void addFuritureDetailToChargesTable(ArrayList furnitureDetailList){
         
         HashMap furnitureMap;
-        int stock = 0;
+        int stock;
         Date deliveryDate = new Date(((Timestamp)eventMap.get("deliveryDate")).getTime());
         Object[] row = new Object[eventDetailTable.getColumnCount()];        
         for(int i = 0; i < furnitureDetailList.size(); i++){
@@ -644,57 +847,262 @@ public class EventShowAndEdit extends JInternalFrame{
             row[QUANTITY_COLUMN_CHARGES] = furnitureMap.get("quantity");
             row[SUBTOTAL_COLUMN] = amountFormat.format((Double)furnitureMap.get("totalAmount"));
             row[DELETE_BUTTON_COLUMN] = "";
-            row[ANNEXED_COLUMN] = false;
+            row[ANNEXED_COLUMN] = (Boolean) furnitureMap.get("annexed");
         
             eventDetailDefaultTableModel.addRow(row);
         }
     }
     
-    public void saveChangesButtonAction(){
+    private void addFuritureDetailToPenaltyChargesTable(ArrayList penaltyFurnitureDetailList){
         
+        HashMap furnitureMap;
+        Object[] row = new Object[eventDetailTable.getColumnCount()];        
+        for(int i = 0; i < penaltyFurnitureDetailList.size(); i++){
+            furnitureMap = (HashMap) penaltyFurnitureDetailList.get(i);
+            furnitureCodesPenalized.add(furnitureMap.get("code"));
+            
+            row[ID_COLUMN] = furnitureMap.get("id");
+            row[PENALTY_CODE_COLUMN_CHARGES] = furnitureMap.get("code");
+            row[PENALTY_DESCRIPTION_COLUMN] = furnitureMap.get("description");
+            row[PENALTY_TAX_RATE_COLUMN] = amountFormat.format((Double)furnitureMap.get("taxRate"));
+            row[PENALTY_CONFIRMED_COLUMN] = 10;
+            row[PENALTY_QUANTITY_COLUMN_CHARGES] = amountFormat.format((Integer)furnitureMap.get("quantity"));
+            row[PENALTY_PENALTY_COLUMN] = amountFormat.format((Double)furnitureMap.get("fineAmountPerUnit"));
+            row[PENALTY_SUBTOTAL_COLUMN] = amountFormat.format((Double)furnitureMap.get("totalAmount"));
+            row[PENALTY_DELETE_BUTTON_COLUMN] = "";
+        
+            eventDetailPenaltyDefaultTableModel.addRow(row);
+        }
+    }
+    
+    private void addReceiptsToReceiptTable(ArrayList receiptList){
+        try {
+            HashMap receiptMap;
+            double totalEventPayed = 0;
+            int numeroRegistros=0;
+            numeroRegistros = receiptDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistros;i++){
+                receiptDefaultTableModel.removeRow(0);
+            }
+            
+            Object[] row = new Object[receiptTable.getColumnCount()];
+            for(int i = 0; i < receiptList.size(); i++){
+                receiptMap = (HashMap) receiptList.get(i);
+                
+                row[RECEIPT_ID_COLUMN] = (Integer) receiptMap.get("id");
+                row[RECEIPT_DATE_COLUMN] = new Date(((Timestamp)receiptMap.get("receiptDate")).getTime());
+                row[RECEIPT_NUMBER_COLUMN] = receiptMap.get("receiptBranch") + "-" + receiptMap.get("receiptPrinter") + "-" + receiptMap.get("receiptNumber");
+                totalEventPayed += (Double)receiptMap.get("totalPayed");
+                row[RECEIPT_AMOUNT_COLUMN] = amountFormat.format((Double)receiptMap.get("totalPayed"));
+                
+                if((Boolean)receiptMap.get("cancelled")){
+                    row[RECEIPT_CANCELLED_COLUMN] = "SI";
+                }else{
+                    row[RECEIPT_CANCELLED_COLUMN] = "NO";
+                }
+                
+                
+                if(receiptMap.get("cancelledDate")!=null){
+                    row[RECEIPT_CANCELLED_DATE_COLUMN] =  new Date(((Timestamp)receiptMap.get("cancelledDate")).getTime());
+                }else{
+                    row[RECEIPT_CANCELLED_DATE_COLUMN] = "";
+                }
+                
+                row[RECEIPT_CANCELLED_REASON_COLUMN] = receiptMap.get("cancelledReason");
+                row[RECEIPT_CANCELLED_BUTTON_COLUMN] = " Anular";
+                row[RECEIPT_SHOW_BUTTON_COLUMN] = "Ver";
+                
+                receiptDefaultTableModel.addRow(row);
+            }
+            
+            //TOTAL
+            double total = amountFormat.parse(totalTextField.getText()).doubleValue();
+            
+            //TOTAL BALANCE
+            double balanceTotal = total - totalEventPayed;
+            balanceTotalTextField.setText(amountFormat.format(balanceTotal));
+        } catch (ParseException ex) {
+            Logger.getLogger(EventShowAndEdit.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void addPaymentsToReceiptTable(HashMap receiptMap){
+        HashMap paymentMethodMap;
+        ArrayList paymentList = (ArrayList) receiptMap.get("paymentMethod");
+        Object[] row = new Object[paymentMethodTable.getColumnCount()];
+        
+        int numeroRegistros=0;
+        numeroRegistros = paymentMethodDefaultTableModel.getRowCount();
+        for(int i=0;i<numeroRegistros;i++){
+            paymentMethodDefaultTableModel.removeRow(0);
+        }
+        
+        for(int i = 0; i < paymentList.size(); i++){
+            paymentMethodMap = (HashMap) paymentList.get(i);
+
+            row[PAYMENT_METHOD_COLUMN] = paymentMethodMap.get("paymentType");
+            row[DOC_NUMBER_COLUMN] = paymentMethodMap.get("documentNumber");
+            if(paymentMethodMap.get("documentEmitionDate")!=null){
+                row[DOC_EMITION_DATE_COLUMN] = new Date(((Timestamp)paymentMethodMap.get("documentEmitionDate")).getTime());
+            }else{
+                row[DOC_EMITION_DATE_COLUMN] = "";
+            }
+            
+            if(paymentMethodMap.get("paymentDate")!=null){
+                row[DOC_PAYMENT_DATE_COLUMN] = new Date(((Timestamp)paymentMethodMap.get("paymentDate")).getTime());
+            }else{
+                row[DOC_PAYMENT_DATE_COLUMN] = "";
+            }
+            
+            if(paymentMethodMap.get("dueDate")!=null){
+                row[DOC_DUE_DATE_COLUMN] =  new Date(((Timestamp)paymentMethodMap.get("dueDate")).getTime());
+            }else{
+                row[DOC_DUE_DATE_COLUMN] = "";
+            }
+            
+            row[BANK_COLUMN] = paymentMethodMap.get("bankName");
+            row[AMOUNT_COLUMN] = amountFormat.format((Double)paymentMethodMap.get("totalAmount"));
+        
+            paymentMethodDefaultTableModel.addRow(row);
+        }
+    }
+    
+    
+    
+    private void saveChangesButtonAction(){
+        JOptionPane optionPane;
+        JDialog dialog;
+        
+        int currentEventStatus  = (Integer) eventMap.get("status");
         ComboBoxItem statusComboBoxItem = (ComboBoxItem) statusComboBox.getSelectedItem();
         int status = Integer.valueOf(statusComboBoxItem.getKey());
+        
+        ArrayList currentFurnitureDetailList = (ArrayList) eventMap.get("detail");
+        ArrayList currentPenaltyFurnitureDetailList = (ArrayList) eventMap.get("penaltyDetail");
+        
+        if(!allQuantityAdded()){
+            optionPane = new JOptionPane("Existen detalles con cantidad 0 (Cero). Favor ingrese correctamente todas las cantidades.", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+            dialog = optionPane.createDialog(this, "Atencion!");
+            dialog.setVisible(true);
+        }else if(placeOfDeliveryTextArea.getText().equals("")){
+            optionPane = new JOptionPane("Favor ingrese el lugar de Entrega", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+            dialog = optionPane.createDialog(this, "Atencion!");
+            dialog.setVisible(true);
+        }else{
             
-        HashMap mapReturn = eventController.updateEventConfirmed(subjectMap, eventMap, status);
-        System.out.println("mapReturn: "+mapReturn);
+            String placeOfDelivery = placeOfDeliveryTextArea.getText();
+            String observation = observationTextArea.getText();
+            HashMap furnitureMap;
+            ArrayList furnitureList = new ArrayList();
+            ArrayList penaltyFurnitureList = new ArrayList();
+            Vector dataVector;
+            double netTotal = 0;
+            double balanceTotal = 0;
+            try {
+            
+                for (int row = 0; row < eventDetailTable.getRowCount(); row++){
+                    if(row >= currentFurnitureDetailList.size()){
+                        dataVector = (Vector) eventDetailDefaultTableModel.getDataVector().get(row);
+                        furnitureMap = new HashMap();
+                        furnitureMap.put("code",dataVector.get(CODE_COLUMN_CHARGES));
+                        furnitureMap.put("taxRate",amountFormat.parse(dataVector.get(TAX_RATE_COLUMN).toString()).doubleValue());
+                        furnitureMap.put("quantity",amountFormat.parse(dataVector.get(QUANTITY_COLUMN_CHARGES).toString()).intValue());
+                        furnitureMap.put("subTotal", amountFormat.parse(dataVector.get(SUBTOTAL_COLUMN).toString()).doubleValue());
+                        furnitureMap.put("annexed", (Boolean) dataVector.get(ANNEXED_COLUMN));
+                        furnitureMap.put("penalty", Boolean.FALSE);
+                        furnitureList.add(furnitureMap);
+                    }
+                }
+                
+                for (int row = 0; row < eventDetailpenaltyTable.getRowCount(); row++){
+                    if(row >= currentPenaltyFurnitureDetailList.size()){
+                        dataVector = (Vector) eventDetailPenaltyDefaultTableModel.getDataVector().get(row);
+                        furnitureMap = new HashMap();
+                        furnitureMap.put("code",dataVector.get(PENALTY_CODE_COLUMN_CHARGES));
+                        furnitureMap.put("taxRate",amountFormat.parse(dataVector.get(PENALTY_TAX_RATE_COLUMN).toString()).doubleValue());
+                        furnitureMap.put("quantity",amountFormat.parse(dataVector.get(PENALTY_QUANTITY_COLUMN_CHARGES).toString()).intValue());
+                        furnitureMap.put("subTotal", amountFormat.parse(dataVector.get(PENALTY_SUBTOTAL_COLUMN).toString()).doubleValue());
+                        furnitureMap.put("annexed", Boolean.FALSE);
+                        furnitureMap.put("penalty", Boolean.TRUE);
+                        penaltyFurnitureList.add(furnitureMap);
+                    }
+                }
+
+                netTotal = amountFormat.parse(totalTextField.getText()).doubleValue();
+                balanceTotal = amountFormat.parse(balanceTotalTextField.getText()).doubleValue();
+            
+            } catch (ParseException ex) {
+                Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            HashMap returnMap = eventController.updateEventConfirmed(subjectMap, eventMap, status, placeOfDelivery, observation, furnitureList, penaltyFurnitureList, netTotal, balanceTotal);
+            if(((Integer)returnMap.get("status"))==EventController.SUCCESFULLY_SAVED){
+                JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
+                doDefaultCloseAction();
+            }else if((Integer)returnMap.get("status") == EventController.ERROR_IN_SAVED){
+                JOptionPane.showMessageDialog(null, returnMap.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+            }
+        }
     }
     
-    private void addPaymentsTabComponent(){
-        //PANEL TEMPORAL PARA LA SEGUNDA PESTANHA QUE CONTENDRIA LOS ABONOS
-        JPanel paymentPanel=new JPanel();
-        paymentPanel.setLayout (null);
-        //paymentPanel.setBounds(0, 0, 200, 200);
-        //AÑADIMOS EL JPANEL
-        tabs.addTab("", paymentPanel);
+    private void showReceiptView(int row){
+        int receiptId = (Integer) receiptDefaultTableModel.getValueAt(row, RECEIPT_ID_COLUMN);
         
-        //AÑADIMOS UN NOMBRE A LA PESTAÑA DOS
-        JLabel lab = new JLabel("Abonos");
-        lab.setHorizontalAlignment(JLabel.CENTER);
-        lab.setPreferredSize(new Dimension(100, 30));
-        tabs.setTabComponentAt(1, lab);
-        
+        receiptShow = receiptController.getReceiptShow(eventId, receiptId);
+        receiptShow.setVisible(true);
+        showSearchDialog(receiptShow);
+        inactivateElements();
+        receiptShow.addInternalFrameListener(new InternalFrameListener() {
+
+            @Override
+            public void internalFrameOpened(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosing(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosed(InternalFrameEvent e) {
+                activateElements();
+            }
+
+            @Override
+            public void internalFrameIconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeiconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameActivated(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeactivated(InternalFrameEvent e) {}
+        });
     }
     
-    private void addInvoicesTabComponent(){
-        //PANEL TEMPORAL PARA LA TERCERA PESTANHA QUE CONTENDRIA LAS FACTURAS
-        JPanel panel3=new JPanel();
-        //Componentes del panel3
-        JLabel et_p3=new JLabel("Estas en el panel 3");
-        panel3.add(et_p3);
- 
-        //AÑADIMOS EL JPANEL 3
-        tabs.addTab("", panel3);
-        
-        //AÑADIMOS UN NOMBRE A LA PESTAÑA TRES
-        JLabel lab = new JLabel("Facturas");
-        lab.setHorizontalAlignment(JLabel.CENTER);
-        lab.setPreferredSize(new Dimension(100, 30));
-        tabs.setTabComponentAt(2, lab);
+    private boolean allQuantityAdded(){
+        Vector dataVector;
+        try {
+            for (int row = 0; row < eventDetailTable.getRowCount(); row++){
+               dataVector = (Vector) eventDetailDefaultTableModel.getDataVector().get(row);
+                   if(amountFormat.parse(dataVector.get(QUANTITY_COLUMN_CHARGES).toString()).intValue()==0){
+                       return false;
+                   }
+           }
+            
+           for (int row = 0; row < eventDetailpenaltyTable.getRowCount(); row++){
+               dataVector = (Vector) eventDetailPenaltyDefaultTableModel.getDataVector().get(row);
+                   if(amountFormat.parse(dataVector.get(PENALTY_QUANTITY_COLUMN_CHARGES).toString()).intValue()==0){
+                       return false;
+                   }
+           } 
+        } catch (ParseException ex) {
+            Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return true;
     }
     
     private void paymentRecordButtonAction(){
-        
-        receiptCreate = receiptController.getReceiptCreate();
+        receiptCreate = receiptController.getReceiptCreate(eventId);
         receiptCreate.setVisible(true);
         showSearchDialog(receiptCreate);
         inactivateElements();
@@ -709,6 +1117,7 @@ public class EventShowAndEdit extends JInternalFrame{
             @Override
             public void internalFrameClosed(InternalFrameEvent e) {
                 activateElements();
+                updateReceiptsTable();
 //                if(!searchController.getFurnitureSelectedCode().isEmpty()){
 //                    addFuritureSelectedToDetailTable(searchController.getFurnitureSelectedCode());
 //                }
@@ -727,6 +1136,14 @@ public class EventShowAndEdit extends JInternalFrame{
             public void internalFrameDeactivated(InternalFrameEvent e) {}
         });
         
+    }
+    
+    private void updateReceiptsTable(){
+        receiptList = ReceiptController.getReceiptsByEventId(eventId);
+        addReceiptsToReceiptTable(receiptList);
+        if(!receiptList.isEmpty()){
+            addPaymentsToReceiptTable((HashMap)receiptList.get(0));
+        }
     }
     
     private void showSearchDialog(Object dialogView){
@@ -813,8 +1230,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private void addFuritureSelectedToPenaltyDetailTable(ArrayList furnitureCodes){
         
         HashMap furnitureMap;
-        Date deliveryDate = new Date(((Timestamp)eventMap.get("deliveryDate")).getTime());
-        ArrayList furnitureList = FurnitureController.getFurnitureListByCodeWithDayStock(furnitureCodes, deliveryDate);
+        ArrayList furnitureList = FurnitureController.getFurnitureListByCodeList(furnitureCodes);
         
         Object[] row = new Object[eventDetailTable.getColumnCount()];        
         for(int i = 0; i < furnitureList.size(); i++){
@@ -824,14 +1240,33 @@ public class EventShowAndEdit extends JInternalFrame{
             row[ID_COLUMN] = furnitureMap.get("id");
             row[PENALTY_CODE_COLUMN_CHARGES] = furnitureMap.get("code");
             row[PENALTY_DESCRIPTION_COLUMN] = furnitureMap.get("description");
-            row[PENALTY_TAX_RATE_COLUMN] = amountFormat.format((Double)furnitureMap.get("taxRate"));
-            row[PENALTY_PENALTY_COLUMN] = amountFormat.format((Double)furnitureMap.get("fineAmountPerUnit"));
+            row[PENALTY_TAX_RATE_COLUMN] = amountFormat.format((Integer)furnitureMap.get("taxRate"));
+            row[PENALTY_CONFIRMED_COLUMN] = getFurtnitureConfirmedQuantity(furnitureMap.get("code").toString());
             row[PENALTY_QUANTITY_COLUMN_CHARGES] = 0;
+            row[PENALTY_PENALTY_COLUMN] = amountFormat.format((Double)furnitureMap.get("fineAmountPerUnit"));
             row[PENALTY_SUBTOTAL_COLUMN] = 0;
             row[PENALTY_DELETE_BUTTON_COLUMN] = "";
         
             eventDetailPenaltyDefaultTableModel.addRow(row);
         }
+    }
+    
+    private int getFurtnitureConfirmedQuantity(String furnitureCode){
+        
+        String furnitureCodeInTable;
+        int valueToReturn = 0;
+        try {
+            for(int i = 0; i < eventDetailDefaultTableModel.getRowCount(); i++){
+                furnitureCodeInTable = eventDetailDefaultTableModel.getValueAt(i, CODE_COLUMN_CHARGES).toString();
+                if(furnitureCodeInTable.equals(furnitureCode)){
+                        valueToReturn += amountFormat.parse((eventDetailDefaultTableModel.getValueAt(i, QUANTITY_COLUMN_CHARGES).toString())).intValue();
+                }
+            }
+        } catch (ParseException ex) {
+            Logger.getLogger(EventShowAndEdit.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return valueToReturn;
     }
     
     private void addFuritureSelectedToDetailTable(ArrayList furnitureCodes){
@@ -862,6 +1297,19 @@ public class EventShowAndEdit extends JInternalFrame{
     }
     
     private void removePenaltyRow(int row) throws ParseException{
+        
+        double subTotal = amountFormat.parse(eventDetailPenaltyDefaultTableModel.getValueAt(row, PENALTY_SUBTOTAL_COLUMN).toString()).doubleValue();
+        
+        //TOTAL
+        double total = amountFormat.parse(totalTextField.getText()).doubleValue();
+        total = total - subTotal;
+        totalTextField.setText(amountFormat.format(total));
+        
+        //TOTAL BALANCE
+        double balanceTotal = amountFormat.parse(balanceTotalTextField.getText()).doubleValue();
+        balanceTotal = balanceTotal - subTotal;
+        balanceTotalTextField.setText(amountFormat.format(balanceTotal));
+        
         String furnitureCode = eventDetailPenaltyDefaultTableModel.getValueAt(row, PENALTY_CODE_COLUMN_CHARGES).toString();
         furnitureCodesPenalized.remove(furnitureCode);
         eventDetailPenaltyDefaultTableModel.removeRow(row);
@@ -870,27 +1318,16 @@ public class EventShowAndEdit extends JInternalFrame{
      private void removeRow(int row) throws ParseException{
         
         double subTotal = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, SUBTOTAL_COLUMN).toString()).doubleValue();
-        
-        //Item tax
-//        String furnitureTaxRateString = eventDetailDefaultTableModel.getValueAt(row, TAX_RATE_COLUMN).toString();
-//        double itemTaxAmount =0;
-//        int taxIndexIntable = 0;
-//        if(!furnitureTaxRateString.equals("0")){
-//            
-//            taxIndexIntable = SUB_TOTAL_COLUMN + Integer.valueOf(taxList.indexOf(furnitureTaxRateString)) + 1;
-//            itemTaxAmount = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, taxIndexIntable).toString()).doubleValue();
-//            
-//        }
 
         //TOTAL
         double total = amountFormat.parse(totalTextField.getText()).doubleValue();
         total = total - subTotal;
         totalTextField.setText(amountFormat.format(total));
         
-        //TOTAL IVA
-//        double totalTax = amountFormat.parse(totalTaxTextField.getText()).doubleValue();
-//        totalTax = totalTax - itemTaxAmount;
-//        totalTaxTextField.setText(amountFormat.format(totalTax));
+        //TOTAL BALANCE
+        double balanceTotal = amountFormat.parse(balanceTotalTextField.getText()).doubleValue();
+        balanceTotal = balanceTotal - subTotal;
+        balanceTotalTextField.setText(amountFormat.format(balanceTotal));
         
         String furnitureCode = eventDetailDefaultTableModel.getValueAt(row, CODE_COLUMN_CHARGES).toString();
         furnitureCodesAdded.remove(furnitureCode);
@@ -904,25 +1341,24 @@ public class EventShowAndEdit extends JInternalFrame{
         double subTotal = newQuantity * unitPrice.doubleValue();
         eventDetailDefaultTableModel.setValueAt(amountFormat.format(subTotal), row, SUBTOTAL_COLUMN);
         
-        //Item tax
-//        String furnitureTaxRateString = eventDetailDefaultTableModel.getValueAt(row, ANNEXED_TAX_RATE_COLUMN).toString();
-//        double oldItemTaxAmount =0;
-//        double furnitureTaxRate = 0;
-//        double itemTax = 0;
-//        int taxIndexIntable = 0;
-//        if(!furnitureTaxRateString.equals("0")){
-//            
-//            taxIndexIntable = ANNEXED_SUBTOTAL_COLUMN + Integer.valueOf(taxList.indexOf(furnitureTaxRateString)) + 1;
-//            oldItemTaxAmount = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, taxIndexIntable).toString()).doubleValue();
-//            
-//            furnitureTaxRate = Double.valueOf((String)taxRatioMap.get(furnitureTaxRateString));
-//            itemTax = new BigDecimal(subTotal / furnitureTaxRate).setScale(0, RoundingMode.HALF_UP).doubleValue();
-//            eventDetailDefaultTableModel.setValueAt(amountFormat.format(itemTax), row, taxIndexIntable);
-//            
-//        }
+        //TOTAL
+        double total = amountFormat.parse(totalTextField.getText()).doubleValue();
+        total = (total - oldSubTotal) + subTotal;
+        totalTextField.setText(amountFormat.format(total));
         
-        
-        
+        //TOTAL BALANCE
+        double balanceTotal = amountFormat.parse(balanceTotalTextField.getText()).doubleValue();
+        balanceTotal = (balanceTotal - oldSubTotal) + subTotal;
+        balanceTotalTextField.setText(amountFormat.format(balanceTotal));
+    }
+     
+     private void updatePenaltySubTotal(int newQuantity, int row, int column) throws ParseException{
+        //SubTotal
+        double oldSubTotal = amountFormat.parse(eventDetailPenaltyDefaultTableModel.getValueAt(row, PENALTY_SUBTOTAL_COLUMN).toString()).doubleValue();
+        Number penalty = amountFormat.parse(eventDetailPenaltyDefaultTableModel.getValueAt(row, PENALTY_PENALTY_COLUMN).toString());
+        double subTotal = newQuantity * penalty.doubleValue();
+        eventDetailPenaltyDefaultTableModel.setValueAt(amountFormat.format(subTotal), row, PENALTY_SUBTOTAL_COLUMN);
+
         //TOTAL
         double total = amountFormat.parse(totalTextField.getText()).doubleValue();
         total = (total - oldSubTotal) + subTotal;
@@ -1070,21 +1506,21 @@ public class EventShowAndEdit extends JInternalFrame{
             JOptionPane optionPane;
             JDialog dialog;
             try {
-                int oldQuantity = amountFormat.parse((eventDetailDefaultTableModel.getValueAt(row, QUANTITY_COLUMN_CHARGES).toString())).intValue();
+                int oldQuantity = amountFormat.parse((eventDetailPenaltyDefaultTableModel.getValueAt(row, PENALTY_QUANTITY_COLUMN_CHARGES).toString())).intValue();
                 String newQuantityString = ((JTextField) component).getText();
                 if(newQuantityString.equals("")){
                     newQuantityString = "0";
                 }
                 int newQuantity = amountFormat.parse(newQuantityString).intValue();
-                double stockAvailable = amountFormat.parse(eventDetailDefaultTableModel.getValueAt(row, STOCK_COLUMN).toString()).doubleValue();
-                if(stockAvailable < newQuantity){
-                    optionPane = new JOptionPane("El valor ingresado supera la cantidad disponible de este mobiliario", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+                double confirmedQuantity = amountFormat.parse(eventDetailPenaltyDefaultTableModel.getValueAt(row, PENALTY_CONFIRMED_COLUMN).toString()).doubleValue();
+                if(confirmedQuantity < newQuantity){
+                    optionPane = new JOptionPane("El valor ingresado supera la cantidad contratada de este mobiliario", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
                     dialog = optionPane.createDialog(null, "Atencion!");
                     dialog.setVisible(true);
                     ((JTextField) component).setText(amountFormat.format(oldQuantity));
                 }else{
                     ((JTextField) component).setText(amountFormat.format(newQuantity));
-                    updateSubTotal(newQuantity, row, column);
+                    updatePenaltySubTotal(newQuantity, row, column);
                 }
             } catch (HeadlessException | ParseException th) {
                 Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, th);
@@ -1190,6 +1626,18 @@ public class EventShowAndEdit extends JInternalFrame{
         setClosable(false);
         setIconifiable(false);
         tabs.setEnabled(false);
+        paymentRecordButton.setEnabled(false);
+        addFurnitureButton.setEnabled(false);
+        addPenaltyButton.setEnabled(false);
+        saveChangesButton.setEnabled(false);
+        closeButton.setEnabled(false);
+        eventDetailTable.setEnabled(false);
+        eventDetailpenaltyTable.setEnabled(false);
+        receiptTable.setEnabled(false);
+        paymentMethodTable.setEnabled(false);
+        statusComboBox.setEnabled(false);
+        placeOfDeliveryTextArea.setEnabled(false);
+        observationTextArea.setEnabled(false);
         getContentPane().getComponents()[0].setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     }
     
@@ -1198,25 +1646,22 @@ public class EventShowAndEdit extends JInternalFrame{
         setClosable(true);
         setIconifiable(true);
         tabs.setEnabled(true);
+        paymentRecordButton.setEnabled(true);
+        addFurnitureButton.setEnabled(true);
+        addPenaltyButton.setEnabled(true);
+        saveChangesButton.setEnabled(true);
+        closeButton.setEnabled(true);
+        eventDetailTable.setEnabled(true);
+        eventDetailpenaltyTable.setEnabled(true);
+        receiptTable.setEnabled(true);
+        paymentMethodTable.setEnabled(true);
+        statusComboBox.setEnabled(true);
+        placeOfDeliveryTextArea.setEnabled(true);
+        observationTextArea.setEnabled(true);
     }
     
     private class eventDetailDefaultTableModel extends DefaultTableModel{
-        
-        /*@Override
-        public int getRowCount() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public int getColumnCount() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }*/
-        
+         
         @Override
         public boolean isCellEditable(int row, int column) {
             int rows;
@@ -1235,21 +1680,6 @@ public class EventShowAndEdit extends JInternalFrame{
     
     private class eventDetailAnnexedDefaultTableModel extends DefaultTableModel{
         
-        /*@Override
-        public int getRowCount() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public int getColumnCount() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }*/
-        
         @Override
         public boolean isCellEditable(int row, int column) {
                                                     switch(column){
@@ -1260,6 +1690,34 @@ public class EventShowAndEdit extends JInternalFrame{
                                                         default:    return false;
                                                     }
                                                 }
+           
+    }
+    
+    private class receiptDefaultTableModel extends DefaultTableModel{
+        
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            //int rows;
+            switch(column){
+                case RECEIPT_CANCELLED_BUTTON_COLUMN:
+                    return true;
+                case RECEIPT_SHOW_BUTTON_COLUMN:
+                    return true;
+                default:    return false;
+            }
+        }
+        
+    }
+    
+    private class paymentDetailDefaultTableModel extends DefaultTableModel{
+         
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            //int rows;
+            switch(column){
+                default:    return false;
+            }
+        }
            
     }
     
@@ -1401,6 +1859,104 @@ public class EventShowAndEdit extends JInternalFrame{
             } catch (ParseException ex) {
                 Logger.getLogger(EventEdit.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+      }
+    
+    class ReceiptButtonRenderer extends JButton implements TableCellRenderer {
+
+        public ReceiptButtonRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+          if (isSelected) {
+            setForeground(table.getSelectionForeground());
+            setBackground(table.getSelectionBackground());
+          } else {
+            setForeground(table.getForeground());
+            setBackground(UIManager.getColor("Button.background"));
+          }
+          if(column==RECEIPT_CANCELLED_BUTTON_COLUMN){
+              ImageIcon deleteIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/erase_16x16.png"));
+              setIcon(deleteIconImage);
+              //if(onlyQuery){
+//                    String message = "Su usuario solo cuenta con permiso de consultas";
+//                    setEnabled(false);
+//                    setToolTipText(message);
+              //  }
+          }
+          setText((value == null) ? "" : value.toString());
+          return this;
+        }
+      }
+
+      /**
+       * @version 1.0 11/09/98
+       */
+
+     class ReceiptButtonEditor extends DefaultCellEditor {
+        protected JButton button;
+
+        private String label;
+
+        private boolean isPushed;
+        
+        private int row;
+
+        private int column;
+        
+        public ReceiptButtonEditor(JTextField jtf) {
+          super(jtf);
+          button = new JButton();
+          button.setOpaque(true);
+          button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fireEditingStopped();
+            }
+          });
+          this.clickCountToStart = 1;
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+            boolean isSelected, int row, int column) {
+          label = (value == null) ? "" : value.toString();
+          button.setText(label);
+          isPushed = true;
+          this.row = row;
+          this.column = column;
+          return button;
+        }
+
+        
+        @Override
+        public Object getCellEditorValue() {
+          if (isPushed) {
+                if(column==RECEIPT_CANCELLED_BUTTON_COLUMN){
+//                    if(!onlyQuery){
+                       //label = updateFurnitureStatus(row, label);
+//                    }
+                }else if(column==RECEIPT_SHOW_BUTTON_COLUMN){
+                    //showFurnitureShowAndEditView(row);
+                    showReceiptView(row);
+                }
+          }
+          isPushed = false;          
+          return label;
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+          isPushed = false;
+          return super.stopCellEditing();
+        }
+
+        @Override
+        protected void fireEditingStopped() {
+          super.fireEditingStopped();
         }
       }
 }

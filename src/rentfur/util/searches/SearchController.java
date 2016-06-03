@@ -48,7 +48,7 @@ public class SearchController {
     
     public FurniturePenaltySearch getFurniturePenaltySearch(ArrayList furnitureCodesPenalized, ArrayList furnitureEventList){
         if(furniturePenaltySearch == null){
-            furniturePenaltySearch = new FurniturePenaltySearch(this, furnitureEventList, furnitureCodesPenalized);
+            furniturePenaltySearch = new FurniturePenaltySearch(this, furnitureCodesPenalized, furnitureEventList);
         }
         return furniturePenaltySearch;
     }
@@ -282,7 +282,7 @@ public class SearchController {
         }
     }
     
-    public void setFurniturePenaltyResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, ArrayList furnitureEventList, ArrayList furnitureCodesPenalized){
+    public void setFurniturePenaltyResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, ArrayList furnitureCodesPenalized, ArrayList furnitureEventList){
         
         try{
             if(!searchPressed){
@@ -305,12 +305,23 @@ public class SearchController {
             if(furnitureEventList!=null && !furnitureEventList.isEmpty()){
                 DecimalFormat amountFormat = new DecimalFormat("#,###");
                 HashMap resultValueMap;
+                HashMap furnituresAddedMap = new HashMap();
+                int oldQuantity;
                 Object[] row;
                 for(int rowNumber = 0; rowNumber < furnitureEventList.size(); rowNumber++){
 
                     row = new Object[furnituresResultDefaultTableModel.getColumnCount()];
                     resultValueMap = (HashMap) furnitureEventList.get(rowNumber);
-                    if(!furnitureCodesPenalized.contains(resultValueMap.get("furnitureCode").toString())){
+                    
+                    if(furnituresAddedMap.containsKey(resultValueMap.get("furnitureCode").toString())){
+                        //Ya no se ingresa como fila nueva, solo se actualiza la cantidad (Suma de contratado mas anexos)
+                        oldQuantity = Integer.valueOf(furnituresResultDefaultTableModel.getValueAt(
+                                ((Integer)furnituresAddedMap.get(resultValueMap.get("furnitureCode").toString())-1), 5).toString());
+                        furnituresResultDefaultTableModel.setValueAt((oldQuantity + (Integer)resultValueMap.get("quantity")), 
+                                ((Integer)furnituresAddedMap.get(resultValueMap.get("furnitureCode").toString())-1), 5);
+                        
+                    }else if(!furnitureCodesPenalized.contains(resultValueMap.get("furnitureCode").toString())){
+                        //Se inserta nueva fila
                         row[0] = new JCheckBox(resultValueMap.get("furnitureCode").toString());
                         row[1] = resultValueMap.get("description");
                         row[2] = resultValueMap.get("family");
@@ -319,13 +330,13 @@ public class SearchController {
                         row[5] = amountFormat.format((Integer)resultValueMap.get("quantity"));
                         row[6] = resultValueMap.get("id");
                         row[7] = resultValueMap.get("furnitureCode");
-
                         furnituresResultDefaultTableModel.addRow(row);
+                        furnituresAddedMap.put(resultValueMap.get("furnitureCode").toString(), furnituresResultDefaultTableModel.getRowCount());
                     }
                 }
             }
             
-        }catch(Throwable th){
+        }catch(NumberFormatException th){
             System.err.println(th.getMessage());
             System.err.println(th);
             th.printStackTrace();

@@ -64,7 +64,7 @@ public class FurniturePenaltySearch extends JInternalFrame{
     private final JButton cancelButton;
     private final ArrayList currentSelectedCode = new ArrayList();
     
-    public FurniturePenaltySearch(SearchController searchController, ArrayList furnitureEventList, ArrayList furnitureCodesPenalized){
+    public FurniturePenaltySearch(SearchController searchController, ArrayList furnitureCodesPenalized, ArrayList furnitureEventList){
         this.searchController = searchController;
         
         furnitureParamPanel = new JPanel();
@@ -162,7 +162,7 @@ public class FurniturePenaltySearch extends JInternalFrame{
         DefaultTableCellRenderer statusRenderer = new DefaultTableCellRenderer();
         statusRenderer.setHorizontalAlignment(JLabel.CENTER);
         
-        searchController.setFurniturePenaltyResultsTable(furnituresResultDefaultTableModel, false, furnitureEventList, furnitureCodesPenalized);
+        searchController.setFurniturePenaltyResultsTable(furnituresResultDefaultTableModel, false, furnitureCodesPenalized, furnitureEventList);
         furnituresResultTable.setRowHeight(22);
         
         //Code
@@ -256,21 +256,6 @@ public class FurniturePenaltySearch extends JInternalFrame{
     };
     
     private class furnituresSearchtResultDefaultTableModel extends DefaultTableModel{
-        
-        /*@Override
-        public int getRowCount() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public int getColumnCount() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }*/
         
         @Override
         public boolean isCellEditable(int row, int column) {

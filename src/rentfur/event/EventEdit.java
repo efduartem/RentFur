@@ -65,6 +65,7 @@ import rentfur.util.searches.FurnitureSearch;
 import rentfur.util.searches.SearchController;
 import rentfur.util.searches.SubjectSearch;
 
+
 /**
  *
  * @author FDuarte
@@ -871,7 +872,7 @@ public class EventEdit extends JInternalFrame{
             row[0] = furnitureMap.get("id");
             row[1] = furnitureMap.get("code");
             row[2] = furnitureMap.get("description");
-            row[TAX_RATE_COLUMN] = furnitureMap.get("taxRate");
+            row[TAX_RATE_COLUMN] = amountFormat.format((Double)furnitureMap.get("taxRate"));
             row[STOCK_AVAILABLE_COLUMN] = amountFormat.format(Long.valueOf(furnitureMap.get("stockAvailable").toString()));
             row[UNIT_PRICE] = amountFormat.format((Double)furnitureMap.get("unitPrice"));
             row[6] = amountFormat.format((Double)furnitureMap.get("fineAmountPerUnit"));

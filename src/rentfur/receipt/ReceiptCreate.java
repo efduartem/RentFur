@@ -483,7 +483,7 @@ public class ReceiptCreate extends JInternalFrame{
             } catch (ParseException ex) {
                 Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, ex);
             }
-            System.out.println("paymentList: "+paymentList);
+            
             HashMap returnMap = receiptController.createReceipt(subjectMap, paymentList, netTotal, balance, observation, receiptDate, eventId, receiptNumMap);
             
             if(((Integer)returnMap.get("status"))==ReceiptController.SUCCESFULLY_SAVED){

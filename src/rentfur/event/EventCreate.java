@@ -11,16 +11,16 @@ import java.awt.Component;
 import rentfur.util.DateLabelFormatter;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.beans.PropertyVetoException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -127,9 +127,9 @@ public class EventCreate extends JInternalFrame{
     private final int DELETE_BUTTON_COLUMN = 11;
     
     
-    private ArrayList taxList = new ArrayList(); //Tasas de IVA
-    private HashMap taxRatioMap = new HashMap(); //Cocientes para IVA
-    private HashMap taxableRatioMap = new HashMap();//Cocientes para Gravadas
+    private final ArrayList taxList = new ArrayList(); //Tasas de IVA
+    private final HashMap taxRatioMap = new HashMap(); //Cocientes para IVA
+    private final HashMap taxableRatioMap = new HashMap();//Cocientes para Gravadas
     private Date currentDeliveryDateSelected;
     
     
@@ -165,10 +165,18 @@ public class EventCreate extends JInternalFrame{
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(eventDetailDefaultTableModel.getRowCount()>0){
-                    showDayChangeWarning();
-                }else{
-                    updateCurrentDeliveryDateSelected();
+                try {
+                    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+                    Date today = formatter.parse(formatter.format(new Date()));
+                    if(((Date)datePicker.getModel().getValue()).compareTo(today)<0){
+                        showPastDatesWarning();
+                    }else if(eventDetailDefaultTableModel.getRowCount()>0){
+                        showDayChangeWarning();
+                    }else{
+                        updateCurrentDeliveryDateSelected();
+                    }
+                } catch (ParseException ex) {
+                    Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
@@ -480,6 +488,23 @@ public class EventCreate extends JInternalFrame{
         setVisible(true);
     }
     
+    private void showPastDatesWarning(){
+        JOptionPane optionPane;
+        JDialog dialog;
+        optionPane = new JOptionPane("No pueden crearse eventos para fechas pasadas", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+        dialog = optionPane.createDialog(this, "Atencion!");
+        dialog.setVisible(true);
+        Date deliveryDate = currentDeliveryDateSelected;
+        if(deliveryDate==null){
+            deliveryDate = new Date();
+            Calendar c = dateToCalendar(deliveryDate);
+            datePicker.getModel().setDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+        }else{
+            Calendar c = dateToCalendar(deliveryDate);
+            datePicker.getModel().setDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+        }
+    }
+    
     private void showDayChangeWarning(){
         int respuesta = JOptionPane.showConfirmDialog(this, "Con esta accion se eliminaran los mobiliarios precargados para este presupuesto, debido a que las disponibilidades se veran afectadas. Confirmar accion?","Confirmar cambio de Fecha", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if(respuesta == JOptionPane.YES_OPTION){
@@ -718,7 +743,7 @@ public class EventCreate extends JInternalFrame{
             double totalTaxable5 = 0;
             double totalTaxable10 = 0;
             double totalTaxable = 0;
-            boolean taxable = false;
+            boolean taxable;
             
             try {
             
@@ -850,9 +875,9 @@ public class EventCreate extends JInternalFrame{
         //Item tax
         String furnitureTaxRateString = eventDetailDefaultTableModel.getValueAt(row, TAX_RATE_COLUMN).toString();
         double oldItemTaxAmount =0;
-        double furnitureTaxRate = 0;
+        double furnitureTaxRate;
         double itemTax = 0;
-        int taxIndexIntable = 0;
+        int taxIndexIntable;
         if(!furnitureTaxRateString.equals("0")){
             
             taxIndexIntable = SUB_TOTAL_COLUMN + Integer.valueOf(taxList.indexOf(furnitureTaxRateString)) + 1;
@@ -882,7 +907,7 @@ public class EventCreate extends JInternalFrame{
         //Item tax
         String furnitureTaxRateString = eventDetailDefaultTableModel.getValueAt(row, TAX_RATE_COLUMN).toString();
         double itemTaxAmount =0;
-        int taxIndexIntable = 0;
+        int taxIndexIntable;
         if(!furnitureTaxRateString.equals("0")){
             
             taxIndexIntable = SUB_TOTAL_COLUMN + Integer.valueOf(taxList.indexOf(furnitureTaxRateString)) + 1;
@@ -977,7 +1002,7 @@ public class EventCreate extends JInternalFrame{
                     ((JTextField) component).setText(amountFormat.format(newQuantity));
                     updateSubTotal(newQuantity, row, column);
                 }
-            } catch (Throwable th) {
+            } catch (ParseException | HeadlessException th) {
                 Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, th);
             }
             return ((JTextField) component).getText();

@@ -33,6 +33,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -61,7 +62,6 @@ public class ReceiptShow extends JInternalFrame{
     private final JLabel subjectCodeLabel;
     private final JLabel titleLabel;
     private final JLabel subjectLabel;
-    private final JLabel totalSummaryLabel;
     private final JLabel subjectAddressLabel;
     private final JLabel subjectNameLabel;
     private final JLabel subjectTelephoneLabel;
@@ -70,9 +70,12 @@ public class ReceiptShow extends JInternalFrame{
     private final JLabel subjectCityLabel;
     private final JLabel receiptDateLabel;
     private final JLabel receiptNumberLabel;
-    private final JLabel totalLabel;
-    private final JLabel balanceTotalLabel;
-    private final JLabel newBalanceTotalLabel;
+    private final JLabel cancelledLabel;
+    private final JLabel cancelledDateLabel;
+    private final JLabel cancelledReasonLabel;
+    private final JTextField cancelledTextField;
+    private final JTextField cancelledDateTextField;
+    private final JTextArea cancelledReasonTextArea;
     private final JTextField subjectCodeTextField;
     private final JTextField subjectAddressTextField;
     private final JTextField subjectNameTextField;
@@ -81,9 +84,6 @@ public class ReceiptShow extends JInternalFrame{
     private final JTextField subjectFiscalNumberTextField;
     private final JTextField subjectCityTextField;
     private final JDatePickerImpl datePicker;
-    private final JTextField totalTextField;
-    private final JTextField balanceTotalTextField;
-    private final JTextField newBalanceTotalTextField;
     private final JTextField branchTextField;
     private final JTextField printerTextField;
     private final JTextField numberTextField;
@@ -183,10 +183,55 @@ public class ReceiptShow extends JInternalFrame{
         subjectLabel.setBounds(80, 110, 200, 25);
         receiptShowPanel.add(subjectLabel);
         
-        totalSummaryLabel = new JLabel("<HTML><U>Totales</U></HTML>");
-        totalSummaryLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 20));
-        totalSummaryLabel.setBounds(900, 110, 200, 25);
-        receiptShowPanel.add(totalSummaryLabel);
+        cancelledLabel = new JLabel("Anulado: ");
+        cancelledLabel.setBounds(800, 100, 200, 25);
+        receiptShowPanel.add(cancelledLabel);
+        
+        cancelledTextField = new JTextField();
+        if((Boolean)receiptMap.get("cancelled")){
+            cancelledTextField.setText("SI");
+        }else{
+            cancelledTextField.setText("NO");
+        }
+        cancelledTextField.setEditable(false);
+        cancelledTextField.setEnabled(false);
+        cancelledTextField.setBounds(950, 100, 230, 25);
+        receiptShowPanel.add(cancelledTextField);
+        
+        cancelledReasonLabel = new JLabel("Motivo: ");
+        cancelledReasonLabel.setBounds(800, 130, 200, 25);
+        receiptShowPanel.add(cancelledReasonLabel);
+        
+        cancelledReasonTextArea = new JTextArea(0,0);
+        if(receiptMap.get("cancelledReason")!=null){
+            cancelledReasonTextArea.setText(receiptMap.get("cancelledReason").toString());
+        }else{
+            cancelledReasonTextArea.setText("");
+        }
+        
+        cancelledReasonTextArea.setLineWrap(true);
+        cancelledReasonTextArea.setWrapStyleWord(true);
+        cancelledReasonTextArea.setEditable(false);
+        cancelledReasonTextArea.setEnabled(false);
+        JScrollPane cancelledReasonScrollPane = new JScrollPane();
+        cancelledReasonScrollPane.setBounds(950, 130, 230, 90);
+        cancelledReasonScrollPane.setViewportView(cancelledReasonTextArea);
+        receiptShowPanel.add(cancelledReasonScrollPane);
+        
+        cancelledDateLabel = new JLabel("Fecha de Anulacion: ");
+        cancelledDateLabel.setBounds(800, 240, 200, 25);
+        receiptShowPanel.add(cancelledDateLabel);
+        
+        cancelledDateTextField = new JTextField();
+        if(receiptMap.get("cancelledDate")!=null){
+            cancelledDateTextField.setText(receiptMap.get("cancelledDate").toString());
+        }else{
+            cancelledDateTextField.setText("");
+        }
+        cancelledDateTextField.setEditable(false);
+        cancelledDateTextField.setEnabled(false);
+        cancelledDateTextField.setBounds(950, 240, 230, 25);
+        receiptShowPanel.add(cancelledDateTextField);
         
         //FILA 1
         subjectCodeLabel = new JLabel("Codigo:");
@@ -206,39 +251,6 @@ public class ReceiptShow extends JInternalFrame{
         subjectAddressTextField.setEditable(false);
         subjectAddressTextField.setBounds(490, 150, 170, 25);
         receiptShowPanel.add(subjectAddressTextField);
-        
-        //Total SALDO
-        balanceTotalLabel = new JLabel("Saldo: ");
-        balanceTotalLabel.setBounds(900, 150, 80, 25);
-        receiptShowPanel.add(balanceTotalLabel);
-        
-        balanceTotalTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("balance").toString())));
-        balanceTotalTextField.setEditable(false);
-        balanceTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
-        balanceTotalTextField.setBounds(1000, 150, 170, 25);
-        receiptShowPanel.add(balanceTotalTextField);
-        
-        //Total Pago
-        totalLabel = new JLabel("Total Gs.: ");
-        totalLabel.setBounds(900, 180, 80, 25);
-        receiptShowPanel.add(totalLabel);
-    
-        totalTextField = new JTextField("0");
-        totalTextField.setEditable(false);
-        totalTextField.setHorizontalAlignment(JLabel.RIGHT);
-        totalTextField.setBounds(1000, 180, 170, 25);
-        receiptShowPanel.add(totalTextField);
-        
-        newBalanceTotalLabel = new JLabel("Saldo Final: ");
-        newBalanceTotalLabel.setBounds(900, 210, 80, 25);
-        receiptShowPanel.add(newBalanceTotalLabel);
-        
-        newBalanceTotalTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("balance").toString())));
-        newBalanceTotalTextField.setEditable(false);
-        newBalanceTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
-        newBalanceTotalTextField.setBounds(1000, 210, 170, 25);
-        receiptShowPanel.add(newBalanceTotalTextField);
-        
         
         //FILA 2
         subjectNameLabel = new JLabel("Razón Social:");
@@ -312,7 +324,7 @@ public class ReceiptShow extends JInternalFrame{
         
         ImageIcon cancelImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelReceipt = new JButton();
-        cancelReceipt.setText(" Cancelar");
+        cancelReceipt.setText(" Cerrar");
         cancelReceipt.setIcon(cancelImageIcon);
         cancelReceipt.addActionListener(new ActionListener() {
 
@@ -423,24 +435,6 @@ public class ReceiptShow extends JInternalFrame{
         receiptDetailDefaultTableModel.addRow(row);
     }
     
-    private void updateTotal(double newAmount, int row, int column){
-        try {
-            double oldAmount = amountFormat.parse(receiptDetailDefaultTableModel.getValueAt(row, AMOUNT_COLUMN).toString()).doubleValue();
-            
-            //TOTAL PAYED
-            double totalPayed = amountFormat.parse(totalTextField.getText()).doubleValue();
-            totalPayed = (totalPayed - oldAmount) + newAmount;
-            totalTextField.setText(amountFormat.format(totalPayed));
-            
-            //FINAL BALANCE
-            double newBalance = amountFormat.parse(newBalanceTotalTextField.getText()).doubleValue();
-            newBalance = (newBalance + oldAmount) - newAmount;
-            newBalanceTotalTextField.setText(amountFormat.format(newBalance));
-        } catch (ParseException ex) {
-            Logger.getLogger(ReceiptShow.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
     private class receiptDetailDefaultTableModel extends DefaultTableModel{
         
         @Override
@@ -532,8 +526,8 @@ public class ReceiptShow extends JInternalFrame{
                     newAmountString = "0";
                 }
                 double newAmount = amountFormat.parse(newAmountString).doubleValue();
-                double balanceTotal = amountFormat.parse(balanceTotalTextField.getText()).doubleValue();
-                double total = amountFormat.parse(totalTextField.getText()).doubleValue();
+                double balanceTotal = amountFormat.parse("9").doubleValue();
+                double total = amountFormat.parse("9").doubleValue();
                 if(balanceTotal < ((total-oldAmount)+newAmount)){
                     optionPane = new JOptionPane("Con el valor ingresado se superara el saldo del evento", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
                     dialog = optionPane.createDialog(null, "Atencion!");
@@ -541,7 +535,7 @@ public class ReceiptShow extends JInternalFrame{
                     ((JTextField) component).setText(amountFormat.format(oldAmount));
                 }else{
                     ((JTextField) component).setText(amountFormat.format(newAmount));
-                    updateTotal(newAmount, row, column);
+                    //updateTotal(newAmount, row, column);
                 }
             } catch (HeadlessException | ParseException th) {
                 Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, th);

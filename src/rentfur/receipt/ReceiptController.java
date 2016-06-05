@@ -529,6 +529,7 @@ public class ReceiptController {
                 receipttMap.put("cancelled", rs.getBoolean("cancelled"));
                 receipttMap.put("cancelledDate", rs.getTimestamp("cancelled_date"));
                 receipttMap.put("creationDate", rs.getTimestamp("creation_date"));
+                receipttMap.put("cancelledReason", rs.getString("cancelled_reason"));
                 receipttMap.put("creationUserId", rs.getInt("creation_user_id"));
                 receipttMap.put("subjectCode", rs.getString("subject_code"));
                 receipttMap.put("subjectName", rs.getString("subject_name"));
@@ -598,5 +599,69 @@ public class ReceiptController {
         }
         
         return receipttMap;
+    }
+    
+    public HashMap cancelReceipt(int receiptId, String cancelledReason){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        double totalPayed = 0;
+        int eventId = 0;
+        try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+            String receiptSelect = "SELECT total_payed, event_id FROM receipt WHERE id = ?";
+            ps = connRentFur.prepareStatement(receiptSelect);
+            ps.setInt(1, receiptId);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                totalPayed = rs.getDouble("total_payed");
+                eventId = rs.getInt("event_id");
+            }
+            
+            String receiptUpdate = "UPDATE receipt SET cancelled = ?, cancelled_reason = ?, cancelled_date = current_timestamp WHERE id = ?";
+            ps = connRentFur.prepareStatement(receiptUpdate);
+            ps.setBoolean(1, Boolean.TRUE);
+            ps.setString(2, cancelledReason);
+            ps.setInt(3, receiptId);
+            ps.executeUpdate();
+            
+            String eventUpdate = "UPDATE event SET balance = (balance + ?) WHERE id = ?";
+            ps = connRentFur.prepareStatement(eventUpdate);
+            ps.setDouble(1, totalPayed);
+            ps.setInt(2, eventId);
+            ps.executeUpdate();
+            
+            ps.close();
+            
+            connRentFur.commit();
+            
+            mapToReturn.put("status", SUCCESFULLY_SAVED);
+            mapToReturn.put("message", "Recibo Anulado correctamente");
+        }catch(SQLException th){
+            try {
+                connRentFur.rollback();
+            } catch (SQLException ex) {
+                Logger.getLogger(ReceiptController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            mapToReturn.put("message", th.getMessage());
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
     }
 }

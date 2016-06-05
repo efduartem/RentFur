@@ -14,6 +14,7 @@ import java.beans.PropertyVetoException;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -94,6 +95,8 @@ public class EventShowAndEdit extends JInternalFrame{
     private final JLabel observationLabel;
     private final JLabel totalLabel;
     private final JLabel balanceTotalLabel;
+    private final JLabel invoicedTotalLabel;
+    private final JLabel payedTotalLabel;
     private final JTextField subjectCodeTextField;
     private final JTextField subjectAddressTextField;
     private final JTextField subjectNameTextField;
@@ -107,6 +110,8 @@ public class EventShowAndEdit extends JInternalFrame{
     private final JTextArea observationTextArea;
     private final JTextField totalTextField;
     private final JTextField balanceTotalTextField;
+    private final JTextField invoicedTotalTextField;
+    private final JTextField payedTotalTextField;
     private JButton paymentRecordButton;
     private final JButton saveChangesButton;
     private final JButton addFurnitureButton;
@@ -292,14 +297,14 @@ public class EventShowAndEdit extends JInternalFrame{
         eventHeaderPanel.add(subjectAddressTextField);
         
         //Total Evento
-        totalLabel = new JLabel("Total: ");
+        totalLabel = new JLabel("Total Gs.: ");
         totalLabel.setBounds(1100, 150, 80, 25);
         eventHeaderPanel.add(totalLabel);
         
         totalTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("netTotal").toString())));
         totalTextField.setEditable(false);
         totalTextField.setHorizontalAlignment(JLabel.RIGHT);
-        totalTextField.setBounds(1200, 150, 170, 25);
+        totalTextField.setBounds(1220, 150, 170, 25);
         eventHeaderPanel.add(totalTextField);
         
         //FILA 2
@@ -321,16 +326,15 @@ public class EventShowAndEdit extends JInternalFrame{
         subjectTelephoneTextField.setBounds(490, 180, 170, 25);
         eventHeaderPanel.add(subjectTelephoneTextField);
         
-        //Total SALDO
-        balanceTotalLabel = new JLabel("Saldo: ");
-        balanceTotalLabel.setBounds(1100, 180, 80, 25);
-        eventHeaderPanel.add(balanceTotalLabel);
+        payedTotalLabel = new JLabel("Pagado Gs.: ");
+        payedTotalLabel.setBounds(1100, 180, 80, 25);
+        eventHeaderPanel.add(payedTotalLabel);
         
-        balanceTotalTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("balance").toString())));
-        balanceTotalTextField.setEditable(false);
-        balanceTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
-        balanceTotalTextField.setBounds(1200, 180, 170, 25);
-        eventHeaderPanel.add(balanceTotalTextField);
+        payedTotalTextField = new JTextField();
+        payedTotalTextField.setEditable(false);
+        payedTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
+        payedTotalTextField.setBounds(1220, 180, 170, 25);
+        eventHeaderPanel.add(payedTotalTextField);
         
         //FILA 3
         subjectTradenameLabel = new JLabel("Nombre Comercial:");
@@ -359,6 +363,17 @@ public class EventShowAndEdit extends JInternalFrame{
         subjectFiscalNumberTextField.setBounds(490, 210, 170, 25);
         eventHeaderPanel.add(subjectFiscalNumberTextField);
         
+         //Total SALDO
+        balanceTotalLabel = new JLabel("Saldo Gs.: ");
+        balanceTotalLabel.setBounds(1100, 210, 80, 25);
+        eventHeaderPanel.add(balanceTotalLabel);
+        
+        balanceTotalTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("balance").toString())));
+        balanceTotalTextField.setEditable(false);
+        balanceTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
+        balanceTotalTextField.setBounds(1220, 210, 170, 25);
+        eventHeaderPanel.add(balanceTotalTextField);
+        
         //FILA 4
         subjectCityLabel = new JLabel("Ciudad:");
         subjectCityLabel.setBounds(30, 240, 80, 25);
@@ -368,6 +383,17 @@ public class EventShowAndEdit extends JInternalFrame{
         subjectCityTextField.setEditable(false);
         subjectCityTextField.setBounds(160, 240, 170, 25);
         eventHeaderPanel.add(subjectCityTextField);
+        
+        //FACTURADO
+        invoicedTotalLabel = new JLabel("Facturado Gs.: ");
+        invoicedTotalLabel.setBounds(1100, 240, 100, 25);
+        eventHeaderPanel.add(invoicedTotalLabel);
+        
+        invoicedTotalTextField = new JTextField("0");
+        invoicedTotalTextField.setEditable(false);
+        invoicedTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
+        invoicedTotalTextField.setBounds(1220, 240, 170, 25);
+        eventHeaderPanel.add(invoicedTotalTextField);
         
         //Boton para registrar pagos
         ImageIcon paymentRecordImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/money_24x24.png"));
@@ -521,7 +547,11 @@ public class EventShowAndEdit extends JInternalFrame{
         receiptTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
             @Override
             public void valueChanged(ListSelectionEvent event) {
-                    addPaymentsToReceiptTable((HashMap)receiptList.get(receiptTable.getSelectedRow()));
+                    if(receiptTable.getSelectedRow()>0){
+                        addPaymentsToReceiptTable((HashMap)receiptList.get(receiptTable.getSelectedRow()));
+                    }else{
+                        addPaymentsToReceiptTable((HashMap)receiptList.get(0));
+                    }
                 }
             }
         );
@@ -753,7 +783,7 @@ public class EventShowAndEdit extends JInternalFrame{
         
         //TEST
         //TABLA DE DETALLES PARA LA PRIMERO PESTAÑA QUE CONTENDRA LOS CARGOS DEL EVENTO
-        eventDetailPenaltyDefaultTableModel = new eventDetailAnnexedDefaultTableModel();
+        eventDetailPenaltyDefaultTableModel = new eventDetailPenaltyDefaultTableModel();
         eventDetailpenaltyTable = new JTable(eventDetailPenaltyDefaultTableModel);
         
         eventDetailPenaltyDefaultTableModel.addColumn("Id");
@@ -892,13 +922,14 @@ public class EventShowAndEdit extends JInternalFrame{
                 row[RECEIPT_ID_COLUMN] = (Integer) receiptMap.get("id");
                 row[RECEIPT_DATE_COLUMN] = new Date(((Timestamp)receiptMap.get("receiptDate")).getTime());
                 row[RECEIPT_NUMBER_COLUMN] = receiptMap.get("receiptBranch") + "-" + receiptMap.get("receiptPrinter") + "-" + receiptMap.get("receiptNumber");
-                totalEventPayed += (Double)receiptMap.get("totalPayed");
+                
                 row[RECEIPT_AMOUNT_COLUMN] = amountFormat.format((Double)receiptMap.get("totalPayed"));
                 
                 if((Boolean)receiptMap.get("cancelled")){
                     row[RECEIPT_CANCELLED_COLUMN] = "SI";
                 }else{
                     row[RECEIPT_CANCELLED_COLUMN] = "NO";
+                    totalEventPayed += (Double)receiptMap.get("totalPayed");
                 }
                 
                 
@@ -917,6 +948,8 @@ public class EventShowAndEdit extends JInternalFrame{
             
             //TOTAL
             double total = amountFormat.parse(totalTextField.getText()).doubleValue();
+            
+            payedTotalTextField.setText(amountFormat.format(totalEventPayed));
             
             //TOTAL BALANCE
             double balanceTotal = total - totalEventPayed;
@@ -1370,6 +1403,44 @@ public class EventShowAndEdit extends JInternalFrame{
         balanceTotalTextField.setText(amountFormat.format(balanceTotal));
     }
      
+     public void updateReceiptStatus(int row){
+        Vector dataVector = (Vector) receiptDefaultTableModel.getDataVector().get(row);
+        int receiptId = (Integer) dataVector.get(RECEIPT_ID_COLUMN);
+        String receiptNumber = (String) dataVector.get(RECEIPT_NUMBER_COLUMN);
+//        String description = (String) dataVector.get(2);
+//        boolean active = (boolean) dataVector.get(11);
+        int respuesta;
+        HashMap mapReturn = new HashMap();
+        JTextArea textArea = new JTextArea(6, 50);
+        textArea.setEditable(true);
+        
+        JLabel messagge = new JLabel("Confirma que desea anular el recibo "+receiptNumber+"?");
+        JLabel reasonLabel = new JLabel("Favor ingresar un motivo para la anulcación");
+        JPanel confirmPanel = new JPanel();
+        confirmPanel.setPreferredSize(new Dimension(400,150));
+
+        confirmPanel.add(messagge);
+        confirmPanel.add(reasonLabel);
+        confirmPanel.add(textArea);
+        // display them in a message dialog
+        respuesta = JOptionPane.showConfirmDialog(this, confirmPanel,"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if(respuesta == JOptionPane.YES_OPTION){
+            if(textArea.getText().trim().equals("")){
+                JOptionPane.showMessageDialog(null, "Debe ingresar un motivo para confirmar la anulación", "Atencion", JOptionPane.WARNING_MESSAGE);
+                updateReceiptStatus(row);
+            }else{
+                mapReturn = receiptController.cancelReceipt(receiptId, textArea.getText().trim());
+                if((Integer) mapReturn.get("status") == ReceiptController.SUCCESFULLY_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Actualizado", JOptionPane.INFORMATION_MESSAGE);
+                }else if((Integer)mapReturn.get("status") == ReceiptController.ERROR_IN_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+                }
+                updateReceiptsTable();
+            }
+        }
+        
+    }
+     
     class QuantityCellEditor extends AbstractCellEditor implements TableCellEditor {
 
         JComponent component = new NumericTextField(20, amountFormat);
@@ -1678,7 +1749,7 @@ public class EventShowAndEdit extends JInternalFrame{
            
     }
     
-    private class eventDetailAnnexedDefaultTableModel extends DefaultTableModel{
+    private class eventDetailPenaltyDefaultTableModel extends DefaultTableModel{
         
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -1700,7 +1771,11 @@ public class EventShowAndEdit extends JInternalFrame{
             //int rows;
             switch(column){
                 case RECEIPT_CANCELLED_BUTTON_COLUMN:
-                    return true;
+                    boolean cancelled = false;
+                    if(receiptDefaultTableModel.getValueAt(row, RECEIPT_CANCELLED_COLUMN).toString().equals("SI")){
+                        cancelled = Boolean.TRUE;
+                    }
+                    return !cancelled;
                 case RECEIPT_SHOW_BUTTON_COLUMN:
                     return true;
                 default:    return false;
@@ -1939,6 +2014,7 @@ public class EventShowAndEdit extends JInternalFrame{
 //                    if(!onlyQuery){
                        //label = updateFurnitureStatus(row, label);
 //                    }
+                    updateReceiptStatus(row);
                 }else if(column==RECEIPT_SHOW_BUTTON_COLUMN){
                     //showFurnitureShowAndEditView(row);
                     showReceiptView(row);

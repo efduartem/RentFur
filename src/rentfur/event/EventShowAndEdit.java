@@ -14,9 +14,7 @@ import java.beans.PropertyVetoException;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
-import java.text.MessageFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
@@ -42,7 +40,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -529,8 +526,13 @@ public class EventShowAndEdit extends JInternalFrame{
         receiptDefaultTableModel = new receiptDefaultTableModel();
         receiptTable = new JTable(receiptDefaultTableModel);
         
-        //TableCellRenderer renderer = new EvenOddRenderer();
-        //receiptTable.setDefaultRenderer(Object.class, renderer);
+        //Alineacion a la derecha
+        DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
+        rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
+        
+        //Alineacion a la derecha
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
         
         receiptDefaultTableModel.addColumn("Id");
         receiptDefaultTableModel.addColumn("Fecha");
@@ -542,8 +544,10 @@ public class EventShowAndEdit extends JInternalFrame{
         receiptDefaultTableModel.addColumn("");
         receiptDefaultTableModel.addColumn("");
         
+        ((DefaultTableCellRenderer)receiptTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+        
         receiptTable.setRowHeight(22);
-        receiptTable.setBorder(BorderFactory.createEtchedBorder());
+//        receiptTable.setBorder(BorderFactory.createEtchedBorder());
         receiptTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
             @Override
             public void valueChanged(ListSelectionEvent event) {
@@ -565,16 +569,34 @@ public class EventShowAndEdit extends JInternalFrame{
         receiptTable.getColumnModel().getColumn(RECEIPT_NUMBER_COLUMN).setMaxWidth(160);
         receiptTable.getColumnModel().getColumn(RECEIPT_NUMBER_COLUMN).setMinWidth(160);
         receiptTable.getColumnModel().getColumn(RECEIPT_NUMBER_COLUMN).setPreferredWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_NUMBER_COLUMN).setCellRenderer(centerRenderer);
         
         //DATE
         receiptTable.getColumnModel().getColumn(RECEIPT_DATE_COLUMN).setMaxWidth(160);
         receiptTable.getColumnModel().getColumn(RECEIPT_DATE_COLUMN).setMinWidth(160);
         receiptTable.getColumnModel().getColumn(RECEIPT_DATE_COLUMN).setPreferredWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_DATE_COLUMN).setCellRenderer(centerRenderer);
         
         //AMOUNT
         receiptTable.getColumnModel().getColumn(RECEIPT_AMOUNT_COLUMN).setMaxWidth(160);
         receiptTable.getColumnModel().getColumn(RECEIPT_AMOUNT_COLUMN).setMinWidth(160);
         receiptTable.getColumnModel().getColumn(RECEIPT_AMOUNT_COLUMN).setPreferredWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_AMOUNT_COLUMN).setCellRenderer(rightRenderer);
+        
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_COLUMN).setMaxWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_COLUMN).setMinWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_COLUMN).setPreferredWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_COLUMN).setCellRenderer(centerRenderer);
+        
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_DATE_COLUMN).setMaxWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_DATE_COLUMN).setMinWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_DATE_COLUMN).setPreferredWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_DATE_COLUMN).setCellRenderer(centerRenderer);
+        
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_REASON_COLUMN).setMaxWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_REASON_COLUMN).setMinWidth(160);
+        receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_REASON_COLUMN).setPreferredWidth(160);
+        
         
         //CANCELLED BUTTON
         receiptTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setMaxWidth(130);
@@ -616,8 +638,10 @@ public class EventShowAndEdit extends JInternalFrame{
         paymentMethodDefaultTableModel.addColumn("Monto");
         paymentMethodDefaultTableModel.addColumn("");
         
+        ((DefaultTableCellRenderer)paymentMethodTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+        
         paymentMethodTable.setRowHeight(22);
-        paymentMethodTable.setBorder(BorderFactory.createEtchedBorder());
+//        paymentMethodTable.setBorder(BorderFactory.createEtchedBorder());
         
         //paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setCellEditor(new PaymentMethodCellEditor(ReceiptController.getPaymentMethodAvailablesForCreateReceipt(false)));
         //paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setCellRenderer(new PaymentMethodCellRenderer());
@@ -625,23 +649,38 @@ public class EventShowAndEdit extends JInternalFrame{
         paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setMinWidth(160);
         paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setMaxWidth(160);
         paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setPreferredWidth(160);
-        //paymentMethodTable.getColumnModel().getColumn(DOC_NUMBER_COLUMN).setCellRenderer(rightRenderer);
+        paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setCellRenderer(centerRenderer);
         
-        //paymentMethodTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN)
-        //paymentMethodTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN)
+        paymentMethodTable.getColumnModel().getColumn(DOC_NUMBER_COLUMN).setMinWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_NUMBER_COLUMN).setMaxWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_NUMBER_COLUMN).setPreferredWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_NUMBER_COLUMN).setCellRenderer(centerRenderer);
+
+        paymentMethodTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN).setMinWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN).setMaxWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN).setPreferredWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN).setCellRenderer(centerRenderer);
         
-        //paymentMethodTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setCellEditor(new DatePickerCell());
-        //paymentMethodTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setCellRenderer(new DatePickerCellRenderer());
+        paymentMethodTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setMinWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setMaxWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setPreferredWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setCellRenderer(centerRenderer);
         
-        //paymentMethodTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setCellEditor(new DatePickerCell());
-        //paymentMethodTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setCellRenderer(new DatePickerCellRenderer());
+        paymentMethodTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setMinWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setMaxWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setPreferredWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setCellRenderer(centerRenderer);
         
-        //paymentMethodTable.getColumnModel().getColumn(BANK_COLUMN).setCellEditor(new PaymentMethodCellEditor(ReceiptController.getBanksForComboBox(false)));
-        //paymentMethodTable.getColumnModel().getColumn(BANK_COLUMN).setCellRenderer(new PaymentMethodCellRenderer());
+        paymentMethodTable.getColumnModel().getColumn(BANK_COLUMN).setMinWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(BANK_COLUMN).setMaxWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(BANK_COLUMN).setPreferredWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(BANK_COLUMN).setCellRenderer(centerRenderer);
         
         //AMOUNT
-        //paymentMethodTable.getColumnModel().getColumn(AMOUNT_COLUMN).setCellEditor(new AmountCellEditor());
-        //paymentMethodTable.getColumnModel().getColumn(AMOUNT_COLUMN).setCellRenderer(new AmountCellRenderer());
+        paymentMethodTable.getColumnModel().getColumn(AMOUNT_COLUMN).setMinWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(AMOUNT_COLUMN).setMaxWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(AMOUNT_COLUMN).setPreferredWidth(160);
+        paymentMethodTable.getColumnModel().getColumn(AMOUNT_COLUMN).setCellRenderer(rightRenderer);
         
         if(!receiptList.isEmpty()){
             addPaymentsToReceiptTable((HashMap)receiptList.get(0));
@@ -711,8 +750,10 @@ public class EventShowAndEdit extends JInternalFrame{
         eventDetailDefaultTableModel.addColumn("");
         eventDetailDefaultTableModel.addColumn("Es Anexo");
         
+        ((DefaultTableCellRenderer)eventDetailTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+        
         eventDetailTable.setRowHeight(22);
-        eventDetailTable.setBorder(BorderFactory.createEtchedBorder());
+//        eventDetailTable.setBorder(BorderFactory.createEtchedBorder());
         //ID
         eventDetailTable.getColumnModel().getColumn(0).setMaxWidth(0);
         eventDetailTable.getColumnModel().getColumn(0).setMinWidth(0);
@@ -796,8 +837,10 @@ public class EventShowAndEdit extends JInternalFrame{
         eventDetailPenaltyDefaultTableModel.addColumn("Subtotal");
         eventDetailPenaltyDefaultTableModel.addColumn("");
         
+        ((DefaultTableCellRenderer)eventDetailpenaltyTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+        
         eventDetailpenaltyTable.setRowHeight(22);
-        eventDetailpenaltyTable.setBorder(BorderFactory.createEtchedBorder());
+//        eventDetailpenaltyTable.setBorder(BorderFactory.createEtchedBorder());
         
         eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_ID_COLUMN).setMaxWidth(0);
         eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_ID_COLUMN).setMinWidth(0);
@@ -909,8 +952,7 @@ public class EventShowAndEdit extends JInternalFrame{
         try {
             HashMap receiptMap;
             double totalEventPayed = 0;
-            int numeroRegistros=0;
-            numeroRegistros = receiptDefaultTableModel.getRowCount();
+            int numeroRegistros = receiptDefaultTableModel.getRowCount();
             for(int i=0;i<numeroRegistros;i++){
                 receiptDefaultTableModel.removeRow(0);
             }
@@ -964,8 +1006,7 @@ public class EventShowAndEdit extends JInternalFrame{
         ArrayList paymentList = (ArrayList) receiptMap.get("paymentMethod");
         Object[] row = new Object[paymentMethodTable.getColumnCount()];
         
-        int numeroRegistros=0;
-        numeroRegistros = paymentMethodDefaultTableModel.getRowCount();
+        int numeroRegistros = paymentMethodDefaultTableModel.getRowCount();
         for(int i=0;i<numeroRegistros;i++){
             paymentMethodDefaultTableModel.removeRow(0);
         }
@@ -1407,10 +1448,9 @@ public class EventShowAndEdit extends JInternalFrame{
         Vector dataVector = (Vector) receiptDefaultTableModel.getDataVector().get(row);
         int receiptId = (Integer) dataVector.get(RECEIPT_ID_COLUMN);
         String receiptNumber = (String) dataVector.get(RECEIPT_NUMBER_COLUMN);
-//        String description = (String) dataVector.get(2);
-//        boolean active = (boolean) dataVector.get(11);
+
         int respuesta;
-        HashMap mapReturn = new HashMap();
+        HashMap mapReturn;
         JTextArea textArea = new JTextArea(6, 50);
         textArea.setEditable(true);
         
@@ -1477,8 +1517,6 @@ public class EventShowAndEdit extends JInternalFrame{
                             if(!texto.isEmpty()){
                                 ((NumericTextField) component).setValue(Double.valueOf(texto));
                             }
-                         }else{
-                             texto = texto.replaceAll(",", ".");
                          }
                      }
                  });
@@ -1557,8 +1595,6 @@ public class EventShowAndEdit extends JInternalFrame{
                             if(!texto.isEmpty()){
                                 ((NumericTextField) component).setValue(Double.valueOf(texto));
                             }
-                         }else{
-                             texto = texto.replaceAll(",", ".");
                          }
                      }
                  });

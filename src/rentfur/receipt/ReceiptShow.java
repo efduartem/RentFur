@@ -21,6 +21,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractCellEditor;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -35,6 +36,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.border.BevelBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
@@ -73,6 +75,7 @@ public class ReceiptShow extends JInternalFrame{
     private final JLabel cancelledLabel;
     private final JLabel cancelledDateLabel;
     private final JLabel cancelledReasonLabel;
+    private final JLabel totalLabel;
     private final JTextField cancelledTextField;
     private final JTextField cancelledDateTextField;
     private final JTextArea cancelledReasonTextArea;
@@ -87,6 +90,7 @@ public class ReceiptShow extends JInternalFrame{
     private final JTextField branchTextField;
     private final JTextField printerTextField;
     private final JTextField numberTextField;
+    private final JTextField totalTextField;
     private JButton addPaymentMethod;
     private JButton cancelReceipt;
     private final JTable receiptDetailTable;
@@ -190,8 +194,10 @@ public class ReceiptShow extends JInternalFrame{
         cancelledTextField = new JTextField();
         if((Boolean)receiptMap.get("cancelled")){
             cancelledTextField.setText("SI");
+            cancelledTextField.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED, Color.RED, Color.RED));
         }else{
             cancelledTextField.setText("NO");
+            cancelledTextField.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED, Color.GREEN.darker(), Color.GREEN.brighter()));
         }
         cancelledTextField.setEditable(false);
         cancelledTextField.setEnabled(false);
@@ -221,13 +227,15 @@ public class ReceiptShow extends JInternalFrame{
         cancelledDateLabel = new JLabel("Fecha de Anulacion: ");
         cancelledDateLabel.setBounds(800, 240, 200, 25);
         receiptShowPanel.add(cancelledDateLabel);
-        
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         cancelledDateTextField = new JTextField();
         if(receiptMap.get("cancelledDate")!=null){
-            cancelledDateTextField.setText(receiptMap.get("cancelledDate").toString());
+            formatter.format(new Date(((Timestamp)receiptMap.get("cancelledDate")).getTime()));
+            cancelledDateTextField.setText(formatter.format(new Date(((Timestamp)receiptMap.get("cancelledDate")).getTime())));
         }else{
             cancelledDateTextField.setText("");
         }
+        cancelledDateTextField.setHorizontalAlignment(JLabel.CENTER);
         cancelledDateTextField.setEditable(false);
         cancelledDateTextField.setEnabled(false);
         cancelledDateTextField.setBounds(950, 240, 230, 25);
@@ -321,6 +329,17 @@ public class ReceiptShow extends JInternalFrame{
         });
         addPaymentMethod.setBounds(30, 290, 170, 32);
         receiptShowPanel.add(addPaymentMethod);
+        
+        //Total Pago
+        totalLabel = new JLabel("Total Gs.: ");
+        totalLabel.setBounds(1000, 490, 80, 25);
+        receiptShowPanel.add(totalLabel);
+    
+        totalTextField = new JTextField(amountFormat.format((Double)receiptMap.get("totalPayed")));
+        totalTextField.setEditable(false);
+        totalTextField.setHorizontalAlignment(JLabel.RIGHT);
+        totalTextField.setBounds(1000, 520, 170, 25);
+        receiptShowPanel.add(totalTextField);
         
         ImageIcon cancelImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelReceipt = new JButton();

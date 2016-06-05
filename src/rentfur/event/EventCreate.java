@@ -374,20 +374,16 @@ public class EventCreate extends JInternalFrame{
         eventDetailDefaultTableModel.addColumn("Subtotal");
         
         String taxRateColumns = SQLUtilService.getSystemConfigurationValue("furniture.tax.rates");
-         
-        for(int i = 0; i < taxRateColumns.split(";").length; i++){
-            if(!taxRateColumns.split(";")[i].split(",")[0].trim().equals("0")){
-                taxList.add(taxRateColumns.split(";")[i].split(",")[0].trim());
-
+        for (String split : taxRateColumns.split(";")) {
+            if (!split.split(",")[0].trim().equals("0")) {
+                taxList.add(split.split(",")[0].trim());
                 //Configuration Value viene en formato "10,11,1.1" --> Ejemplo para tasa al 10%
                 //En el mapa de cocientes para impuestos se guaradan entonces asi "10":"11"
-                taxRatioMap.put(taxRateColumns.split(";")[i].split(",")[0], taxRateColumns.split(";")[i].split(",")[1]);
-
+                taxRatioMap.put(split.split(",")[0], split.split(",")[1]);
                 //Configuration Value viene en formato "10,11,1.1" --> Ejemplo para tasa al 10%
                 //En el mapa de cocientes para gravadas de impuestos se guaradan entonces asi "10":"1.1"
-                taxableRatioMap.put(taxRateColumns.split(";")[i].split(",")[0], taxRateColumns.split(";")[i].split(",")[2]);
-
-                eventDetailDefaultTableModel.addColumn(taxRateColumns.split(";")[i].split(",")[0]+" %");
+                taxableRatioMap.put(split.split(",")[0], split.split(",")[2]);
+                eventDetailDefaultTableModel.addColumn(split.split(",")[0] + " %");
             }
         }        
         
@@ -966,8 +962,6 @@ public class EventCreate extends JInternalFrame{
                             if(!texto.isEmpty()){
                                 ((NumericTextField) component).setValue(Double.valueOf(texto));
                             }
-                         }else{
-                             texto = texto.replaceAll(",", ".");
                          }
                      }
                  });

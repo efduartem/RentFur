@@ -249,7 +249,6 @@ public class EventIndex extends JInternalFrame{
         eventHeaderPanel.add(createEventButton);
         
         createEventButton.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 createEventAction();

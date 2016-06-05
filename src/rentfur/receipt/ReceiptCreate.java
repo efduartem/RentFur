@@ -437,6 +437,10 @@ public class ReceiptCreate extends JInternalFrame{
             optionPane = new JOptionPane("Existen detalles con monto 0 (Cero). Favor ingrese correctamente todos los montos.", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
             dialog = optionPane.createDialog(this, "Atencion!");
             dialog.setVisible(true);
+        }else if(!allFieldAdded()){
+            optionPane = new JOptionPane("Existen detalles loco.", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+            dialog = optionPane.createDialog(this, "Atencion!");
+            dialog.setVisible(true);
         }else{
             Date receiptDate = (Date) datePicker.getModel().getValue();
             HashMap subjectMap = SubjectController.getSubjectByCode(subjectCodeTextField.getText()); 
@@ -510,6 +514,39 @@ public class ReceiptCreate extends JInternalFrame{
         return true;
     }
     
+    private boolean allFieldAdded(){
+        Vector dataVector;
+        ComboBoxItem paymentMethod;
+        for (int row = 0; row < receiptDetailTable.getRowCount(); row++){
+            dataVector = (Vector) receiptDetailDefaultTableModel.getDataVector().get(row);
+            paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
+            if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK){
+                if(dataVector.get(DOC_DUE_DATE_COLUMN).equals("") || dataVector.get(DOC_EMITION_DATE_COLUMN).equals("") || dataVector.get(DOC_NUMBER_COLUMN).equals("") || dataVector.get(BANK_COLUMN).equals("")){
+                    return false;
+                }
+            }else if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK){
+                if(dataVector.get(DOC_DUE_DATE_COLUMN).equals("") || dataVector.get(DOC_EMITION_DATE_COLUMN).equals("") || dataVector.get(DOC_NUMBER_COLUMN).equals("") || dataVector.get(BANK_COLUMN).equals("") || dataVector.get(DOC_PAYMENT_DATE_COLUMN).equals("")){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    private void updateFields(ComboBoxItem item, int row){
+        ComboBoxItem bankItem = new ComboBoxItem("", "");
+        if(Integer.valueOf(item.getKey())==ReceiptController.PAY_CHECK){
+            receiptDetailDefaultTableModel.setValueAt("", row, DOC_PAYMENT_DATE_COLUMN);
+        }else if(Integer.valueOf(item.getKey())==ReceiptController.DATED_CHECK){
+        }else if(Integer.valueOf(item.getKey())==ReceiptController.CASH){
+            receiptDetailDefaultTableModel.setValueAt("", row, DOC_NUMBER_COLUMN);
+            receiptDetailDefaultTableModel.setValueAt("", row, DOC_EMITION_DATE_COLUMN);
+            receiptDetailDefaultTableModel.setValueAt("", row, DOC_DUE_DATE_COLUMN);
+            receiptDetailDefaultTableModel.setValueAt("", row, DOC_PAYMENT_DATE_COLUMN);
+            receiptDetailDefaultTableModel.setValueAt(bankItem, row, BANK_COLUMN);
+        }
+    }
+    
     private void addPaymentMethodButtonAction(){
         Object[] row = new Object[8];
         ComboBoxItem item = new ComboBoxItem(String.valueOf(ReceiptController.PAY_CHECK), ReceiptController.getPaymentMethod(ReceiptController.PAY_CHECK));
@@ -575,43 +612,23 @@ public class ReceiptCreate extends JInternalFrame{
                     return true;
                 case DOC_NUMBER_COLUMN:
                     paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
-                    if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK ||
-                            Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK){
-                        return true;
-                    }else{
-                        return false;
-                    }
+                    return Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK ||
+                        Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK;
                 case DOC_EMITION_DATE_COLUMN: 
                     paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
-                    if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK || 
-                            Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK){
-                        return true;
-                    }else{
-                        return false;
-                    }
+                    return Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK || 
+                        Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK;
                 case DOC_PAYMENT_DATE_COLUMN: 
                     paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
-                    if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK){
-                        return true;
-                    }else{
-                        return false;
-                    }
+                    return Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK;
                 case DOC_DUE_DATE_COLUMN: 
                     paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
-                    if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK ||
-                            Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK){
-                        return true;
-                    }else{
-                        return false;
-                    }
+                    return Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK ||
+                        Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK;
                 case BANK_COLUMN: 
                     paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
-                    if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK ||
-                            Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK){
-                        return true;
-                    }else{
-                        return false;
-                    }
+                    return Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK ||
+                        Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK;
                 case AMOUNT_COLUMN: 
                     return true;
                 case DELETE_COLUMN:
@@ -688,6 +705,9 @@ public class ReceiptCreate extends JInternalFrame{
         public void actionPerformed(ActionEvent event) {
             JComboBox<ComboBoxItem> paymentMethodItem = (JComboBox<ComboBoxItem>) event.getSource();
             this.item = (ComboBoxItem) paymentMethodItem.getSelectedItem();
+            System.out.println("row: "+row);
+            System.out.println("Value: "+this.item.getValue());
+            updateFields(this.item, row);
         }
     }
     
@@ -698,7 +718,7 @@ public class ReceiptCreate extends JInternalFrame{
                 boolean isSelected, boolean hasFocus, int row, int column) {
             ComboBoxItem paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
             if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK ||
-                    Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK){
+                    Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK){
                 if (value instanceof Date) {
                     String pattern = "yyyy-MM-dd";
                     SimpleDateFormat format = new SimpleDateFormat(pattern);

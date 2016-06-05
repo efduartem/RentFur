@@ -45,6 +45,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
     private final JLabel totalStockLabel;
     private final JLabel activeLabel;
     private final JLabel observationLabel;
+    private final JLabel taxRateLabel;
     private final JTextField codeTextField;
     private final JTextField descriptionTextField;
     private final JComboBox familyComboBox;
@@ -52,6 +53,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
     private final NumericTextField unitCostPriceTextField;
     private final NumericTextField fineAmountPerUnitTextField;
     private final NumericTextField totalStockTextField; 
+    private final JComboBox taxRateComboBox;
     private final JCheckBox activeCheckBox;
     private final JTextArea observationTextArea;
     private final ImageIcon saveIconImage;
@@ -110,8 +112,27 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         familyComboBox.setBounds(180, 80, 160, 25);
         furnitureShowAndEditPanel.add(familyComboBox);
         
+        taxRateLabel = new JLabel("Tasa de Impuesto:");
+        taxRateLabel.setBounds(50, 110, 90, 25);
+        furnitureShowAndEditPanel.add(taxRateLabel);
+        
+        ComboBoxItem[] taxRatesComboBox = FurnitureController.getFurnitureTaxRatesForComboBox(false);
+        ComboBoxItem taxRatesComboBoxItem = null;
+        for(ComboBoxItem taxtRatesComboBoxFor : taxRatesComboBox){
+            taxRatesComboBoxItem = taxtRatesComboBoxFor;
+            if(taxRatesComboBoxItem.getKey().equals(furnituteMap.get("taxRate").toString())){
+                break;
+            }
+            
+        }
+        taxRateComboBox = new JComboBox(taxRatesComboBox);
+        taxRateComboBox.setSelectedItem(taxRatesComboBoxItem);
+        taxRateComboBox.setEnabled(false);
+        taxRateComboBox.setBounds(180, 110, 160, 25);
+        furnitureShowAndEditPanel.add(taxRateComboBox);
+        
         unitPriceLabel = new JLabel("Precio Unitario:");
-        unitPriceLabel.setBounds(50,110, 100, 25);
+        unitPriceLabel.setBounds(50,140, 100, 25);
         furnitureShowAndEditPanel.add(unitPriceLabel);
         
         amountFormat = new DecimalFormat("#,###");
@@ -121,7 +142,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         
         unitPriceTextField = new NumericTextField(amountFormat.format(furnituteMap.get("unitPrice")), 20, amountFormat);
         unitPriceTextField.setEditable(false);
-        unitPriceTextField.setBounds(180, 110, 160, 25);
+        unitPriceTextField.setBounds(180, 140, 160, 25);
         unitPriceTextField.addKeyListener(new KeyListener() {
 
                      @Override
@@ -154,12 +175,12 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         furnitureShowAndEditPanel.add(unitPriceTextField);
         
         unitCostPriceLabel = new JLabel("Costo Unitario:");
-        unitCostPriceLabel.setBounds(50, 140, 100, 25);
+        unitCostPriceLabel.setBounds(50, 170, 100, 25);
         furnitureShowAndEditPanel.add(unitCostPriceLabel);
         
         unitCostPriceTextField = new NumericTextField(amountFormat.format(furnituteMap.get("unitCostPrice")), 20, amountFormat);
         unitCostPriceTextField.setEditable(false);
-        unitCostPriceTextField.setBounds(180, 140, 160, 25);
+        unitCostPriceTextField.setBounds(180, 170, 160, 25);
         unitCostPriceTextField.addKeyListener(new KeyListener() {
 
                      @Override
@@ -191,12 +212,12 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         furnitureShowAndEditPanel.add(unitCostPriceTextField);
         
         fineAmountPerUnitLabel = new JLabel("Monto multa:");
-        fineAmountPerUnitLabel.setBounds(50,170, 80, 25);
+        fineAmountPerUnitLabel.setBounds(50,200, 80, 25);
         furnitureShowAndEditPanel.add(fineAmountPerUnitLabel);
         
         fineAmountPerUnitTextField = new NumericTextField(amountFormat.format(furnituteMap.get("fineAmountPerUnit")), 20, amountFormat);
         fineAmountPerUnitTextField.setEditable(false);
-        fineAmountPerUnitTextField.setBounds(180, 170, 160, 25);
+        fineAmountPerUnitTextField.setBounds(180, 200, 160, 25);
         fineAmountPerUnitTextField.addKeyListener(new KeyListener() {
 
                      @Override
@@ -228,12 +249,12 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         furnitureShowAndEditPanel.add(fineAmountPerUnitTextField);
         
         totalStockLabel = new JLabel("Stock Total:");
-        totalStockLabel.setBounds(50,200, 80, 25);
+        totalStockLabel.setBounds(50,230, 80, 25);
         furnitureShowAndEditPanel.add(totalStockLabel);
         
         totalStockTextField = new NumericTextField(amountFormat.format(furnituteMap.get("totalStock")), 20, amountFormat);
         totalStockTextField.setEditable(false);
-        totalStockTextField.setBounds(180, 200, 160, 25);
+        totalStockTextField.setBounds(180, 230, 160, 25);
         totalStockTextField.addKeyListener(new KeyListener() {
 
                      @Override
@@ -263,18 +284,18 @@ public class FurnitureShowAndEdit extends JInternalFrame{
                      }
                  });
         furnitureShowAndEditPanel.add(totalStockTextField);
-        
+
         activeLabel = new JLabel("Activo:");
-        activeLabel.setBounds(50,230, 80, 25);
+        activeLabel.setBounds(50,260, 80, 25);
         furnitureShowAndEditPanel.add(activeLabel);
         
         activeCheckBox = new JCheckBox("", Boolean.valueOf(furnituteMap.get("active").toString()));
         activeCheckBox.setEnabled(false);
-        activeCheckBox.setBounds(178,230, 80, 25);
+        activeCheckBox.setBounds(178,260, 80, 25);
         furnitureShowAndEditPanel.add(activeCheckBox);        
         
         observationLabel = new JLabel("Observacion:");
-        observationLabel.setBounds(50,260, 80, 25);
+        observationLabel.setBounds(50,290, 80, 25);
         furnitureShowAndEditPanel.add(observationLabel);
         
         observationTextArea = new JTextArea(furnituteMap.get("observation").toString(),0,0);
@@ -282,13 +303,13 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         observationTextArea.setWrapStyleWord(true);
         observationTextArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(180, 260, 160, 90);
+        scrollPane.setBounds(180, 290, 160, 90);
         scrollPane.setViewportView(observationTextArea);
         furnitureShowAndEditPanel.add(scrollPane);
         
         saveIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
         saveButton = new JButton(" Guardar", saveIconImage);
-        saveButton.setBounds(60, 360, 120, 32);
+        saveButton.setBounds(60, 420, 120, 32);
         saveButton.setVisible(false);
         saveButton.addActionListener(new ActionListener() {
             @Override
@@ -300,7 +321,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         
         editIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/edit_24x24.png"));
         editButton = new JButton("     Editar", editIconImage);
-        editButton.setBounds(110, 360, 200, 35);
+        editButton.setBounds(110, 420, 200, 35);
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -318,7 +339,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelButton = new JButton(" Cancelar", cancelIconImage);
-        cancelButton.setBounds(200, 360, 120, 32);
+        cancelButton.setBounds(200, 420, 120, 32);
         cancelButton.setVisible(false);
         cancelButton.addActionListener(new ActionListener() {
             @Override
@@ -336,7 +357,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         setClosable(true);
         //setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setTitle("Detalles ["+furnituteMap.get("code").toString()+" - "+furnituteMap.get("description").toString()+"]");
-        setBounds(400,150,460,450);
+        setBounds(400,150,460,500);
         //pack();
         setVisible(true);
     }
@@ -349,6 +370,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         fineAmountPerUnitTextField.setEditable(false);
         activeCheckBox.setEnabled(false);
         observationTextArea.setEditable(false);
+        taxRateComboBox.setEnabled(false);
         
          //Botones
         editButton.setVisible(true);
@@ -364,6 +386,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         fineAmountPerUnitTextField.setEditable(true);
         activeCheckBox.setEnabled(true);
         observationTextArea.setEditable(true);
+        taxRateComboBox.setEnabled(true);
         
         //Botones
         editButton.setVisible(false);
@@ -380,8 +403,10 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         String fineAmountPerUnit = fineAmountPerUnitTextField.getText();
         String observation = observationTextArea.getText();
         boolean active = activeCheckBox.isSelected();
+        ComboBoxItem taxRateComboBoxItem = (ComboBoxItem) taxRateComboBox.getSelectedItem();
+        String taxRate = taxRateComboBoxItem.getKey();
         
-        HashMap mapReturn = furnitureController.updateFurniture(description, familyId, unitPrice, unitCostPrice, fineAmountPerUnit, observation, active, furnitureId);
+        HashMap mapReturn = furnitureController.updateFurniture(description, familyId, unitPrice, unitCostPrice, fineAmountPerUnit, observation, active, furnitureId, taxRate);
         if((Integer) mapReturn.get("status") == furnitureController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
             cancelButtonAction(null);

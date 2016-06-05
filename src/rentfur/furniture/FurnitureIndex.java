@@ -43,10 +43,12 @@ public class FurnitureIndex extends JInternalFrame{
     private final JLabel descriptionLabel;
     private final JLabel furnitureFamilyLabel;
     private final JLabel statusLabel;
+    private final JLabel taxRateLabel;
     private final JTextField codeTextField;
     private final JTextField descriptionTextField;
     private final JComboBox furnitureFamilyComboBox;
     private final JComboBox furnitureStatusComboBox;
+    private final JComboBox taxRateComboBox;
     private final ImageIcon searchFurnitureIconImage;
     private final JButton searchFurnitureButton;
     private final ImageIcon createIconImage;
@@ -74,7 +76,7 @@ public class FurnitureIndex extends JInternalFrame{
         furnitureIndexParamsPanel.add(codeLabel);
         
         codeTextField = new JTextField();
-        codeTextField.setBounds(110, 50, 160, 25);
+        codeTextField.setBounds(120, 50, 160, 25);
         furnitureIndexParamsPanel.add(codeTextField);
 
         descriptionLabel = new JLabel("Descripcion:");
@@ -82,7 +84,7 @@ public class FurnitureIndex extends JInternalFrame{
         furnitureIndexParamsPanel.add(descriptionLabel);
         
         descriptionTextField = new JTextField();
-        descriptionTextField.setBounds(110, 80, 160, 25);
+        descriptionTextField.setBounds(120, 80, 160, 25);
         furnitureIndexParamsPanel.add(descriptionTextField);
         
         furnitureFamilyLabel = new JLabel("Familia:");
@@ -91,22 +93,31 @@ public class FurnitureIndex extends JInternalFrame{
         
         ComboBoxItem[] furnitureFamilies = furnitureController.getFurnitureFamiliesForComboBox(true);
         furnitureFamilyComboBox = new JComboBox(furnitureFamilies);
-        furnitureFamilyComboBox.setBounds(110, 110, 160, 25);
+        furnitureFamilyComboBox.setBounds(120, 110, 160, 25);
         furnitureIndexParamsPanel.add(furnitureFamilyComboBox);
         
+        taxRateLabel = new JLabel("Tasa de impuesto:");
+        taxRateLabel.setBounds(30, 140, 90, 25);
+        furnitureIndexParamsPanel.add(taxRateLabel);
+        
+        ComboBoxItem[] taxRate = FurnitureController.getFurnitureTaxRatesForComboBox(true);
+        taxRateComboBox = new JComboBox(taxRate);
+        taxRateComboBox.setBounds(120, 140, 160, 25);
+        furnitureIndexParamsPanel.add(taxRateComboBox);
+        
         statusLabel = new JLabel("Estado:");
-        statusLabel.setBounds(30, 140, 80, 25);
+        statusLabel.setBounds(30, 170, 80, 25);
         furnitureIndexParamsPanel.add(statusLabel);
         
         ComboBoxItem[] furnitureStatus = furnitureController.getFurnitureStatusForComboBox();
         furnitureStatusComboBox = new JComboBox(furnitureStatus);
-        furnitureStatusComboBox.setBounds(110, 140, 160, 25);
+        furnitureStatusComboBox.setBounds(120, 170, 160, 25);
         furnitureIndexParamsPanel.add(furnitureStatusComboBox);
         
         //BOTON DE BUSQUEDA
         searchFurnitureIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/search_24x24.png"));
         searchFurnitureButton = new JButton("  Buscar", searchFurnitureIconImage);
-        searchFurnitureButton.setBounds(30, 190, 120, 32);
+        searchFurnitureButton.setBounds(30, 220, 120, 32);
         searchFurnitureButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -118,7 +129,7 @@ public class FurnitureIndex extends JInternalFrame{
         //BOTON PARA CREAR MOBILIARIO
         createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
         createFurnitureButton = new JButton("  Crear Mobiliario", createIconImage);
-        createFurnitureButton.setBounds(160, 190, 180, 32);
+        createFurnitureButton.setBounds(160, 220, 180, 32);
         createFurnitureButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -130,7 +141,7 @@ public class FurnitureIndex extends JInternalFrame{
         
         //BOTON PARA CREAR FAMILIA DE MOBILIARIOS
         createFurnitureFamilyButton = new JButton("  Crear Familia de Mobiliarios", createIconImage);
-        createFurnitureFamilyButton.setBounds(350, 190, 230, 32);
+        createFurnitureFamilyButton.setBounds(350, 220, 230, 32);
         createFurnitureFamilyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -165,7 +176,7 @@ public class FurnitureIndex extends JInternalFrame{
         //statusActiveRenderer.setHorizontalAlignment(JLabel.CENTER);
         //statusActiveRenderer.setBackground(new Color(13434828));
         
-        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null, null);
+        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null, null, null);
         furnituresResultTable.setRowHeight(22);
         //ID
         furnituresResultTable.getColumnModel().getColumn(0).setMaxWidth(0);
@@ -184,40 +195,40 @@ public class FurnitureIndex extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(3).setMinWidth(120);
         furnituresResultTable.getColumnModel().getColumn(3).setResizable(false);
         
-        //UnitPrice
+        //TaxRate
         furnituresResultTable.getColumnModel().getColumn(4).setMaxWidth(100);
         furnituresResultTable.getColumnModel().getColumn(4).setMinWidth(100);
         furnituresResultTable.getColumnModel().getColumn(4).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
+        furnituresResultTable.getColumnModel().getColumn(4).setCellRenderer(statusRenderer);
         
-        //UnitCostPrice
+        //UnitPrice
         furnituresResultTable.getColumnModel().getColumn(5).setMaxWidth(100);
         furnituresResultTable.getColumnModel().getColumn(5).setMinWidth(100);
         furnituresResultTable.getColumnModel().getColumn(5).setResizable(false);
         furnituresResultTable.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
         
-        //FineAmount
+        //UnitCostPrice
         furnituresResultTable.getColumnModel().getColumn(6).setMaxWidth(100);
         furnituresResultTable.getColumnModel().getColumn(6).setMinWidth(100);
         furnituresResultTable.getColumnModel().getColumn(6).setResizable(false);
         furnituresResultTable.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
         
-        //Stock Total
-        furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(90);
+        //FineAmount
+        furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(100);
+        furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(100);
         furnituresResultTable.getColumnModel().getColumn(7).setResizable(false);
         furnituresResultTable.getColumnModel().getColumn(7).setCellRenderer(rightRenderer);
         
+        //Stock Total
         furnituresResultTable.getColumnModel().getColumn(8).setMaxWidth(90);
         furnituresResultTable.getColumnModel().getColumn(8).setMinWidth(90);
         furnituresResultTable.getColumnModel().getColumn(8).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(8).setCellRenderer(statusRenderer);
+        furnituresResultTable.getColumnModel().getColumn(8).setCellRenderer(rightRenderer);
         
         furnituresResultTable.getColumnModel().getColumn(9).setMaxWidth(90);
         furnituresResultTable.getColumnModel().getColumn(9).setMinWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(9).setPreferredWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(9).setCellRenderer(new ButtonRenderer());
-        furnituresResultTable.getColumnModel().getColumn(9).setCellEditor(new ButtonEditor(new JTextField()));
+        furnituresResultTable.getColumnModel().getColumn(9).setResizable(false);
+        furnituresResultTable.getColumnModel().getColumn(9).setCellRenderer(statusRenderer);
         
         furnituresResultTable.getColumnModel().getColumn(10).setMaxWidth(90);
         furnituresResultTable.getColumnModel().getColumn(10).setMinWidth(90);
@@ -225,13 +236,19 @@ public class FurnitureIndex extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(10).setCellRenderer(new ButtonRenderer());
         furnituresResultTable.getColumnModel().getColumn(10).setCellEditor(new ButtonEditor(new JTextField()));
         
+        furnituresResultTable.getColumnModel().getColumn(11).setMaxWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(11).setMinWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(11).setPreferredWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(11).setCellRenderer(new ButtonRenderer());
+        furnituresResultTable.getColumnModel().getColumn(11).setCellEditor(new ButtonEditor(new JTextField()));
+        
         //Status
-        furnituresResultTable.getColumnModel().getColumn(11).setMaxWidth(0);
-        furnituresResultTable.getColumnModel().getColumn(11).setMinWidth(0);
-        furnituresResultTable.getColumnModel().getColumn(11).setPreferredWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(12).setMaxWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(12).setMinWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(12).setPreferredWidth(0);
         
         furnituresResultTableJScrollPane = new JScrollPane();
-        furnituresResultTableJScrollPane.setBounds(30, 240, 1100, 300);
+        furnituresResultTableJScrollPane.setBounds(30, 260, 1100, 300);
         furnituresResultTableJScrollPane.setViewportView(furnituresResultTable);
         
         add(furnituresResultTableJScrollPane);
@@ -271,7 +288,14 @@ public class FurnitureIndex extends JInternalFrame{
         if(status!=null){
             furnitureStatus = status.getKey();
         }
-        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, true, code, description, familyId, furnitureStatus);
+        
+        String taxRate = "";
+        ComboBoxItem taxRateSelected = (ComboBoxItem) taxRateComboBox.getSelectedItem();
+        if(taxRateSelected != null){
+            taxRate = taxRateSelected.getKey();
+        }
+        
+        furnitureController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, true, code, description, familyId, furnitureStatus, taxRate);
         /*HashMap mapReturn = furnitureController.saveFurnitureFamily(code, description);
         if((Integer) mapReturn.get("status") == furnitureFamilyController.SUCCESFULLY_SAVED){
             JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
@@ -300,8 +324,8 @@ public class FurnitureIndex extends JInternalFrame{
         @Override
         public boolean isCellEditable(int row, int column) {
                                                     switch(column){
-                                                        case 9:     return true;
-                                                        case 10:    return true;
+                                                        case 10:     return true;
+                                                        case 11:    return true;
                                                         default:    return false;
                                                     }
                                                 }
@@ -357,7 +381,7 @@ public class FurnitureIndex extends JInternalFrame{
         int furnitureId = (Integer) dataVector.get(0);
         String code = (String) dataVector.get(1);
         String description = (String) dataVector.get(2);
-        boolean active = (boolean) dataVector.get(11);
+        boolean active = (boolean) dataVector.get(12);
         String valueToReturn = label;
         int respuesta;
         HashMap mapReturn;
@@ -464,11 +488,11 @@ public class FurnitureIndex extends JInternalFrame{
         @Override
         public Object getCellEditorValue() {
           if (isPushed) {
-                if(column==9){
+                if(column==10){
                     if(!onlyQuery){
                         label = updateFurnitureStatus(row, label);
                     }
-                }else if(column==10){
+                }else if(column==11){
                     showFurnitureShowAndEditView(row);
                 }
           }

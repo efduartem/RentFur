@@ -389,8 +389,8 @@ public class ProviderController {
             String userUpdate = "UPDATE provider SET is_active = ?, last_modification_user_id = ?, last_modification_date = current_timestamp WHERE id = ?";
             ps = connRentFur.prepareStatement(userUpdate);
             ps.setBoolean(1, active);
-            ps.setInt(2, providerId);
-            ps.setInt(3, loggedUser.getId());
+            ps.setInt(2, loggedUser.getId());
+            ps.setInt(3, providerId);
             ps.executeUpdate();
             ps.close();
             mapToReturn.put("status", SUCCESFULLY_SAVED);
@@ -528,6 +528,80 @@ public class ProviderController {
             }
         }
         
+        return mapToReturn;
+    }
+    
+    public static HashMap getProviderByCode(String providerCode){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            StringBuilder providerQuery = new StringBuilder();
+            providerQuery.append("SELECT id, code, name, address, telephone, fiscal_number, city, is_active, status, tradename");
+            providerQuery.append(" FROM provider WHERE code = ?");
+            ps = connRentFur.prepareStatement(providerQuery.toString());
+            ps.setString(1, providerCode);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                mapToReturn.put("id",rs.getInt("id"));
+                mapToReturn.put("code",rs.getString("code"));
+                mapToReturn.put("name",rs.getString("name"));
+                if(rs.getString("address") != null){
+                    mapToReturn.put("address",rs.getString("address"));
+                }else{
+                    mapToReturn.put("address","");
+                }
+                if(rs.getString("telephone") != null){
+                     mapToReturn.put("telephone",rs.getString("telephone"));
+                }else{
+                     mapToReturn.put("telephone","");
+                }
+                if(rs.getString("fiscal_number") != null){
+                    mapToReturn.put("fiscalNumber", rs.getString("fiscal_number"));
+                }else{
+                    mapToReturn.put("fiscalNumber", "");
+                }
+                if(rs.getString("city") != null){
+                     mapToReturn.put("city",rs.getString("city"));
+                }else{
+                    mapToReturn.put("city","");
+                }
+                
+                mapToReturn.put("active",rs.getBoolean("is_active"));
+                
+                if(rs.getString("status") != null){
+                    mapToReturn.put("status",rs.getString("status"));
+                }else{
+                    mapToReturn.put("status","");
+                }
+                
+                if(rs.getString("tradename") != null){
+                     mapToReturn.put("tradename",rs.getString("tradename"));
+                }else{
+                     mapToReturn.put("tradename","");
+                }
+            }
+            
+            rs.close();
+            ps.close();
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
         return mapToReturn;
     }
 }

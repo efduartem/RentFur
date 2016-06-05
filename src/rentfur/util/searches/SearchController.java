@@ -28,7 +28,9 @@ public class SearchController {
     private SubjectSearch subjectSearch;
     private FurnitureSearch furnitureSearch;
     private FurniturePenaltySearch furniturePenaltySearch;
+    private ProviderSearch providerSearch;
     private String subjetcSelectedCode = "";
+    private String providerSelectedCode = "";
     private ArrayList furnitureSelectedCodes = new ArrayList();
     private ArrayList furniturePenalizedCodes = new ArrayList();
     
@@ -39,9 +41,9 @@ public class SearchController {
         return subjectSearch;
     }
     
-    public FurnitureSearch getFurnitureSearch(ArrayList furnitureCodesAdded, Date day){
+    public FurnitureSearch getFurnitureSearch(ArrayList furnitureCodesAdded, Date day, boolean showStock){
         if(furnitureSearch == null){
-            furnitureSearch = new FurnitureSearch(this, furnitureCodesAdded, day);
+            furnitureSearch = new FurnitureSearch(this, furnitureCodesAdded, day, showStock);
         }
         return furnitureSearch;
     }
@@ -51,6 +53,14 @@ public class SearchController {
             furniturePenaltySearch = new FurniturePenaltySearch(this, furnitureCodesPenalized, furnitureEventList);
         }
         return furniturePenaltySearch;
+    }
+
+    public ProviderSearch getProviderSearch(){
+        if(providerSearch == null){
+            providerSearch = new ProviderSearch(this);
+        }
+        
+        return providerSearch;
     }
     
     public void setSubjectIndexResultsTable(DefaultTableModel subjectResultDefaultTableModel, boolean searchPressed, String code, String name, String tradename, String address, String city, String telephone, String fiscalNumber){
@@ -222,6 +232,12 @@ public class SearchController {
         return this.subjetcSelectedCode;
     }
     
+    public void setProviderSelectedCode(String providerSelectedCode){
+        this.providerSelectedCode = providerSelectedCode;
+    }
+    public String getProviderSelectedCode(){
+        return this.providerSelectedCode;
+    }
     
     //FURNITURE
     
@@ -413,6 +429,156 @@ public class SearchController {
         
         return listToReturn;
     }
+
+    //PROVIDER
+    public void setProviderIndexResultsTable(DefaultTableModel providerResultDefaultTableModel, boolean searchPressed, String code, String name, String tradename, String address, String city, String telephone, String fiscalNumber){
+         try{
+            if(!searchPressed){
+                providerResultDefaultTableModel.addColumn("Código");
+                providerResultDefaultTableModel.addColumn("Razón Social");
+                providerResultDefaultTableModel.addColumn("Nombre Comercial");
+                providerResultDefaultTableModel.addColumn("Dirección");
+                providerResultDefaultTableModel.addColumn("Ciudad");
+                providerResultDefaultTableModel.addColumn("Teléfono");
+                providerResultDefaultTableModel.addColumn("CI / RUC");
+                providerResultDefaultTableModel.addColumn("Id");
+                providerResultDefaultTableModel.addColumn("Código");
+            }
+            
+            int numeroRegistrosTablaPermisos=0;
+            numeroRegistrosTablaPermisos = providerResultDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistrosTablaPermisos;i++){
+                providerResultDefaultTableModel.removeRow(0);
+            }
+            ArrayList searchResultList = getProviderSearchResultList(code, name, tradename, address, city, telephone, fiscalNumber);
+            if(searchResultList!=null && !searchResultList.isEmpty()){
+                DecimalFormat amountFormat = new DecimalFormat("#,###");
+                String fiscalNumberResult = "";
+                String verificationDigitFiscalNumber = "";
+                HashMap resultValueMap;
+                Object[] row;
+                for(int rowNumber = 0; rowNumber < searchResultList.size(); rowNumber++){
+                    verificationDigitFiscalNumber = "";
+                    row = new Object[providerResultDefaultTableModel.getColumnCount()];
+                    resultValueMap = (HashMap) searchResultList.get(rowNumber);
+
+                    row[0] = new JRadioButton(resultValueMap.get("code").toString());
+                    row[1] = resultValueMap.get("name");
+                    row[2] = resultValueMap.get("tradename");
+                    row[3] = resultValueMap.get("address");
+                    row[4] = resultValueMap.get("city");
+                    row[5] = resultValueMap.get("telephone");
+                    
+                    if(resultValueMap.get("fiscalNumber").toString().contains("-")){
+                        fiscalNumberResult = resultValueMap.get("fiscalNumber").toString().split("-")[0];
+                        verificationDigitFiscalNumber = "-"+resultValueMap.get("fiscalNumber").toString().split("-")[1];
+                    }else{
+                        fiscalNumberResult = resultValueMap.get("fiscalNumber").toString();
+                    }
+                    
+                    fiscalNumberResult = amountFormat.format(Double.valueOf(fiscalNumberResult));
+                    
+                    row[6] = fiscalNumberResult+verificationDigitFiscalNumber;
+                    
+                    row[7] = resultValueMap.get("id");
+                    row[8] = resultValueMap.get("code");
+
+                    providerResultDefaultTableModel.addRow(row);
+
+                }
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }
+     }
+    
+    public ArrayList getProviderSearchResultList(String code, String name, String tradename, String address, String city, String telephone, String fiscalNumber){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        ArrayList listToReturn = new ArrayList();
+        
+        try{
+            HashMap resultValuesMap;
+            connRentFur = DbConnectUtil.getConnection();
+            
+            if(code==null){
+                code="";
+            }
+            
+            if(name==null){
+                name="";
+            }
+            
+            if(tradename==null){
+                tradename="";
+            }
+            
+            if(address==null){
+                address="";
+            }
+            
+            if(city==null){
+                city="";
+            }
+            
+            if(telephone==null){
+                telephone="";
+            }
+            
+            if(fiscalNumber==null){
+                fiscalNumber="";
+            }
+            
+            StringBuilder providerQuery = new StringBuilder();
+            providerQuery.append("SELECT p.id, p.code, p.name, p.tradename, p.address, p.telephone, p.fiscal_number,p.city, p.is_active FROM provider p");   
+            providerQuery.append(" WHERE p.code ilike ? AND p.name ilike ? AND p.tradename ilike ? AND p.address ilike ? AND p.telephone ilike ? AND p.city ilike ? AND p.fiscal_number ilike ? AND is_active = true");
+            providerQuery.append(" ORDER BY p.code, p.name, p.is_active");
+            ps = connRentFur.prepareStatement(providerQuery.toString());
+            ps.setString(1, "%"+code+"%");
+            ps.setString(2, "%"+name+"%");
+            ps.setString(3, "%"+tradename+"%");
+            ps.setString(4, "%"+address+"%");
+            ps.setString(5, "%"+telephone+"%");
+            ps.setString(6, "%"+city+"%");
+            ps.setString(7, "%"+fiscalNumber+"%");
+            rs = ps.executeQuery();
+            while(rs.next()){
+                resultValuesMap = new HashMap();
+                resultValuesMap.put("id", rs.getInt("id"));
+                resultValuesMap.put("code", rs.getString("code"));
+                resultValuesMap.put("name", rs.getString("name"));
+                resultValuesMap.put("tradename", rs.getString("tradename"));
+                resultValuesMap.put("address", rs.getString("address"));
+                resultValuesMap.put("telephone", rs.getString("telephone"));
+                resultValuesMap.put("fiscalNumber", rs.getString("fiscal_number"));
+                resultValuesMap.put("city", rs.getString("city"));
+                resultValuesMap.put("isActive", rs.getBoolean("is_active"));
+                listToReturn.add(resultValuesMap);
+            }
+            rs.close();
+            ps.close();
+
+        }catch(SQLException th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return listToReturn;
+    }
     
     public void setFurnitureSelectedCodes(ArrayList furnitureSelectedCodes){
         this.furnitureSelectedCodes = furnitureSelectedCodes;
@@ -430,4 +596,7 @@ public class SearchController {
         this.furniturePenalizedCodes = furniturePenalizedCodes;
     }
     
+    public void setClosedProviderSearch(){
+        providerSearch = null;
+    }
 }

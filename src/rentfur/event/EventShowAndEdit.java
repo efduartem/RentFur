@@ -1228,7 +1228,7 @@ public class EventShowAndEdit extends JInternalFrame{
     
     private void addFurnituresButtonAction(){
         Date deliveryDate = new Date(((Timestamp)eventMap.get("deliveryDate")).getTime());
-        furnitureSearch = searchController.getFurnitureSearch(furnitureCodesAdded, deliveryDate);
+        furnitureSearch = searchController.getFurnitureSearch(furnitureCodesAdded, deliveryDate, true);
         furnitureSearch.setVisible(true);
         showSearchDialog(furnitureSearch);
         inactivateElements();

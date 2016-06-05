@@ -66,13 +66,14 @@ public class FurnitureSearch extends JInternalFrame{
     private final JButton selectButton;
     private final JButton cancelButton;
     private final ArrayList currentSelectedCode = new ArrayList();
+    private boolean showStock;
     
-    public FurnitureSearch(SearchController searchController, ArrayList furnitureCodesAdded, Date day){
+    public FurnitureSearch(SearchController searchController, ArrayList furnitureCodesAdded, Date day, boolean showStock){
         this.searchController = searchController;
         
         furnitureParamPanel = new JPanel();
         furnitureParamPanel.setLayout(null);
-        
+        this.showStock = showStock;
         //FILA 1
         furnitureCodeLabel = new JLabel("Codigo:");
         furnitureCodeLabel.setBounds(30, 20, 80, 25);
@@ -205,8 +206,15 @@ public class FurnitureSearch extends JInternalFrame{
         
         //StockDisponible
         furnituresResultTable.getColumnModel().getColumn(7).setHeaderRenderer(new AvailableSimpleHeaderRenderer());
-        furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(110);
-        furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(110);
+        if(showStock){
+            furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(110);
+            furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(110);
+        }else{
+            furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(0);
+            furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(0);
+            furnituresResultTable.getColumnModel().getColumn(7).setPreferredWidth(0);
+        }
+        
         furnituresResultTable.getColumnModel().getColumn(7).setResizable(false);
         furnituresResultTable.getColumnModel().getColumn(7).setCellRenderer(new AvailableCellRenderer());
         

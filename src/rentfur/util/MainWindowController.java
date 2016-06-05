@@ -73,5 +73,10 @@ public class MainWindowController {
     public void setVisibleEventShowAndEditInternalFrame(int eventId){
         mainWindow.setVisibleEventShowAndEditInternalFrame(eventId);
     }
+
+    //PURCHASE PROVIDER
+    public void setVisiblePurchaseInvoiceCreateInternalFrame(){
+        mainWindow.setVisiblePurchaseInvoiceCreateInternalFrame();
+    }
     
 }

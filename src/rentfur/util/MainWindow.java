@@ -36,6 +36,8 @@ import rentfur.provider.ProviderController;
 import rentfur.provider.ProviderCreate;
 import rentfur.provider.ProviderIndex;
 import rentfur.provider.ProviderShowAndEdit;
+import rentfur.purchaseInvoice.PurchaseInvoiceController;
+import rentfur.purchaseInvoice.PurchaseInvoiceCreate;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
@@ -67,6 +69,7 @@ public class MainWindow extends JFrame{
     private final JMenuItem manageProviderItem = new JMenuItem("Administrar Proveedores");
     private final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
     private final JMenuItem managePositionItem = new JMenuItem("Administrar Cargos");
+    private final JMenuItem managePurchaseItem = new JMenuItem("Gestionar Compras");
     
     private final JMenuItem manageEvents = new JMenuItem("Administrar Eventos");
     
@@ -108,6 +111,9 @@ public class MainWindow extends JFrame{
     EventCreate eventCreate;
     EventShowAndEdit eventShowAndEdit;
     
+    //PURCHASE PROVIDER
+    PurchaseInvoiceController purchaseInvoiceController = new PurchaseInvoiceController();
+    PurchaseInvoiceCreate purchaseInvoiceCreate;
     public MainWindow(MainWindowController mainWindowController){
         
         this.mainWindowController = mainWindowController;
@@ -154,6 +160,7 @@ public class MainWindow extends JFrame{
         providerMenu.setIcon(providerIconImage);
         menuBar.add(providerMenu);
             providerMenu.add(manageProviderItem);
+            providerMenu.add(managePurchaseItem);
         
         if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_PROVIDER)){
             manageProviderItem.setEnabled(false);
@@ -236,6 +243,14 @@ public class MainWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 setVisibleEventsIndexInternalFrame();
+            }
+        });
+        
+        managePurchaseItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //setVisibleEventsIndexInternalFrame();
+                setVisiblePurchaseInvoiceCreateInternalFrame();
             }
         });
         
@@ -379,6 +394,13 @@ public class MainWindow extends JFrame{
     public void setVisibleEventShowAndEditInternalFrame(int eventId){
         eventShowAndEdit = eventController.getEventShowAndEdit(eventId);
         desktop.add(eventShowAndEdit);
+    }
+
+    //PURCHASE INVOICE
+    public void setVisiblePurchaseInvoiceCreateInternalFrame(){
+        purchaseInvoiceCreate = purchaseInvoiceController.getPurchaseInvoiceCreate(this.mainWindowController);
+        desktop.add(purchaseInvoiceCreate);
+        getContentPane().add(desktop);
     }
     
 }

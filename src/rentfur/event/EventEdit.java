@@ -581,7 +581,7 @@ public class EventEdit extends JInternalFrame{
             JDialog dialog = optionPane.createDialog(this, "Atencion!");
             dialog.setVisible(true);
         }else{
-            furnitureSearch = searchController.getFurnitureSearch(furnitureCodesAdded, (Date)datePicker.getModel().getValue());
+            furnitureSearch = searchController.getFurnitureSearch(furnitureCodesAdded, (Date)datePicker.getModel().getValue(), true);
             furnitureSearch.setVisible(true);
             showSearchDialog(furnitureSearch);
             inactivateElements();

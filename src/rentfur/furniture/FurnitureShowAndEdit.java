@@ -69,6 +69,11 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         
         HashMap furnituteMap = furnitureController.getFurnitureById(furnitureId);
         
+        amountFormat = new DecimalFormat("#,###");
+        amountFormat.setGroupingUsed(true);
+        amountFormat.setGroupingSize(3);
+        amountFormat.setParseIntegerOnly(true);
+        
         furnitureShowAndEditPanel = new JPanel();
         
         furnitureShowAndEditPanel.setLayout(null);
@@ -120,7 +125,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         ComboBoxItem taxRatesComboBoxItem = null;
         for(ComboBoxItem taxtRatesComboBoxFor : taxRatesComboBox){
             taxRatesComboBoxItem = taxtRatesComboBoxFor;
-            if(taxRatesComboBoxItem.getKey().equals(furnituteMap.get("taxRate").toString())){
+            if(taxRatesComboBoxItem.getKey().equals(amountFormat.format((Double)furnituteMap.get("taxRate")))){
                 break;
             }
             
@@ -134,11 +139,6 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         unitPriceLabel = new JLabel("Precio Unitario:");
         unitPriceLabel.setBounds(50,140, 100, 25);
         furnitureShowAndEditPanel.add(unitPriceLabel);
-        
-        amountFormat = new DecimalFormat("#,###");
-        amountFormat.setGroupingUsed(true);
-        amountFormat.setGroupingSize(3);
-        amountFormat.setParseIntegerOnly(true);
         
         unitPriceTextField = new NumericTextField(amountFormat.format(furnituteMap.get("unitPrice")), 20, amountFormat);
         unitPriceTextField.setEditable(false);

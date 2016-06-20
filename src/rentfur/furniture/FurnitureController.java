@@ -740,6 +740,7 @@ public class FurnitureController {
                 mapToReturn.put("active", rs.getBoolean("active"));
                 mapToReturn.put("furnitureFamilyId", rs.getInt("furniture_family_id"));
                 mapToReturn.put("family", rs.getString("family"));
+                mapToReturn.put("taxRate", rs.getDouble("tax_rate"));
             }
             
             rs.close();

@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,15 +16,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
@@ -48,8 +44,6 @@ import rentfur.event.EventController;
 import rentfur.subject.SubjectController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DateLabelFormatter;
-import org.jdesktop.swingx.table.DatePickerCellEditor;
-import rentfur.book.BookController;
 import rentfur.event.EventCreate;
 import rentfur.util.NumericTextField;
 
@@ -91,8 +85,8 @@ public class ReceiptShow extends JInternalFrame{
     private final JTextField printerTextField;
     private final JTextField numberTextField;
     private final JTextField totalTextField;
-    private JButton addPaymentMethod;
-    private JButton cancelReceipt;
+    private final JButton addPaymentMethod;
+    private final JButton cancelReceipt;
     private final JTable receiptDetailTable;
     private final DefaultTableModel receiptDetailDefaultTableModel;
     private final JScrollPane receiptDetailTableJScrollPane;
@@ -106,9 +100,9 @@ public class ReceiptShow extends JInternalFrame{
     private final int BANK_COLUMN = 5;
     private final int AMOUNT_COLUMN = 6;
     
-    private HashMap eventMap;
-    private HashMap subjectMap;
-    private HashMap receiptMap;
+    private final HashMap eventMap;
+    private final HashMap subjectMap;
+    private final HashMap receiptMap;
     
     public ReceiptShow(ReceiptController receiptController, int eventId, int receiptId){
         this.receiptController = receiptController;
@@ -118,7 +112,7 @@ public class ReceiptShow extends JInternalFrame{
         
         eventMap = EventController.getEventById(eventId);
         subjectMap = SubjectController.getSubjectByCode(eventMap.get("subjectCode").toString());
-        receiptMap = receiptController.getReceiptById(receiptId);
+        receiptMap = ReceiptController.getReceiptById(receiptId);
         
         titleLabel = new JLabel("<HTML><U>Recibo</U></HTML>");
         titleLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 25));
@@ -519,8 +513,6 @@ public class ReceiptShow extends JInternalFrame{
                             if(!texto.isEmpty()){
                                 ((NumericTextField) component).setValue(Double.valueOf(texto));
                             }
-                         }else{
-                             texto = texto.replaceAll(",", ".");
                          }
                      }
                  });

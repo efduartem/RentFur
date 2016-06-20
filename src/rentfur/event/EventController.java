@@ -163,13 +163,13 @@ public class EventController {
             }else if(!((ArrayList) eventMap.get("penaltyDetail")).isEmpty()){
                 statusAvailables = new ComboBoxItem[2];
                 
-                statusAvailables[1] =  new ComboBoxItem();
-                statusAvailables[1].setKey(String.valueOf(CONFIRMED));
-                statusAvailables[1].setValue(getEventStatus(CONFIRMED));
+                statusAvailables[0] =  new ComboBoxItem();
+                statusAvailables[0].setKey(String.valueOf(CONFIRMED));
+                statusAvailables[0].setValue(getEventStatus(CONFIRMED));
                 
-                statusAvailables[2] =  new ComboBoxItem();
-                statusAvailables[2].setKey(String.valueOf(FINISHED));
-                statusAvailables[2].setValue(getEventStatus(FINISHED));
+                statusAvailables[1] =  new ComboBoxItem();
+                statusAvailables[1].setKey(String.valueOf(FINISHED));
+                statusAvailables[1].setValue(getEventStatus(FINISHED));
             }else{
                 statusAvailables = new ComboBoxItem[3];
                          
@@ -593,7 +593,6 @@ public class EventController {
                 for(int i = 0 ; i < furnitureList.size(); i++){
                     furnitureMap = (HashMap) furnitureList.get(i);
                     furnitureMap = deepMerge(furnitureMap, FurnitureController.getFurnitureByCode(furnitureMap.get("code").toString()));
-                    System.out.println("furnitureMap: "+furnitureMap);
                     ps.setString(1, furnitureMap.get("code").toString());
                     ps.setString(2, furnitureMap.get("description").toString());
                     ps.setDouble(3, Double.valueOf(furnitureMap.get("unitPrice").toString()));
@@ -663,6 +662,82 @@ public class EventController {
                     //Actualizar stock para el dia 
                     updateDayStock(furnitureMap.get("id").toString(), deliveryDate, furnitureMap.get("quantity").toString());
 
+                }
+                
+                for(int i = 0 ; i < penaltyFurnitureList.size(); i++){
+                    furnitureMap = (HashMap) penaltyFurnitureList.get(i);
+                    furnitureMap = deepMerge(furnitureMap, FurnitureController.getFurnitureByCode(furnitureMap.get("code").toString()));
+                    System.out.println("furnitureMap: "+furnitureMap);
+                    ps.setString(1, furnitureMap.get("code").toString());
+                    ps.setString(2, furnitureMap.get("description").toString());
+                    ps.setDouble(3, Double.valueOf(furnitureMap.get("unitPrice").toString()));
+                    ps.setDouble(4, Double.valueOf(furnitureMap.get("fineAmountPerUnit").toString()));
+                    ps.setInt(5, Integer.valueOf(furnitureMap.get("quantity").toString()));
+                    ps.setDouble(6, Double.valueOf(furnitureMap.get("subTotal").toString()));
+                    
+                    if(Double.valueOf(furnitureMap.get("taxRate").toString())==5){
+                        tax = new BigDecimal(Double.valueOf(furnitureMap.get("subTotal").toString()) / 21).setScale(0, RoundingMode.HALF_UP).doubleValue();
+                        totalTax += tax;
+                        totalTax5 += tax;
+                        totalTaxable5 += Double.valueOf(furnitureMap.get("subTotal").toString());
+                        totalTaxable += Double.valueOf(furnitureMap.get("subTotal").toString());
+                        
+                        ps.setDouble(7, tax);
+                        ps.setDouble(8, Double.valueOf("0"));
+                        //tax_amount
+                        ps.setDouble(9, tax);
+
+                        //taxable_amount_5
+                        ps.setDouble(10, Double.valueOf(furnitureMap.get("subTotal").toString()));
+
+                        //taxable_amount_10
+                        ps.setDouble(11, Double.valueOf("0"));
+
+                        //taxable_amount
+                        ps.setDouble(12, Double.valueOf(furnitureMap.get("subTotal").toString()));
+
+                    }else if(Double.valueOf(furnitureMap.get("taxRate").toString())==10){
+                        tax = new BigDecimal(Double.valueOf(furnitureMap.get("subTotal").toString()) / 11).setScale(0, RoundingMode.HALF_UP).doubleValue();
+                        totalTax += tax;
+                        totalTax10 += tax;
+                        totalTaxable10 += Double.valueOf(furnitureMap.get("subTotal").toString());
+                        totalTaxable += Double.valueOf(furnitureMap.get("subTotal").toString());
+                        
+                        ps.setDouble(7, Double.valueOf("0"));
+                        ps.setDouble(8, tax);
+                        
+                        //tax_amount
+                        ps.setDouble(9, tax);
+
+                        //taxable_amount_5
+                        ps.setDouble(10, Double.valueOf("0"));
+
+                        //taxable_amount_10
+                        ps.setDouble(11, Double.valueOf(furnitureMap.get("subTotal").toString()));
+
+                        //taxable_amount
+                        ps.setDouble(12, Double.valueOf(furnitureMap.get("subTotal").toString()));
+
+                    }else{
+                        ps.setDouble(7, Double.valueOf("0"));
+                        ps.setDouble(8, Double.valueOf("0"));
+                        ps.setDouble(9, Double.valueOf("0"));
+                        ps.setDouble(10, Double.valueOf("0"));
+                        ps.setDouble(11, Double.valueOf("0"));
+                        ps.setDouble(12, Double.valueOf("0"));
+                    }
+
+                    ps.setString(13, "");
+                    ps.setBoolean(14, Boolean.TRUE);
+                    ps.setBoolean(15, Boolean.TRUE);
+                    ps.setBoolean(16, Boolean.TRUE);
+                    ps.setInt(17, eventId);
+                    ps.addBatch();
+                    
+                    //Movimiento de baja
+                    //Actualizar stock para el dia 
+                    updateStockByPenalty(furnitureMap.get("id").toString(), furnitureMap.get("quantity").toString());
+                    
                 }
                 
                 ps.executeBatch();
@@ -782,6 +857,56 @@ public class EventController {
         }
     }
     
+    public void updateStockByPenalty(String id, String quantity){
+        
+        Connection connRentFur = null;
+        PreparedStatement ps;
+
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+
+            StringBuilder furnitureStockUpdateSb = new StringBuilder();
+            furnitureStockUpdateSb.append("UPDATE furniture_stock SET stock_available = (stock_available - ?), stock_total = (stock_total - ?) WHERE furniture_id = ? AND day >= current_date");
+
+            ps = connRentFur.prepareStatement(furnitureStockUpdateSb.toString());
+            ps.setInt(1, Integer.valueOf(quantity));
+            ps.setInt(2, Integer.valueOf(quantity));
+            ps.setInt(3, Integer.valueOf(id));
+            ps.executeUpdate();
+            
+            furnitureStockUpdateSb = new StringBuilder();
+            furnitureStockUpdateSb.append("UPDATE furniture SET total_stock = (total_stock - ?) WHERE id = ?");
+            ps = connRentFur.prepareStatement(furnitureStockUpdateSb.toString());
+            ps.setInt(1, Integer.valueOf(quantity));
+            ps.setInt(2, Integer.valueOf(id));
+            ps.executeUpdate();
+            
+            connRentFur.commit();
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(EventController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+    }
+    
     public void updateDayStockReturn(String id, Date deliveryDate, String quantity){
         
         Connection connRentFur = null;
@@ -838,7 +963,7 @@ public class EventController {
             connRentFur.setAutoCommit(false);
 
             StringBuilder eventHeaderSelectSb = new StringBuilder();
-            eventHeaderSelectSb.append("SELECT id, \"number\" as eventNumber, creation_date, delivery_date, pickup_date, status, place_of_delivery, observation, contract_number, net_total, total_tax_5, total_tax_10, total_tax, total_taxable_5, total_taxable_10, total_taxable, subject_code, subject_name, subject_address, subject_fiscal_number, subject_telephone, subject_city, subject_tradename, creator_user_id, last_modification_date, last_modification_user_id, balance FROM event WHERE id = ?");
+            eventHeaderSelectSb.append("SELECT id, \"number\" as eventNumber, creation_date, delivery_date, pickup_date, status, place_of_delivery, observation, contract_number, net_total, total_tax_5, total_tax_10, total_tax, total_taxable_5, total_taxable_10, total_taxable, subject_code, subject_name, subject_address, subject_fiscal_number, subject_telephone, subject_city, subject_tradename, creator_user_id, last_modification_date, last_modification_user_id, balance, detailed_invoice FROM event WHERE id = ?");
 
             ps = connRentFur.prepareStatement(eventHeaderSelectSb.toString());
             ps.setInt(1, eventId);
@@ -866,6 +991,7 @@ public class EventController {
                 eventMap.put("lastModificationUserId", rs.getString("last_modification_user_id"));
                 eventMap.put("lastModificationDate", rs.getTimestamp("last_modification_date"));
                 eventMap.put("balance", rs.getDouble("balance"));
+                eventMap.put("detailedInvoice", rs.getString("detailed_invoice"));
             }
             
             StringBuilder eventDetailSelectSb = new StringBuilder();
@@ -879,7 +1005,7 @@ public class EventController {
             rs = ps.executeQuery();
             while(rs.next()){
                 eventDetailMap = new HashMap();
-                eventDetailMap.put("id", rs.getInt("id"));
+                eventDetailMap.put("eventDetailId", rs.getInt("id"));
                 eventDetailMap.put("furnitureCode", rs.getString("furniture_code"));
                 eventDetailMap.put("furnitureDescription", rs.getString("furniture_description"));
                 eventDetailMap.put("unitPrice", rs.getDouble("unit_price"));
@@ -1079,6 +1205,109 @@ public class EventController {
             }
         }
         return furnitureList;
+    }
+    
+    public HashMap updateInvoicedType(int eventId, boolean detailedInvoice){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+            UserRoles userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+
+            StringBuilder eventInsertSb = new StringBuilder();
+            eventInsertSb.append("UPDATE event SET detailed_invoice = ?, last_modification_user_id = ?, last_modification_date = current_timestamp WHERE id = ?");
+
+            ps = connRentFur.prepareStatement(eventInsertSb.toString());
+            ps.setBoolean(1, detailedInvoice);
+            ps.setInt(2, loggedUser.getId());
+            ps.setInt(3, eventId);
+            ps.executeUpdate();
+            connRentFur.commit();
+            ps.close();
+           
+            mapToReturn.put("status", SUCCESFULLY_SAVED);
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(EventController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+            mapToReturn.put("message", th.getMessage());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
+    }
+    
+    public static void updateEventDetailBilled(int eventDetailId){
+        
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+            UserRoles userRoles = new UserRoles();
+            User loggedUser = userRoles.getUser();
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+
+            StringBuilder eventInsertSb = new StringBuilder();
+            eventInsertSb.append("UPDATE event_detail SET billable = ? WHERE id = ?");
+
+            ps = connRentFur.prepareStatement(eventInsertSb.toString());
+            ps.setBoolean(1, false);
+            ps.setInt(2, eventDetailId);
+            
+            ps.executeUpdate();
+            connRentFur.commit();
+            ps.close();
+           
+            mapToReturn.put("status", SUCCESFULLY_SAVED);
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(EventController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+            mapToReturn.put("message", th.getMessage());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
     }
     
 }

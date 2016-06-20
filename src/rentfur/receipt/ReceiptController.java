@@ -222,7 +222,7 @@ public class ReceiptController {
             ps.setString(9, receiptNumMap.get("branch").toString());
             ps.setDate(10, new java.sql.Date (receiptDate.getTime()));
             ps.setString(11, String.format ("%07d", (Integer) receiptNumMap.get("number")));
-            ps.setString(12, receiptNumMap.get("branch").toString());
+            ps.setString(12, receiptNumMap.get("printer").toString());
             ps.setInt(13, 0);
             ps.setDouble(14, netTotal);
             ps.setDouble(15, netTotal);

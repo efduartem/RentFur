@@ -14,7 +14,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -91,9 +90,9 @@ public class ReceiptCreate extends JInternalFrame{
     private final JTextField branchTextField;
     private final JTextField printerTextField;
     private final JTextField numberTextField;
-    private JButton addPaymentMethod;
-    private JButton saveReceipt;
-    private JButton cancelReceipt;
+    private final JButton addPaymentMethod;
+    private final JButton saveReceipt;
+    private final JButton cancelReceipt;
     private final JTable receiptDetailTable;
     private final DefaultTableModel receiptDetailDefaultTableModel;
     private final JScrollPane receiptDetailTableJScrollPane;
@@ -108,9 +107,9 @@ public class ReceiptCreate extends JInternalFrame{
     private final int AMOUNT_COLUMN = 6;
     private final int DELETE_COLUMN = 7;
     
-    private HashMap eventMap;
-    private HashMap subjectMap;
-    private HashMap receiptNumMap;
+    private final HashMap eventMap;
+    private final HashMap subjectMap;
+    private final HashMap receiptNumMap;
     
     public ReceiptCreate(ReceiptController receiptController, int eventId){
         this.receiptController = receiptController;
@@ -428,6 +427,9 @@ public class ReceiptCreate extends JInternalFrame{
     private void saveReceiptButtonAction(){
         JOptionPane optionPane;
         JDialog dialog;
+        if (receiptDetailTable.isEditing()){
+            receiptDetailTable.getCellEditor().stopCellEditing();
+        }
         
         if(receiptDetailTable.getRowCount()==0){
             optionPane = new JOptionPane("No ha sido agregado ningun detalle (item)", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
@@ -443,7 +445,6 @@ public class ReceiptCreate extends JInternalFrame{
             dialog.setVisible(true);
         }else{
             Date receiptDate = (Date) datePicker.getModel().getValue();
-            HashMap subjectMap = SubjectController.getSubjectByCode(subjectCodeTextField.getText()); 
             HashMap paymentMap;
             ArrayList paymentList = new ArrayList();
             Vector dataVector;
@@ -705,8 +706,6 @@ public class ReceiptCreate extends JInternalFrame{
         public void actionPerformed(ActionEvent event) {
             JComboBox<ComboBoxItem> paymentMethodItem = (JComboBox<ComboBoxItem>) event.getSource();
             this.item = (ComboBoxItem) paymentMethodItem.getSelectedItem();
-            System.out.println("row: "+row);
-            System.out.println("Value: "+this.item.getValue());
             updateFields(this.item, row);
         }
     }
@@ -877,8 +876,6 @@ public class ReceiptCreate extends JInternalFrame{
                             if(!texto.isEmpty()){
                                 ((NumericTextField) component).setValue(Double.valueOf(texto));
                             }
-                         }else{
-                             texto = texto.replaceAll(",", ".");
                          }
                      }
                  });
@@ -919,6 +916,14 @@ public class ReceiptCreate extends JInternalFrame{
             }
             return ((JTextField) component).getText();
         }
+
+        @Override
+        public boolean stopCellEditing() {
+            System.out.println("OPA");
+            return super.stopCellEditing(); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+        
 
     }
 }

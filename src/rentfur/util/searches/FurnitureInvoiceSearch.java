@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package rentfur.util.searches;
 
 import java.awt.Color;
@@ -15,8 +9,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -30,8 +28,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
-import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.InternalFrameListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -40,12 +36,13 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import rentfur.furniture.FurnitureController;
 import rentfur.util.ComboBoxItem;
+import sun.util.calendar.CalendarUtils;
 
 /**
  *
  * @author FDuarte
  */
-public class FurnitureSearch extends JInternalFrame{
+public class FurnitureInvoiceSearch extends JInternalFrame{
     private final SearchController searchController;
     
     private final JPanel furnitureParamPanel;
@@ -65,15 +62,15 @@ public class FurnitureSearch extends JInternalFrame{
     private final TableRowSorter trsfiltro;
     private final JButton selectButton;
     private final JButton cancelButton;
-    private final ArrayList currentSelectedCode = new ArrayList();
-    private boolean showStock;
+    private final HashMap currentSelectedCode = new HashMap();
+    private final DecimalFormat amountFormat = new DecimalFormat("#,###");
     
-    public FurnitureSearch(SearchController searchController, ArrayList furnitureCodesAdded, Date day, boolean showStock){
+    public FurnitureInvoiceSearch(SearchController searchController, ArrayList furnitureCodesAdded, ArrayList furnitureEventList, int eventId){
         this.searchController = searchController;
         
         furnitureParamPanel = new JPanel();
         furnitureParamPanel.setLayout(null);
-        this.showStock = showStock;
+        
         //FILA 1
         furnitureCodeLabel = new JLabel("Codigo:");
         furnitureCodeLabel.setBounds(30, 20, 80, 25);
@@ -166,7 +163,7 @@ public class FurnitureSearch extends JInternalFrame{
         DefaultTableCellRenderer statusRenderer = new DefaultTableCellRenderer();
         statusRenderer.setHorizontalAlignment(JLabel.CENTER);
         
-        searchController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null, furnitureCodesAdded, day);
+        searchController.setFurnitureInvoicedResultsTable(furnituresResultDefaultTableModel, false, furnitureCodesAdded, furnitureEventList, eventId);
         furnituresResultTable.setRowHeight(22);
         
         //Code
@@ -190,43 +187,32 @@ public class FurnitureSearch extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(3).setPreferredWidth(120);
         furnituresResultTable.getColumnModel().getColumn(3).setCellRenderer(statusRenderer);
         
-        //UnitPrice
-        furnituresResultTable.getColumnModel().getColumn(4).setPreferredWidth(180);
+        //FineAmountPerUnit
+        furnituresResultTable.getColumnModel().getColumn(4).setMaxWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(4).setMinWidth(90);
         furnituresResultTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
         
-        //UnitCostPrice
-        furnituresResultTable.getColumnModel().getColumn(5).setMaxWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(5).setMinWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
-        
-        //FineAmountPerUnit
-        furnituresResultTable.getColumnModel().getColumn(6).setMaxWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(6).setMinWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
-        
         //StockDisponible
-        furnituresResultTable.getColumnModel().getColumn(7).setHeaderRenderer(new AvailableSimpleHeaderRenderer());
-        if(showStock){
-            furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(110);
-            furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(110);
-        }else{
-            furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(0);
-            furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(0);
-            furnituresResultTable.getColumnModel().getColumn(7).setPreferredWidth(0);
-        }
-        
-        furnituresResultTable.getColumnModel().getColumn(7).setResizable(false);
-        furnituresResultTable.getColumnModel().getColumn(7).setCellRenderer(new AvailableCellRenderer());
+        furnituresResultTable.getColumnModel().getColumn(5).setHeaderRenderer(new AvailableSimpleHeaderRenderer());
+        furnituresResultTable.getColumnModel().getColumn(5).setMaxWidth(110);
+        furnituresResultTable.getColumnModel().getColumn(5).setMinWidth(110);
+        furnituresResultTable.getColumnModel().getColumn(5).setResizable(false);
+        furnituresResultTable.getColumnModel().getColumn(5).setCellRenderer(new AvailableCellRenderer());
         
         //ID
+        furnituresResultTable.getColumnModel().getColumn(6).setMaxWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(6).setMinWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(6).setPreferredWidth(0);
+        
+        //CODIGO PARA FILTRO
+        furnituresResultTable.getColumnModel().getColumn(7).setMaxWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(7).setMinWidth(0);
+        furnituresResultTable.getColumnModel().getColumn(7).setPreferredWidth(0);
+        
+        //ID DEL DETALLE DEL EVENTO
         furnituresResultTable.getColumnModel().getColumn(8).setMaxWidth(0);
         furnituresResultTable.getColumnModel().getColumn(8).setMinWidth(0);
         furnituresResultTable.getColumnModel().getColumn(8).setPreferredWidth(0);
-        
-        //CODIGO PARA FILTRO
-        furnituresResultTable.getColumnModel().getColumn(9).setMaxWidth(0);
-        furnituresResultTable.getColumnModel().getColumn(9).setMinWidth(0);
-        furnituresResultTable.getColumnModel().getColumn(9).setPreferredWidth(0);
         
         furnituresResultTableJScrollPane = new JScrollPane();
         furnituresResultTableJScrollPane.setBounds(30, 140, 900, 220);
@@ -255,12 +241,12 @@ public class FurnitureSearch extends JInternalFrame{
     @Override
     public void doDefaultCloseAction() {
         this.dispose();
-        searchController.setClosedFurnitureSearch();
-        searchController.setFurnitureSelectedCodes(new ArrayList());
+        searchController.setClosedFurnitureInvoicedSearch();
+        searchController.setFurnitureInvoicedCodes(new HashMap());
     }
     
     private void cancelButtonAction(ActionEvent e) {
-        searchController.setFurnitureSelectedCodes(new ArrayList());
+        searchController.setFurnitureInvoicedCodes(new HashMap());
         doDefaultCloseAction();
     }
     
@@ -270,27 +256,31 @@ public class FurnitureSearch extends JInternalFrame{
             JDialog dialog = optionPane.createDialog(this, "Atencion!");
             dialog.setVisible(true);
         }else{
-            searchController.setFurnitureSelectedCodes(currentSelectedCode);
+            searchController.setFurnitureInvoicedCodes(currentSelectedCode);
             doDefaultCloseAction();
         }
     };
     
+    private void addItemToMap(String code, int row){
+        try {
+            HashMap itemValues = new HashMap();
+            double taxRate = amountFormat.parse(furnituresResultDefaultTableModel.getValueAt(row, 3).toString()).doubleValue();
+            double price = amountFormat.parse(furnituresResultDefaultTableModel.getValueAt(row, 4).toString()).doubleValue();
+            double quantity = Integer.valueOf(furnituresResultDefaultTableModel.getValueAt(row, 5).toString());
+            int eventDetailId = Integer.valueOf(furnituresResultDefaultTableModel.getValueAt(row, 8).toString());
+            
+            itemValues.put("taxRate", taxRate);
+            itemValues.put("price", price);
+            itemValues.put("quantity", quantity);
+            itemValues.put("eventDetailId", eventDetailId);
+            
+            currentSelectedCode.put(code, itemValues);
+        } catch (ParseException ex) {
+            Logger.getLogger(FurnitureInvoiceSearch.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     private class furnituresSearchtResultDefaultTableModel extends DefaultTableModel{
-        
-        /*@Override
-        public int getRowCount() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public int getColumnCount() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }*/
         
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -315,7 +305,7 @@ public class FurnitureSearch extends JInternalFrame{
             andFilter.add(rf);
         }
         
-        rf = RowFilter.regexFilter("(?i)" + furnitureCodeTextField.getText(), 9);
+        rf = RowFilter.regexFilter("(?i)" + furnitureCodeTextField.getText(), 7);
         andFilter.add(rf);
         
 	RowFilter<TableModel, Object> rowf = RowFilter.andFilter(andFilter);
@@ -337,6 +327,7 @@ public class FurnitureSearch extends JInternalFrame{
         private JCheckBox button;
         private String code;
         private boolean isSelected;
+        private int row;
         public RadioButtonEditor(JCheckBox checkBox) {
           super(checkBox);
         }
@@ -350,6 +341,7 @@ public class FurnitureSearch extends JInternalFrame{
           this.code = ((JCheckBox)value).getText();
           this.isSelected = ((JCheckBox)value).isSelected();
           button.addItemListener(this);
+          this.row = row;
           return (Component) value;
         }
 
@@ -359,7 +351,7 @@ public class FurnitureSearch extends JInternalFrame{
             if(isSelected){
                 currentSelectedCode.remove(code);
             }else{
-                currentSelectedCode.add(code);
+                addItemToMap(code, row);
             }
           return button;
         }

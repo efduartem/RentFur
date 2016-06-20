@@ -87,7 +87,7 @@ public class FurniturePenaltySearch extends JInternalFrame{
         furnitureParamPanel.add(furnitureCodeTextField);
         
         //FILA 2
-        furnitureDescriptionLabel = new JLabel("Razón Social:");
+        furnitureDescriptionLabel = new JLabel("Descripción:");
         furnitureDescriptionLabel.setBounds(30, 50, 100, 25);
         furnitureParamPanel.add(furnitureDescriptionLabel);
         

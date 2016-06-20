@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -35,6 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -53,6 +55,9 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import rentfur.furniture.FurnitureController;
+import rentfur.invoice.InvoiceController;
+import rentfur.invoice.InvoiceCreate;
+import rentfur.invoice.InvoiceShow;
 import rentfur.receipt.ReceiptController;
 import rentfur.receipt.ReceiptCreate;
 import rentfur.receipt.ReceiptShow;
@@ -72,6 +77,9 @@ public class EventShowAndEdit extends JInternalFrame{
     private ReceiptCreate receiptCreate;
     private ReceiptShow receiptShow;
     private ReceiptController receiptController;
+    private InvoiceController invoiceController;
+    private InvoiceCreate invoiceCreate;
+    private InvoiceShow invoiceShow;
     private final SearchController searchController;
     private FurnitureSearch furnitureSearch;
     private FurniturePenaltySearch furniturePenaltySearch;
@@ -91,6 +99,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private final JLabel placeOfDeliveryLabel;
     private final JLabel observationLabel;
     private final JLabel totalLabel;
+    private final JLabel contractNumberLabel;
     private final JLabel balanceTotalLabel;
     private final JLabel invoicedTotalLabel;
     private final JLabel payedTotalLabel;
@@ -106,6 +115,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private final JTextArea placeOfDeliveryTextArea;
     private final JTextArea observationTextArea;
     private final JTextField totalTextField;
+    private final JTextField contractNumberTextField;
     private final JTextField balanceTotalTextField;
     private final JTextField invoicedTotalTextField;
     private final JTextField payedTotalTextField;
@@ -114,21 +124,34 @@ public class EventShowAndEdit extends JInternalFrame{
     private final JButton addFurnitureButton;
     private final JButton addPenaltyButton;
     private final JButton closeButton;
+    private final JButton invoicedButton;
     private final JTabbedPane tabs;
     private JDesktopPane pane;
     private JTable eventDetailTable;
+    //EVENTO
     private DefaultTableModel eventDetailDefaultTableModel;
     private JScrollPane eventDetailTableJScrollPane;
     private DefaultTableModel eventDetailPenaltyDefaultTableModel;
     private JTable eventDetailpenaltyTable;
     private JScrollPane eventDetailPenaltyTableJScrollPane;
+    //RECIBOS
     private DefaultTableModel receiptDefaultTableModel;
     private JTable receiptTable;
     private JScrollPane receiptTableJScrollPane;
     private DefaultTableModel paymentMethodDefaultTableModel;
     private JTable paymentMethodTable;
     private JScrollPane paymentMethodTableJScrollPane;
+    //FACTURA
+    private DefaultTableModel invoicesDefaultTableModel;
+    private JTable invoicesTable;
+    private JScrollPane invoicesTableJScrollPane;
+    private DefaultTableModel invoiceDetailDefaultTableModel;
+    private JTable invoiceDetailTable;
+    private JScrollPane invoiceDetailTableJScrollPane;
     
+    private JRadioButton detailedInvoice,conceptInvoice;
+    
+    //CARGOS
     private static final int ID_COLUMN = 0;
     private static final int CODE_COLUMN_CHARGES = 1;
     private static final int DESCRIPTION_COLUMN = 2;
@@ -141,6 +164,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private static final int DELETE_BUTTON_COLUMN = 9;
     private static final int ANNEXED_COLUMN = 10;
     
+    //MULTA
     private static final int PENALTY_ID_COLUMN = 0;
     private static final int PENALTY_CODE_COLUMN_CHARGES = 1;
     private static final int PENALTY_DESCRIPTION_COLUMN = 2;
@@ -151,6 +175,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private static final int PENALTY_SUBTOTAL_COLUMN = 7;
     private static final int PENALTY_DELETE_BUTTON_COLUMN = 8;
     
+    //RECIBO
     private static final int RECEIPT_ID_COLUMN = 0;
     private static final int RECEIPT_DATE_COLUMN = 1;
     private static final int RECEIPT_NUMBER_COLUMN = 2;
@@ -161,7 +186,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private static final int RECEIPT_CANCELLED_BUTTON_COLUMN = 7;
     private static final int RECEIPT_SHOW_BUTTON_COLUMN = 8;
     
-    
+    //MEDIOS DE PAGO
     private final int PAYMENT_METHOD_COLUMN = 0;
     private final int DOC_NUMBER_COLUMN = 1;
     private final int DOC_EMITION_DATE_COLUMN = 2;
@@ -170,9 +195,32 @@ public class EventShowAndEdit extends JInternalFrame{
     private final int BANK_COLUMN = 5;
     private final int AMOUNT_COLUMN = 6;
     
+    //FACTURA
+    private static final int INVOICE_ID_COLUMN = 0;
+    private static final int INVOICE_DATE_COLUMN = 1;
+    private static final int INVOICE_NUMBER_COLUMN = 2;
+    private static final int INVOICE_AMOUNT_COLUMN = 3;
+    private static final int INVOICE_CANCELLED_COLUMN = 4;
+    private static final int INVOICE_CANCELLED_DATE_COLUMN = 5;
+    private static final int INVOICE_CANCELLED_REASON_COLUMN = 6;
+    private static final int INVOICE_CANCELLED_BUTTON_COLUMN = 7;
+    private static final int INVOICE_SHOW_BUTTON_COLUMN = 8;
+    
+    //DETALLES DE FACTURA
+    private final int INVOICE_DETAIL_ITEM_COLUMN = 0;
+    private final int INVOICE_DETAIL_CODE_COLUMN = 1;
+    private final int INVOICE_DETAIL_DESCRIPTION_COLUMN = 2;
+    private final int INVOICE_DETAIL_TAX_RATE_COLUMN = 3;
+    private final int INVOICE_DETAIL_QUANTITY_COLUMN = 4;
+    private final int INVOICE_DETAIL_UNIT_PRICE_COLUMN = 5;
+    private final int INVOICE_DETAIL_EXEMPT_COLUMN = 6;
+    private final int INVOICE_DETAIL_TAX_5_COLUMN = 7;
+    private final int INVOICE_DETAIL_TAX_10_COLUMN = 8;
+    
     private HashMap eventMap;
     private HashMap subjectMap;
     private ArrayList receiptList;
+    private ArrayList invoiceList;
     private int eventId;
     private final DecimalFormat amountFormat = new DecimalFormat("#,###");
     
@@ -186,6 +234,7 @@ public class EventShowAndEdit extends JInternalFrame{
         
         searchController = new SearchController();
         receiptController = new ReceiptController();
+        invoiceController = new InvoiceController();
         
         amountFormat.setGroupingUsed(true);
         amountFormat.setGroupingSize(3);
@@ -198,6 +247,7 @@ public class EventShowAndEdit extends JInternalFrame{
         eventMap = EventController.getEventById(eventId);
         subjectMap = SubjectController.getSubjectByCode(eventMap.get("subjectCode").toString());
         receiptList = ReceiptController.getReceiptsByEventId(eventId);
+        invoiceList = InvoiceController.getInvoicesByEventId(eventId);
         
         titleLabel = new JLabel("<HTML><U>Detalles del Evento</U></HTML>");
         titleLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 25));
@@ -268,6 +318,17 @@ public class EventShowAndEdit extends JInternalFrame{
         subjectLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 20));
         subjectLabel.setBounds(80, 110, 200, 25);
         eventHeaderPanel.add(subjectLabel);
+        
+        contractNumberLabel = new JLabel("<HTML>Contrato Nro.: </HTML>");
+        contractNumberLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 20));
+        contractNumberLabel.setBounds(1100, 50, 200, 25);
+        eventHeaderPanel.add(contractNumberLabel);
+        
+        contractNumberTextField = new JTextField(amountFormat.format(Long.valueOf(eventMap.get("contractNumber").toString())));
+        contractNumberTextField.setEditable(false);
+        contractNumberTextField.setHorizontalAlignment(JLabel.RIGHT);
+        contractNumberTextField.setBounds(1250, 50, 170, 25);
+        eventHeaderPanel.add(contractNumberTextField);
         
         totalSummaryLabel = new JLabel("<HTML><U>Totales</U></HTML>");
         totalSummaryLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 20));
@@ -407,6 +468,20 @@ public class EventShowAndEdit extends JInternalFrame{
         });
         add(paymentRecordButton);
         
+        ImageIcon invoicedImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/invoice_20x20.png"));
+        invoicedButton = new JButton("  Facturar");
+        invoicedButton.setIcon(invoicedImageIcon);
+        invoicedButton.setBounds(1250, 330, 180, 35);
+        invoicedButton.setVisible(false);
+        invoicedButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                invoiceRecordButtonAction();
+            }
+        });
+        add(invoicedButton);
+        
         //Editar Presupuesto
         ImageIcon editEventImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
         saveChangesButton = new JButton("   Guardar Cambios");
@@ -478,7 +553,7 @@ public class EventShowAndEdit extends JInternalFrame{
         addPaymentsTabComponent();
         
         //Cargamos el Tab de Facturas del Evento
-        addInvoicesTabComponent();
+        addInvoicesTabComponent(false);
         
         ChangeListener changeListener = new ChangeListener() {
         @Override
@@ -490,12 +565,24 @@ public class EventShowAndEdit extends JInternalFrame{
                     addFurnitureButton.setVisible(true);
                     addPenaltyButton.setVisible(true);
                     paymentRecordButton.setVisible(false);
+                    invoicedButton.setVisible(false);
                     break;
                 case 1:
                     addFurnitureButton.setVisible(false);
                     addPenaltyButton.setVisible(false);
                     paymentRecordButton.setVisible(true);
-                break;
+                    invoicedButton.setVisible(false);
+                    break;
+                case 2:
+                    addFurnitureButton.setVisible(false);
+                    addPenaltyButton.setVisible(false);
+                    paymentRecordButton.setVisible(false);
+                    if(eventMap.get("detailedInvoice")==null){
+                        invoicedButton.setVisible(false);
+                    }else{
+                        invoicedButton.setVisible(true);
+                    }
+                    break;    
                 default:
                     addFurnitureButton.setVisible(true);
                     addPenaltyButton.setVisible(true);
@@ -713,21 +800,263 @@ public class EventShowAndEdit extends JInternalFrame{
         
     }
     
-    private void addInvoicesTabComponent(){
-        //PANEL TEMPORAL PARA LA TERCERA PESTANHA QUE CONTENDRIA LAS FACTURAS
-        JPanel panel3=new JPanel();
-        //Componentes del panel3
-        JLabel et_p3=new JLabel("Estas en el panel 3");
-        panel3.add(et_p3);
- 
+    private void addInvoicesTabComponent(boolean isUpdate){
+        JPanel panel = new JPanel();
+        JScrollPane invoicesJScrollPane = new JScrollPane();
+        invoicesJScrollPane.setViewportView(panel);
         //AÑADIMOS EL JPANEL 3
-        tabs.addTab("", panel3);
+        if(!isUpdate){
+            //tabs.addTab("", panel);
+            tabs.addTab("", invoicesJScrollPane);
+        }
+
+        JLabel panelTitle;
+        ButtonGroup bg;
+        JButton selectInvoicedTypeButton;
+        if(eventMap.get("detailedInvoice")==null){
+            panelTitle = new JLabel("Seleccionar el metodo de facturacion: ");
+            detailedInvoice = new JRadioButton("Detallada",false);
+            conceptInvoice = new JRadioButton("Por Concepto",false);
+            selectInvoicedTypeButton = new JButton(" Seleccionar");
+            ImageIcon selectInvoiceTypeButtonImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/green_check_20x20.png"));
+            selectInvoicedTypeButton.setIcon(selectInvoiceTypeButtonImageIcon);
+            selectInvoicedTypeButton.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    saveInvoicedTypeSelected();
+                }
+            });
+
+            bg = new ButtonGroup();
+            bg.add(detailedInvoice);
+            bg.add(conceptInvoice);
+            
+            JPanel panel2 = new JPanel ();
+            panel2.setBorder (BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Tipo Facturacion" , TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
+            panel2.add(panelTitle);
+            panel2.add (detailedInvoice);
+            panel2.add (conceptInvoice);
+            panel2.add(selectInvoicedTypeButton);
+
+            panel.add(panel2);
+            
+        }else{
+            if(isUpdate){
+                invoicedButton.setVisible(true);
+            }
+//            invoicesJScrollPane = (JScrollPane) tabs.getComponentAt(2);
+//            invoicesJScrollPane.removeAll();
+            
+            invoicesDefaultTableModel = new invoicesDefaultTableModel();
+            invoicesTable = new JTable(invoicesDefaultTableModel);
+
+            //Alineacion a la derecha
+            DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
+            rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
+
+            //Alineacion a la derecha
+            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+            centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+            invoicesDefaultTableModel.addColumn("Id");
+            invoicesDefaultTableModel.addColumn("Fecha");
+            invoicesDefaultTableModel.addColumn("Numero");
+            invoicesDefaultTableModel.addColumn("Monto");
+            invoicesDefaultTableModel.addColumn("Anulado");
+            invoicesDefaultTableModel.addColumn("Fecha de Anulación");
+            invoicesDefaultTableModel.addColumn("Motivo de Anulación");
+            invoicesDefaultTableModel.addColumn("");
+            invoicesDefaultTableModel.addColumn("");
+
+            ((DefaultTableCellRenderer)invoicesTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+
+            invoicesTable.setRowHeight(22);
+            invoicesTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+                @Override
+                public void valueChanged(ListSelectionEvent event) {
+                        if(invoicesTable.getSelectedRow()>0){
+                            addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(invoicesTable.getSelectedRow()));
+                        }else{
+                            addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(0));
+                        }
+                    }
+                }
+            );
+
+            //ID
+            invoicesTable.getColumnModel().getColumn(INVOICE_ID_COLUMN).setMaxWidth(0);
+            invoicesTable.getColumnModel().getColumn(INVOICE_ID_COLUMN).setMinWidth(0);
+            invoicesTable.getColumnModel().getColumn(INVOICE_ID_COLUMN).setPreferredWidth(0);
+            
+            //DATE
+            invoicesTable.getColumnModel().getColumn(INVOICE_DATE_COLUMN).setMaxWidth(160);
+            invoicesTable.getColumnModel().getColumn(INVOICE_DATE_COLUMN).setMinWidth(160);
+            invoicesTable.getColumnModel().getColumn(INVOICE_DATE_COLUMN).setPreferredWidth(160);
+            invoicesTable.getColumnModel().getColumn(INVOICE_DATE_COLUMN).setCellRenderer(centerRenderer);
+
+            //NUMBER
+            invoicesTable.getColumnModel().getColumn(INVOICE_NUMBER_COLUMN).setMaxWidth(160);
+            invoicesTable.getColumnModel().getColumn(INVOICE_NUMBER_COLUMN).setMinWidth(160);
+            invoicesTable.getColumnModel().getColumn(INVOICE_NUMBER_COLUMN).setPreferredWidth(160);
+            invoicesTable.getColumnModel().getColumn(INVOICE_NUMBER_COLUMN).setCellRenderer(centerRenderer);
+
+            //AMOUNT
+            invoicesTable.getColumnModel().getColumn(INVOICE_AMOUNT_COLUMN).setMaxWidth(160);
+            invoicesTable.getColumnModel().getColumn(INVOICE_AMOUNT_COLUMN).setMinWidth(160);
+            invoicesTable.getColumnModel().getColumn(INVOICE_AMOUNT_COLUMN).setPreferredWidth(160);
+            invoicesTable.getColumnModel().getColumn(INVOICE_AMOUNT_COLUMN).setCellRenderer(rightRenderer);
+
+            //CANCELLED BUTTON
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setMaxWidth(130);
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setMinWidth(130);
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setPreferredWidth(130);
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setCellRenderer(new ReceiptButtonRenderer());
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setCellEditor(new ReceiptButtonEditor(new JTextField()));
+
+            //SHOW BUTTON
+            invoicesTable.getColumnModel().getColumn(INVOICE_SHOW_BUTTON_COLUMN).setMaxWidth(90);
+            invoicesTable.getColumnModel().getColumn(INVOICE_SHOW_BUTTON_COLUMN).setMinWidth(90);
+            invoicesTable.getColumnModel().getColumn(INVOICE_SHOW_BUTTON_COLUMN).setPreferredWidth(90);
+            invoicesTable.getColumnModel().getColumn(INVOICE_SHOW_BUTTON_COLUMN).setCellRenderer(new InvoiceButtonRenderer());
+            invoicesTable.getColumnModel().getColumn(INVOICE_SHOW_BUTTON_COLUMN).setCellEditor(new InvoiceButtonEditor(new JTextField()));
+
+            addInvoicesToInvoiceTable(invoiceList);
+
+            invoicesTableJScrollPane = new JScrollPane();
+            invoicesTableJScrollPane.setViewportView(invoicesTable);
+
+            JPanel headerPanel = new JPanel ();
+            headerPanel.setBorder (BorderFactory.createTitledBorder (BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Facturas", TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
+
+            headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+            headerPanel.setPreferredSize(new Dimension(100,30));
+            headerPanel.add(invoicesTableJScrollPane);
+
+            //TABLA DE DETALLES PARA LA PRIMERO PESTAÑA QUE CONTENDRA LOS CARGOS DEL EVENTO
+            invoiceDetailDefaultTableModel = new paymentDetailDefaultTableModel();
+            invoiceDetailTable = new JTable(invoiceDetailDefaultTableModel);
+            
+            invoiceDetailDefaultTableModel.addColumn("Item");
+            invoiceDetailDefaultTableModel.addColumn("Codigo");
+            invoiceDetailDefaultTableModel.addColumn("Descripcion");
+            invoiceDetailDefaultTableModel.addColumn("Tasa de Impuesto");
+            invoiceDetailDefaultTableModel.addColumn("Cantidad");
+            invoiceDetailDefaultTableModel.addColumn("Precio Unitario");
+            invoiceDetailDefaultTableModel.addColumn("Exenta");
+            invoiceDetailDefaultTableModel.addColumn("5%");
+            invoiceDetailDefaultTableModel.addColumn("10%");
+
+            ((DefaultTableCellRenderer)invoiceDetailTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+//
+            invoiceDetailTable.setRowHeight(22);
+            invoiceDetailTable.setBorder(BorderFactory.createEtchedBorder());
+
+//            paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setCellEditor(new PaymentMethodCellEditor(ReceiptController.getPaymentMethodAvailablesForCreateReceipt(false)));
+//            paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setCellRenderer(new PaymentMethodCellRenderer());
+            
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_ITEM_COLUMN).setMinWidth(50);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_ITEM_COLUMN).setMaxWidth(50);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_ITEM_COLUMN).setPreferredWidth(50);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_ITEM_COLUMN).setCellRenderer(centerRenderer);
+
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_CODE_COLUMN).setMinWidth(80);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_CODE_COLUMN).setMaxWidth(80);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_CODE_COLUMN).setPreferredWidth(80);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_CODE_COLUMN).setCellRenderer(centerRenderer);
+
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_RATE_COLUMN).setMaxWidth(130);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_RATE_COLUMN).setPreferredWidth(130);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_RATE_COLUMN).setPreferredWidth(130);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_RATE_COLUMN).setCellRenderer(centerRenderer);
+
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_QUANTITY_COLUMN).setMaxWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_QUANTITY_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_QUANTITY_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_QUANTITY_COLUMN).setCellRenderer(rightRenderer);
+
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_UNIT_PRICE_COLUMN).setMaxWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_UNIT_PRICE_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_UNIT_PRICE_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_UNIT_PRICE_COLUMN).setCellRenderer(rightRenderer);
+
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_EXEMPT_COLUMN).setMaxWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_EXEMPT_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_EXEMPT_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_EXEMPT_COLUMN).setCellRenderer(rightRenderer);
+
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_5_COLUMN).setMaxWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_5_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_5_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_5_COLUMN).setCellRenderer(rightRenderer);
+
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_10_COLUMN).setMaxWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_10_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_10_COLUMN).setPreferredWidth(100);
+            invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_TAX_10_COLUMN).setCellRenderer(rightRenderer);
+
+            if(!invoiceList.isEmpty()){
+                addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(0));
+            }
+
+            invoiceDetailTableJScrollPane = new JScrollPane();
+            invoiceDetailTableJScrollPane.setViewportView(invoiceDetailTable);
+
+            JPanel panel2 = new JPanel ();
+            panel2.setBorder (BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Detalles" , TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
+            panel2.setPreferredSize(new Dimension(100,30));
+            panel2.setLayout(new BoxLayout(panel2, BoxLayout.Y_AXIS));
+            panel2.add(invoiceDetailTableJScrollPane);
+
+            JPanel eventItemsPanel=new JPanel();
+            eventItemsPanel.setLayout(new BoxLayout(eventItemsPanel, BoxLayout.Y_AXIS));        
+            eventItemsPanel.add(headerPanel);
+            eventItemsPanel.add(panel2);
+
+            invoicesJScrollPane.setViewportView(eventItemsPanel);
+            
+            //panel.add(new JLabel("TABLAS"));
+        }
         
         //AÑADIMOS UN NOMBRE A LA PESTAÑA TRES
         JLabel lab = new JLabel("Facturas");
         lab.setHorizontalAlignment(JLabel.CENTER);
         lab.setPreferredSize(new Dimension(100, 30));
         tabs.setTabComponentAt(2, lab);
+    }
+    
+    private void saveInvoicedTypeSelected(){
+        HashMap mapReturn = null;
+        JLabel messagge;
+        int respuesta;
+        if(detailedInvoice.isSelected()){
+            messagge = new JLabel("Una vez seleccionado el tipo de facturacion, este ya no podra ser modificado. Confirma que el tipo de facturacion sera detallada?");
+            respuesta = JOptionPane.showConfirmDialog(this, messagge,"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if(respuesta == JOptionPane.YES_OPTION){
+                mapReturn = eventController.updateInvoicedType(eventId, true);
+                if((Integer) mapReturn.get("status") == ReceiptController.SUCCESFULLY_SAVED){
+                    eventMap.put("detailedInvoice", true);
+                    addInvoicesTabComponent(true);
+                }else if((Integer)mapReturn.get("status") == ReceiptController.ERROR_IN_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+                }
+                //updateReceiptsTable();
+            }
+        }else if(conceptInvoice.isSelected()){
+             messagge = new JLabel("Una vez seleccionado el tipo de facturacion, este ya no podra ser modificado. Confirma que el tipo de facturacion sera por concepto?");
+            respuesta = JOptionPane.showConfirmDialog(this, messagge,"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if(respuesta == JOptionPane.YES_OPTION){
+                mapReturn = eventController.updateInvoicedType(eventId, false);
+                if((Integer) mapReturn.get("status") == ReceiptController.SUCCESFULLY_SAVED){
+                    eventMap.put("detailedInvoice", false);
+                    addInvoicesTabComponent(true);
+                }else if((Integer)mapReturn.get("status") == ReceiptController.ERROR_IN_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        }else{
+            JOptionPane.showMessageDialog(null, "No ha seleccionado ningun tipo de facturacion", "Atencion!", JOptionPane.WARNING_MESSAGE);
+        }
     }
     
     private void addChargesTabComponent(HashMap eventMap){
@@ -1041,6 +1370,79 @@ public class EventShowAndEdit extends JInternalFrame{
         }
     }
     
+    private void addInvoicesToInvoiceTable(ArrayList invoiceList){
+        try {
+            HashMap invoiceMap;
+            double totalInvoiced = 0;
+            int numeroRegistros = invoicesDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistros;i++){
+                invoicesDefaultTableModel.removeRow(0);
+            }
+            
+            Object[] row = new Object[invoicesTable.getColumnCount()];
+            for(int i = 0; i < invoiceList.size(); i++){
+                invoiceMap = (HashMap) invoiceList.get(i);
+                
+                row[INVOICE_ID_COLUMN] = (Long) invoiceMap.get("id");
+                row[INVOICE_DATE_COLUMN] = new Date(((Timestamp)invoiceMap.get("invoicing_date")).getTime());
+                row[INVOICE_NUMBER_COLUMN] = invoiceMap.get("invoice_branch") + "-" + invoiceMap.get("invoice_printer") + "-" + invoiceMap.get("invoice_number");
+                
+                row[INVOICE_AMOUNT_COLUMN] = amountFormat.format((Double)invoiceMap.get("net_total"));
+                
+                if((Boolean)invoiceMap.get("cancelled")){
+                    row[INVOICE_CANCELLED_COLUMN] = "SI";
+                }else{
+                    row[INVOICE_CANCELLED_COLUMN] = "NO";
+                    totalInvoiced += (Double)invoiceMap.get("net_total");
+                }
+                
+                
+                if(invoiceMap.get("cancelled_date")!=null){
+                    row[INVOICE_CANCELLED_DATE_COLUMN] =  new Date(((Timestamp)invoiceMap.get("cancelled_date")).getTime());
+                }else{
+                    row[INVOICE_CANCELLED_DATE_COLUMN] = "";
+                }
+                
+                row[INVOICE_CANCELLED_REASON_COLUMN] = invoiceMap.get("cancelled_reason");
+                row[INVOICE_CANCELLED_BUTTON_COLUMN] = " Anular";
+                row[INVOICE_SHOW_BUTTON_COLUMN] = "Ver";
+                
+                invoicesDefaultTableModel.addRow(row);
+            }
+            
+            //TOTAL FACTURADO
+            invoicedTotalTextField.setText(amountFormat.format(totalInvoiced));
+        } catch (Throwable ex) {
+            Logger.getLogger(EventShowAndEdit.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void addInvoiceDetailToInvoicesTable(HashMap invoiceMap){
+        HashMap invoiceDetailMap;
+        ArrayList invoiceDetailList = (ArrayList) invoiceMap.get("invoiceDetail");
+        Object[] row = new Object[invoiceDetailTable.getColumnCount()];
+        
+        int numeroRegistros = invoiceDetailDefaultTableModel.getRowCount();
+        for(int i=0;i<numeroRegistros;i++){
+            invoiceDetailDefaultTableModel.removeRow(0);
+        }
+
+        for(int i = 0; i < invoiceDetailList.size(); i++){
+            invoiceDetailMap = (HashMap) invoiceDetailList.get(i);
+
+            row[INVOICE_DETAIL_ITEM_COLUMN] = invoiceDetailMap.get("row_number");
+            row[INVOICE_DETAIL_CODE_COLUMN] = invoiceDetailMap.get("furniture_code");
+            row[INVOICE_DETAIL_DESCRIPTION_COLUMN] = invoiceDetailMap.get("description");
+            row[INVOICE_DETAIL_TAX_RATE_COLUMN] = amountFormat.format((Double)invoiceDetailMap.get("tax_rate"));
+            row[INVOICE_DETAIL_QUANTITY_COLUMN] = amountFormat.format((Double)invoiceDetailMap.get("quantity"));
+            row[INVOICE_DETAIL_UNIT_PRICE_COLUMN] = amountFormat.format((Double)invoiceDetailMap.get("unit_price"));
+            row[INVOICE_DETAIL_EXEMPT_COLUMN] = amountFormat.format((Double)invoiceDetailMap.get("exempt_amount"));
+            row[INVOICE_DETAIL_TAX_5_COLUMN] = amountFormat.format((Double)invoiceDetailMap.get("taxted05amount"));
+            row[INVOICE_DETAIL_TAX_10_COLUMN] = amountFormat.format((Double)invoiceDetailMap.get("taxted10amount"));
+        
+            invoiceDetailDefaultTableModel.addRow(row);
+        }
+    }
     
     
     private void saveChangesButtonAction(){
@@ -1153,6 +1555,40 @@ public class EventShowAndEdit extends JInternalFrame{
         });
     }
     
+    private void showInvoiceView(int row){
+        int invoiceId = ((Long) invoicesDefaultTableModel.getValueAt(row, INVOICE_ID_COLUMN)).intValue();
+        
+        invoiceShow = invoiceController.getInvoiceShow(eventId, invoiceId);
+        invoiceShow.setVisible(true);
+        showSearchDialog(invoiceShow);
+        inactivateElements();
+        invoiceShow.addInternalFrameListener(new InternalFrameListener() {
+
+            @Override
+            public void internalFrameOpened(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosing(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosed(InternalFrameEvent e) {
+                activateElements();
+            }
+
+            @Override
+            public void internalFrameIconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeiconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameActivated(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeactivated(InternalFrameEvent e) {}
+        });
+    }
+    
     private boolean allQuantityAdded(){
         Vector dataVector;
         try {
@@ -1192,6 +1628,40 @@ public class EventShowAndEdit extends JInternalFrame{
             public void internalFrameClosed(InternalFrameEvent e) {
                 activateElements();
                 updateReceiptsTable();
+            }
+
+            @Override
+            public void internalFrameIconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeiconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameActivated(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeactivated(InternalFrameEvent e) {}
+        });
+        
+    }
+    
+    private void invoiceRecordButtonAction(){
+        invoiceCreate = invoiceController.getInvoiceCreate(eventId);
+        invoiceCreate.setVisible(true);
+        showSearchDialog(invoiceCreate);
+        inactivateElements();
+        invoiceCreate.addInternalFrameListener(new InternalFrameListener() {
+
+            @Override
+            public void internalFrameOpened(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosing(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosed(InternalFrameEvent e) {
+                activateElements();
+                //updateReceiptsTable();
 //                if(!searchController.getFurnitureSelectedCode().isEmpty()){
 //                    addFuritureSelectedToDetailTable(searchController.getFurnitureSelectedCode());
 //                }
@@ -1745,6 +2215,7 @@ public class EventShowAndEdit extends JInternalFrame{
         statusComboBox.setEnabled(false);
         placeOfDeliveryTextArea.setEnabled(false);
         observationTextArea.setEnabled(false);
+        invoicedButton.setEnabled(false);
         getContentPane().getComponents()[0].setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     }
     
@@ -1765,6 +2236,7 @@ public class EventShowAndEdit extends JInternalFrame{
         statusComboBox.setEnabled(true);
         placeOfDeliveryTextArea.setEnabled(true);
         observationTextArea.setEnabled(true);
+        invoicedButton.setEnabled(true);
     }
     
     private class eventDetailDefaultTableModel extends DefaultTableModel{
@@ -1789,14 +2261,17 @@ public class EventShowAndEdit extends JInternalFrame{
         
         @Override
         public boolean isCellEditable(int row, int column) {
-                                                    switch(column){
-                                                        case PENALTY_QUANTITY_COLUMN_CHARGES:
-                                                            return true;
-                                                        case PENALTY_DELETE_BUTTON_COLUMN:
-                                                            return true;
-                                                        default:    return false;
-                                                    }
-                                                }
+            int rows;
+            switch(column){
+                case PENALTY_QUANTITY_COLUMN_CHARGES:
+                    rows = ((ArrayList) eventMap.get("penaltyDetail")).size();
+                    return row >= rows;
+                case PENALTY_DELETE_BUTTON_COLUMN:
+                    rows = ((ArrayList) eventMap.get("penaltyDetail")).size();
+                    return row >= rows;
+                default:    return false;
+            }
+        }
            
     }
     
@@ -1813,6 +2288,26 @@ public class EventShowAndEdit extends JInternalFrame{
                     }
                     return !cancelled;
                 case RECEIPT_SHOW_BUTTON_COLUMN:
+                    return true;
+                default:    return false;
+            }
+        }
+        
+    }
+    
+    private class invoicesDefaultTableModel extends DefaultTableModel{
+        
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            //int rows;
+            switch(column){
+                case INVOICE_CANCELLED_BUTTON_COLUMN:
+                    boolean cancelled = false;
+                    if(receiptDefaultTableModel.getValueAt(row, INVOICE_CANCELLED_COLUMN).toString().equals("SI")){
+                        cancelled = Boolean.TRUE;
+                    }
+                    return !cancelled;
+                case INVOICE_SHOW_BUTTON_COLUMN:
                     return true;
                 default:    return false;
             }
@@ -2054,6 +2549,105 @@ public class EventShowAndEdit extends JInternalFrame{
                 }else if(column==RECEIPT_SHOW_BUTTON_COLUMN){
                     //showFurnitureShowAndEditView(row);
                     showReceiptView(row);
+                }
+          }
+          isPushed = false;          
+          return label;
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+          isPushed = false;
+          return super.stopCellEditing();
+        }
+
+        @Override
+        protected void fireEditingStopped() {
+          super.fireEditingStopped();
+        }
+      }
+     
+     class InvoiceButtonRenderer extends JButton implements TableCellRenderer {
+
+        public InvoiceButtonRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+          if (isSelected) {
+            setForeground(table.getSelectionForeground());
+            setBackground(table.getSelectionBackground());
+          } else {
+            setForeground(table.getForeground());
+            setBackground(UIManager.getColor("Button.background"));
+          }
+          if(column==RECEIPT_CANCELLED_BUTTON_COLUMN){
+              ImageIcon deleteIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/erase_16x16.png"));
+              setIcon(deleteIconImage);
+              //if(onlyQuery){
+//                    String message = "Su usuario solo cuenta con permiso de consultas";
+//                    setEnabled(false);
+//                    setToolTipText(message);
+              //  }
+          }
+          setText((value == null) ? "" : value.toString());
+          return this;
+        }
+      }
+
+      /**
+       * @version 1.0 11/09/98
+       */
+
+     class InvoiceButtonEditor extends DefaultCellEditor {
+        protected JButton button;
+
+        private String label;
+
+        private boolean isPushed;
+        
+        private int row;
+
+        private int column;
+        
+        public InvoiceButtonEditor(JTextField jtf) {
+          super(jtf);
+          button = new JButton();
+          button.setOpaque(true);
+          button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fireEditingStopped();
+            }
+          });
+          this.clickCountToStart = 1;
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+            boolean isSelected, int row, int column) {
+          label = (value == null) ? "" : value.toString();
+          button.setText(label);
+          isPushed = true;
+          this.row = row;
+          this.column = column;
+          return button;
+        }
+
+        
+        @Override
+        public Object getCellEditorValue() {
+          if (isPushed) {
+                if(column==RECEIPT_CANCELLED_BUTTON_COLUMN){
+//                    if(!onlyQuery){
+                       //label = updateFurnitureStatus(row, label);
+//                    }
+                    //updateReceiptStatus(row);
+                }else if(column==RECEIPT_SHOW_BUTTON_COLUMN){
+                    //showFurnitureShowAndEditView(row);
+                    showInvoiceView(row);
                 }
           }
           isPushed = false;          

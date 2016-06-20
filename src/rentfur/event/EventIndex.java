@@ -224,7 +224,7 @@ public class EventIndex extends JInternalFrame{
         furnituresStockTable.setRowSorter(trsfiltro);
         
         furnituresStockTableJScrollPane = new JScrollPane();
-        furnituresStockTableJScrollPane.setBounds(500, 90, 800, 300);
+        furnituresStockTableJScrollPane.setBounds(500, 90, 820, 300);
         furnituresStockTableJScrollPane.setViewportView(furnituresStockTable);
         
         add(furnituresStockTableJScrollPane);

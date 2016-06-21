@@ -125,6 +125,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private final JButton addPenaltyButton;
     private final JButton closeButton;
     private final JButton invoicedButton;
+    private final JButton createCreditNoteButton;
     private final JTabbedPane tabs;
     private JDesktopPane pane;
     private JTable eventDetailTable;
@@ -148,6 +149,14 @@ public class EventShowAndEdit extends JInternalFrame{
     private DefaultTableModel invoiceDetailDefaultTableModel;
     private JTable invoiceDetailTable;
     private JScrollPane invoiceDetailTableJScrollPane;
+    
+    //NOTA DE CREDITO
+    private DefaultTableModel creditNotesDefaultTableModel;
+    private JTable creditNotesTable;
+    private JScrollPane creditNotesTableJScrollPane;
+    private DefaultTableModel creditNoteDetailDefaultTableModel;
+    private JTable creditNoteDetailTable;
+    private JScrollPane creditNoteDetailTableJScrollPane;
     
     private JRadioButton detailedInvoice,conceptInvoice;
     
@@ -216,6 +225,28 @@ public class EventShowAndEdit extends JInternalFrame{
     private final int INVOICE_DETAIL_EXEMPT_COLUMN = 6;
     private final int INVOICE_DETAIL_TAX_5_COLUMN = 7;
     private final int INVOICE_DETAIL_TAX_10_COLUMN = 8;
+    
+    //NOTA DE CREDITO
+    private static final int CREDIT_NOTE_ID_COLUMN = 0;
+    private static final int CREDIT_NOTE_DATE_COLUMN = 1;
+    private static final int CREDIT_NOTE_NUMBER_COLUMN = 2;
+    private static final int CREDIT_NOTE_AMOUNT_COLUMN = 3;
+    private static final int CREDIT_NOTE_CANCELLED_COLUMN = 4;
+    private static final int CREDIT_NOTE_CANCELLED_DATE_COLUMN = 5;
+    private static final int CREDIT_NOTE_CANCELLED_REASON_COLUMN = 6;
+    private static final int CREDIT_NOTE_CANCELLED_BUTTON_COLUMN = 7;
+    private static final int CREDIT_NOTE_SHOW_BUTTON_COLUMN = 8;
+    
+    //DETALLES DE NOTA DE CREDITO
+    private final int CREDIT_NOTE_DETAIL_ITEM_COLUMN = 0;
+    private final int CREDIT_NOTE_DETAIL_CODE_COLUMN = 1;
+    private final int CREDIT_NOTE_DETAIL_DESCRIPTION_COLUMN = 2;
+    private final int CREDIT_NOTE_DETAIL_TAX_RATE_COLUMN = 3;
+    private final int CREDIT_NOTE_DETAIL_QUANTITY_COLUMN = 4;
+    private final int CREDIT_NOTE_DETAIL_UNIT_PRICE_COLUMN = 5;
+    private final int CREDIT_NOTE_DETAIL_EXEMPT_COLUMN = 6;
+    private final int CREDIT_NOTE_DETAIL_TAX_5_COLUMN = 7;
+    private final int CREDIT_NOTE_DETAIL_TAX_10_COLUMN = 8;
     
     private HashMap eventMap;
     private HashMap subjectMap;
@@ -482,6 +513,21 @@ public class EventShowAndEdit extends JInternalFrame{
         });
         add(invoicedButton);
         
+        ImageIcon creditNoteImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/invoice_20x20.png"));
+        createCreditNoteButton = new JButton("  Nota de Credito");
+        createCreditNoteButton.setIcon(creditNoteImageIcon);
+        createCreditNoteButton.setBounds(1250, 330, 180, 35);
+        createCreditNoteButton.setVisible(false);
+        createCreditNoteButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //invoiceRecordButtonAction();
+            }
+        });
+        add(createCreditNoteButton);
+        
+        
         //Editar Presupuesto
         ImageIcon editEventImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
         saveChangesButton = new JButton("   Guardar Cambios");
@@ -555,6 +601,9 @@ public class EventShowAndEdit extends JInternalFrame{
         //Cargamos el Tab de Facturas del Evento
         addInvoicesTabComponent(false);
         
+        //Cargamos el Tab de Notas de Credito del Evento
+        addCreditNotesTabComponent();
+        
         ChangeListener changeListener = new ChangeListener() {
         @Override
         public void stateChanged(ChangeEvent changeEvent) {
@@ -566,12 +615,14 @@ public class EventShowAndEdit extends JInternalFrame{
                     addPenaltyButton.setVisible(true);
                     paymentRecordButton.setVisible(false);
                     invoicedButton.setVisible(false);
+                    createCreditNoteButton.setVisible(false);
                     break;
                 case 1:
                     addFurnitureButton.setVisible(false);
                     addPenaltyButton.setVisible(false);
                     paymentRecordButton.setVisible(true);
                     invoicedButton.setVisible(false);
+                    createCreditNoteButton.setVisible(false);
                     break;
                 case 2:
                     addFurnitureButton.setVisible(false);
@@ -582,11 +633,21 @@ public class EventShowAndEdit extends JInternalFrame{
                     }else{
                         invoicedButton.setVisible(true);
                     }
-                    break;    
+                    createCreditNoteButton.setVisible(false);
+                    break;
+                case 3:
+                    addFurnitureButton.setVisible(false);
+                    addPenaltyButton.setVisible(false);
+                    paymentRecordButton.setVisible(false);
+                    invoicedButton.setVisible(false);
+                    createCreditNoteButton.setVisible(true);
+                    break; 
                 default:
                     addFurnitureButton.setVisible(true);
                     addPenaltyButton.setVisible(true);
                     paymentRecordButton.setVisible(false);
+                    invoicedButton.setVisible(false);
+                    createCreditNoteButton.setVisible(false);
                 
             }
           }
@@ -813,7 +874,8 @@ public class EventShowAndEdit extends JInternalFrame{
         JLabel panelTitle;
         ButtonGroup bg;
         JButton selectInvoicedTypeButton;
-        if(eventMap.get("detailedInvoice")==null){
+        
+        if(eventMap.get("detailedInvoiceString")==null){
             panelTitle = new JLabel("Seleccionar el metodo de facturacion: ");
             detailedInvoice = new JRadioButton("Detallada",false);
             conceptInvoice = new JRadioButton("Por Concepto",false);
@@ -845,8 +907,6 @@ public class EventShowAndEdit extends JInternalFrame{
             if(isUpdate){
                 invoicedButton.setVisible(true);
             }
-//            invoicesJScrollPane = (JScrollPane) tabs.getComponentAt(2);
-//            invoicesJScrollPane.removeAll();
             
             invoicesDefaultTableModel = new invoicesDefaultTableModel();
             invoicesTable = new JTable(invoicesDefaultTableModel);
@@ -951,9 +1011,6 @@ public class EventShowAndEdit extends JInternalFrame{
 //
             invoiceDetailTable.setRowHeight(22);
             invoiceDetailTable.setBorder(BorderFactory.createEtchedBorder());
-
-//            paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setCellEditor(new PaymentMethodCellEditor(ReceiptController.getPaymentMethodAvailablesForCreateReceipt(false)));
-//            paymentMethodTable.getColumnModel().getColumn(PAYMENT_METHOD_COLUMN).setCellRenderer(new PaymentMethodCellRenderer());
             
             invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_ITEM_COLUMN).setMinWidth(50);
             invoiceDetailTable.getColumnModel().getColumn(INVOICE_DETAIL_ITEM_COLUMN).setMaxWidth(50);
@@ -1014,7 +1071,7 @@ public class EventShowAndEdit extends JInternalFrame{
             eventItemsPanel.add(panel2);
 
             invoicesJScrollPane.setViewportView(eventItemsPanel);
-            
+            tabs.setComponentAt(2, invoicesJScrollPane);
             //panel.add(new JLabel("TABLAS"));
         }
         
@@ -1023,6 +1080,183 @@ public class EventShowAndEdit extends JInternalFrame{
         lab.setHorizontalAlignment(JLabel.CENTER);
         lab.setPreferredSize(new Dimension(100, 30));
         tabs.setTabComponentAt(2, lab);
+    }
+    
+    private void addCreditNotesTabComponent(){
+        
+        //TABLA DE DETALLES DE PAGOS
+        creditNotesDefaultTableModel = new CreditNotesDefaultTableModel();
+        creditNotesTable = new JTable(creditNotesDefaultTableModel);
+
+        //Alineacion a la derecha
+        DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
+        rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
+
+        //Alineacion a la derecha
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+        creditNotesDefaultTableModel.addColumn("Id");
+        creditNotesDefaultTableModel.addColumn("Fecha");
+        creditNotesDefaultTableModel.addColumn("Numero");
+        creditNotesDefaultTableModel.addColumn("Monto");
+        creditNotesDefaultTableModel.addColumn("Anulado");
+        creditNotesDefaultTableModel.addColumn("Fecha de Anulación");
+        creditNotesDefaultTableModel.addColumn("Motivo de Anulación");
+        creditNotesDefaultTableModel.addColumn("");
+        creditNotesDefaultTableModel.addColumn("");
+
+        ((DefaultTableCellRenderer)creditNotesTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+
+        creditNotesTable.setRowHeight(22);
+        creditNotesTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+            @Override
+            public void valueChanged(ListSelectionEvent event) {
+                    if(creditNotesTable.getSelectedRow()>0){
+                        //addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(creditNotesTable.getSelectedRow()));
+                    }else{
+                        //addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(0));
+                    }
+                }
+            }
+        );
+
+        //ID
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_ID_COLUMN).setMaxWidth(0);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_ID_COLUMN).setMinWidth(0);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_ID_COLUMN).setPreferredWidth(0);
+
+        //DATE
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_DATE_COLUMN).setMaxWidth(160);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_DATE_COLUMN).setMinWidth(160);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_DATE_COLUMN).setPreferredWidth(160);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_DATE_COLUMN).setCellRenderer(centerRenderer);
+
+        //NUMBER
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_NUMBER_COLUMN).setMaxWidth(160);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_NUMBER_COLUMN).setMinWidth(160);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_NUMBER_COLUMN).setPreferredWidth(160);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_NUMBER_COLUMN).setCellRenderer(centerRenderer);
+
+        //AMOUNT
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_AMOUNT_COLUMN).setMaxWidth(160);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_AMOUNT_COLUMN).setMinWidth(160);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_AMOUNT_COLUMN).setPreferredWidth(160);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_AMOUNT_COLUMN).setCellRenderer(rightRenderer);
+
+        //CANCELLED BUTTON
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setMaxWidth(130);
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setMinWidth(130);
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setPreferredWidth(130);
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setCellRenderer(new ReceiptButtonRenderer());
+//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setCellEditor(new ReceiptButtonEditor(new JTextField()));
+
+        //SHOW BUTTON
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_SHOW_BUTTON_COLUMN).setMaxWidth(90);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_SHOW_BUTTON_COLUMN).setMinWidth(90);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_SHOW_BUTTON_COLUMN).setPreferredWidth(90);
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_SHOW_BUTTON_COLUMN).setCellRenderer(new InvoiceButtonRenderer());
+        creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_SHOW_BUTTON_COLUMN).setCellEditor(new InvoiceButtonEditor(new JTextField()));
+
+        //addInvoicesToInvoiceTable(invoiceList);
+
+        creditNotesTableJScrollPane = new JScrollPane();
+        creditNotesTableJScrollPane.setViewportView(creditNotesTable);
+
+        JPanel headerPanel = new JPanel ();
+        headerPanel.setBorder (BorderFactory.createTitledBorder (BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Notas de Credito", TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
+
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setPreferredSize(new Dimension(100,30));
+        headerPanel.add(creditNotesTableJScrollPane);
+
+        //TABLA DE DETALLES PARA LA PRIMERO PESTAÑA QUE CONTENDRA LOS CARGOS DEL EVENTO
+        creditNoteDetailDefaultTableModel = new CreditNoteDetailDefaultTableModel();
+        creditNoteDetailTable = new JTable(creditNoteDetailDefaultTableModel);
+
+        creditNoteDetailDefaultTableModel.addColumn("Item");
+        creditNoteDetailDefaultTableModel.addColumn("Codigo");
+        creditNoteDetailDefaultTableModel.addColumn("Descripcion");
+        creditNoteDetailDefaultTableModel.addColumn("Tasa de Impuesto");
+        creditNoteDetailDefaultTableModel.addColumn("Cantidad");
+        creditNoteDetailDefaultTableModel.addColumn("Precio Unitario");
+        creditNoteDetailDefaultTableModel.addColumn("Exenta");
+        creditNoteDetailDefaultTableModel.addColumn("5%");
+        creditNoteDetailDefaultTableModel.addColumn("10%");
+
+        ((DefaultTableCellRenderer)creditNoteDetailTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+//
+        creditNoteDetailTable.setRowHeight(22);
+        creditNoteDetailTable.setBorder(BorderFactory.createEtchedBorder());
+
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_ITEM_COLUMN).setMinWidth(50);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_ITEM_COLUMN).setMaxWidth(50);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_ITEM_COLUMN).setPreferredWidth(50);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_ITEM_COLUMN).setCellRenderer(centerRenderer);
+
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_CODE_COLUMN).setMinWidth(80);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_CODE_COLUMN).setMaxWidth(80);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_CODE_COLUMN).setPreferredWidth(80);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_CODE_COLUMN).setCellRenderer(centerRenderer);
+
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_RATE_COLUMN).setMaxWidth(130);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_RATE_COLUMN).setPreferredWidth(130);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_RATE_COLUMN).setPreferredWidth(130);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_RATE_COLUMN).setCellRenderer(centerRenderer);
+
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_QUANTITY_COLUMN).setMaxWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_QUANTITY_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_QUANTITY_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_QUANTITY_COLUMN).setCellRenderer(rightRenderer);
+
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_UNIT_PRICE_COLUMN).setMaxWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_UNIT_PRICE_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_UNIT_PRICE_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_UNIT_PRICE_COLUMN).setCellRenderer(rightRenderer);
+
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_EXEMPT_COLUMN).setMaxWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_EXEMPT_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_EXEMPT_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_EXEMPT_COLUMN).setCellRenderer(rightRenderer);
+
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_5_COLUMN).setMaxWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_5_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_5_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_5_COLUMN).setCellRenderer(rightRenderer);
+
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_10_COLUMN).setMaxWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_10_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_10_COLUMN).setPreferredWidth(100);
+        creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_10_COLUMN).setCellRenderer(rightRenderer);
+
+//        if(!invoiceList.isEmpty()){
+//            addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(0));
+//        }
+
+        creditNoteDetailTableJScrollPane = new JScrollPane();
+        creditNoteDetailTableJScrollPane.setViewportView(creditNoteDetailTable);
+
+        JPanel panel2 = new JPanel ();
+        panel2.setBorder (BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(79, 135, 155), 1), "Detalles" , TitledBorder.CENTER, TitledBorder.TOP, new Font(Font.DIALOG, Font.BOLD, 16)));
+        panel2.setPreferredSize(new Dimension(100,30));
+        panel2.setLayout(new BoxLayout(panel2, BoxLayout.Y_AXIS));
+        panel2.add(creditNoteDetailTableJScrollPane);
+        
+        JPanel creditNotesPanel=new JPanel();
+        creditNotesPanel.setLayout(new BoxLayout(creditNotesPanel, BoxLayout.Y_AXIS));        
+        creditNotesPanel.add(headerPanel);
+        creditNotesPanel.add(panel2);
+        
+        JScrollPane creditNotesJScrollPane = new JScrollPane();
+        creditNotesJScrollPane.setViewportView(creditNotesPanel);
+        tabs.addTab("", creditNotesJScrollPane);
+        
+        //AÑADIMOS UN NOMBRE A LA PESTAÑA DOS
+        JLabel lab = new JLabel("Notas de Credito");
+        lab.setHorizontalAlignment(JLabel.CENTER);
+        lab.setPreferredSize(new Dimension(100, 30));
+        tabs.setTabComponentAt(3, lab);
+        
     }
     
     private void saveInvoicedTypeSelected(){
@@ -1035,7 +1269,7 @@ public class EventShowAndEdit extends JInternalFrame{
             if(respuesta == JOptionPane.YES_OPTION){
                 mapReturn = eventController.updateInvoicedType(eventId, true);
                 if((Integer) mapReturn.get("status") == ReceiptController.SUCCESFULLY_SAVED){
-                    eventMap.put("detailedInvoice", true);
+                    eventMap.put("detailedInvoiceString", "true");
                     addInvoicesTabComponent(true);
                 }else if((Integer)mapReturn.get("status") == ReceiptController.ERROR_IN_SAVED){
                     JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
@@ -1048,7 +1282,7 @@ public class EventShowAndEdit extends JInternalFrame{
             if(respuesta == JOptionPane.YES_OPTION){
                 mapReturn = eventController.updateInvoicedType(eventId, false);
                 if((Integer) mapReturn.get("status") == ReceiptController.SUCCESFULLY_SAVED){
-                    eventMap.put("detailedInvoice", false);
+                    eventMap.put("detailedInvoiceString", "false");
                     addInvoicesTabComponent(true);
                 }else if((Integer)mapReturn.get("status") == ReceiptController.ERROR_IN_SAVED){
                     JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
@@ -1174,6 +1408,11 @@ public class EventShowAndEdit extends JInternalFrame{
         eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_ID_COLUMN).setMaxWidth(0);
         eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_ID_COLUMN).setMinWidth(0);
         eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_ID_COLUMN).setPreferredWidth(0);
+        
+        //DESCRIPTION
+        eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_DESCRIPTION_COLUMN).setMaxWidth(350);
+        eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_DESCRIPTION_COLUMN).setMinWidth(270);
+        eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_DESCRIPTION_COLUMN).setPreferredWidth(350);
         
         //CODE
         eventDetailpenaltyTable.getColumnModel().getColumn(PENALTY_CODE_COLUMN_CHARGES).setMaxWidth(60);
@@ -1474,6 +1713,8 @@ public class EventShowAndEdit extends JInternalFrame{
             Vector dataVector;
             double netTotal = 0;
             double balanceTotal = 0;
+            double billableBalanceTotal = 0;
+            double invoicedTotal = 0;
             try {
             
                 for (int row = 0; row < eventDetailTable.getRowCount(); row++){
@@ -1506,12 +1747,14 @@ public class EventShowAndEdit extends JInternalFrame{
 
                 netTotal = amountFormat.parse(totalTextField.getText()).doubleValue();
                 balanceTotal = amountFormat.parse(balanceTotalTextField.getText()).doubleValue();
+                invoicedTotal = amountFormat.parse(invoicedTotalTextField.getText()).doubleValue();
+                billableBalanceTotal = balanceTotal - invoicedTotal;
             
             } catch (ParseException ex) {
                 Logger.getLogger(EventCreate.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            HashMap returnMap = eventController.updateEventConfirmed(subjectMap, eventMap, status, placeOfDelivery, observation, furnitureList, penaltyFurnitureList, netTotal, balanceTotal);
+            HashMap returnMap = eventController.updateEventConfirmed(subjectMap, eventMap, status, placeOfDelivery, observation, furnitureList, penaltyFurnitureList, netTotal, balanceTotal, billableBalanceTotal);
             if(((Integer)returnMap.get("status"))==EventController.SUCCESFULLY_SAVED){
                 JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
                 doDefaultCloseAction();
@@ -1661,10 +1904,7 @@ public class EventShowAndEdit extends JInternalFrame{
             @Override
             public void internalFrameClosed(InternalFrameEvent e) {
                 activateElements();
-                //updateReceiptsTable();
-//                if(!searchController.getFurnitureSelectedCode().isEmpty()){
-//                    addFuritureSelectedToDetailTable(searchController.getFurnitureSelectedCode());
-//                }
+                updateInvoicesTable();
             }
 
             @Override
@@ -1687,6 +1927,14 @@ public class EventShowAndEdit extends JInternalFrame{
         addReceiptsToReceiptTable(receiptList);
         if(!receiptList.isEmpty()){
             addPaymentsToReceiptTable((HashMap)receiptList.get(0));
+        }
+    }
+    
+    private void updateInvoicesTable(){
+        invoiceList = InvoiceController.getInvoicesByEventId(eventId);
+        addInvoicesToInvoiceTable(invoiceList);
+        if(!invoiceList.isEmpty()){
+            addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(0));
         }
     }
     
@@ -2216,6 +2464,7 @@ public class EventShowAndEdit extends JInternalFrame{
         placeOfDeliveryTextArea.setEnabled(false);
         observationTextArea.setEnabled(false);
         invoicedButton.setEnabled(false);
+        createCreditNoteButton.setEnabled(false);
         getContentPane().getComponents()[0].setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     }
     
@@ -2237,6 +2486,7 @@ public class EventShowAndEdit extends JInternalFrame{
         placeOfDeliveryTextArea.setEnabled(true);
         observationTextArea.setEnabled(true);
         invoicedButton.setEnabled(true);
+        createCreditNoteButton.setEnabled(true);
     }
     
     private class eventDetailDefaultTableModel extends DefaultTableModel{
@@ -2303,7 +2553,7 @@ public class EventShowAndEdit extends JInternalFrame{
             switch(column){
                 case INVOICE_CANCELLED_BUTTON_COLUMN:
                     boolean cancelled = false;
-                    if(receiptDefaultTableModel.getValueAt(row, INVOICE_CANCELLED_COLUMN).toString().equals("SI")){
+                    if(invoicesDefaultTableModel.getValueAt(row, INVOICE_CANCELLED_COLUMN).toString().equals("SI")){
                         cancelled = Boolean.TRUE;
                     }
                     return !cancelled;
@@ -2315,7 +2565,39 @@ public class EventShowAndEdit extends JInternalFrame{
         
     }
     
+    private class CreditNotesDefaultTableModel extends DefaultTableModel{
+        
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            //int rows;
+            switch(column){
+                case CREDIT_NOTE_CANCELLED_BUTTON_COLUMN:
+                    boolean cancelled = false;
+                    if(creditNotesDefaultTableModel.getValueAt(row, CREDIT_NOTE_CANCELLED_COLUMN).toString().equals("SI")){
+                        cancelled = Boolean.TRUE;
+                    }
+                    return !cancelled;
+                case CREDIT_NOTE_SHOW_BUTTON_COLUMN:
+                    return true;
+                default:    return false;
+            }
+        }
+        
+    }
+    
     private class paymentDetailDefaultTableModel extends DefaultTableModel{
+         
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            //int rows;
+            switch(column){
+                default:    return false;
+            }
+        }
+           
+    }
+    
+    private class CreditNoteDetailDefaultTableModel extends DefaultTableModel{
          
         @Override
         public boolean isCellEditable(int row, int column) {

@@ -6,11 +6,15 @@
 
 package rentfur.invoice;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -22,9 +26,12 @@ import java.util.Properties;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
@@ -40,6 +47,7 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
@@ -48,7 +56,9 @@ import rentfur.book.BookController;
 import rentfur.event.EventController;
 import rentfur.furniture.FurnitureController;
 import rentfur.subject.SubjectController;
+import rentfur.util.ComboBoxItem;
 import rentfur.util.DateLabelFormatter;
+import rentfur.util.NumericTextField;
 import rentfur.util.searches.FurnitureInvoiceSearch;
 import rentfur.util.searches.SearchController;
 
@@ -111,6 +121,7 @@ public class InvoiceCreate extends JInternalFrame{
     private final DefaultTableModel invoiceDetailDefaultTableModel;
     private final JScrollPane invoiceDetailTableJScrollPane;
     private final DecimalFormat amountFormat = new DecimalFormat("#,###");
+    private final DecimalFormat amountFormatTax = new DecimalFormat("#,###.##");
     
     private final int ITEM_COLUMN = 0;
     private final int CODE_COLUMN = 1;
@@ -130,6 +141,8 @@ public class InvoiceCreate extends JInternalFrame{
     private final HashMap subjectMap;
     private final HashMap invoiceNumMap;
     
+    private boolean detailedInvoice = true;
+    
     private static final double TAX5 = 21;
     private static final double TAX10 = 11;
     
@@ -145,6 +158,7 @@ public class InvoiceCreate extends JInternalFrame{
         eventMap = EventController.getEventById(eventId);
         subjectMap = SubjectController.getSubjectByCode(eventMap.get("subjectCode").toString());
         invoiceNumMap = BookController.getInvoicetNum();
+        detailedInvoice = (Boolean) eventMap.get("detailedInvoice");
         
         titleLabel = new JLabel("<HTML><U>Factura</U></HTML>");
         titleLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 25));
@@ -333,7 +347,13 @@ public class InvoiceCreate extends JInternalFrame{
                 addDetailsButtonAction();
             }
         });
-        addFurnituresButton.setText(" Seleccionar Detalles");
+        
+        if(detailedInvoice){
+            addFurnituresButton.setText(" Seleccionar Detalles");
+        }else{
+            addFurnituresButton.setText(" Agregar Detalle");
+        }
+        
         invoiceCreatePanel.add(addFurnituresButton);
         
         invoiceDetailDefaultTableModel = new InvoiceDetailDefaultTableModel();
@@ -402,17 +422,25 @@ public class InvoiceCreate extends JInternalFrame{
         invoiceDetailTable.getColumnModel().getColumn(TAX_RATE_COLUMN).setMaxWidth(130);
         invoiceDetailTable.getColumnModel().getColumn(TAX_RATE_COLUMN).setPreferredWidth(130);
         invoiceDetailTable.getColumnModel().getColumn(TAX_RATE_COLUMN).setPreferredWidth(130);
-        invoiceDetailTable.getColumnModel().getColumn(TAX_RATE_COLUMN).setCellRenderer(centerRenderer);
-        
+        ComboBoxItem[] taxRateComboBox;
+        if(detailedInvoice){
+            invoiceDetailTable.getColumnModel().getColumn(TAX_RATE_COLUMN).setCellRenderer(centerRenderer);
+        }else{
+            taxRateComboBox = FurnitureController.getFurnitureTaxRatesForComboBox(false);
+            invoiceDetailTable.getColumnModel().getColumn(TAX_RATE_COLUMN).setCellEditor(new TaxRateCellEditor(taxRateComboBox));
+            invoiceDetailTable.getColumnModel().getColumn(TAX_RATE_COLUMN).setCellRenderer(new TaxRateCellRenderer());
+        }
         invoiceDetailTable.getColumnModel().getColumn(QUANTITY_COLUMN).setMaxWidth(100);
         invoiceDetailTable.getColumnModel().getColumn(QUANTITY_COLUMN).setPreferredWidth(100);
         invoiceDetailTable.getColumnModel().getColumn(QUANTITY_COLUMN).setPreferredWidth(100);
-        invoiceDetailTable.getColumnModel().getColumn(QUANTITY_COLUMN).setCellRenderer(rightRenderer);
+        invoiceDetailTable.getColumnModel().getColumn(QUANTITY_COLUMN).setCellEditor(new QuantityCellEditor());
+        invoiceDetailTable.getColumnModel().getColumn(QUANTITY_COLUMN).setCellRenderer(new QuantityCellRenderer());
         
         invoiceDetailTable.getColumnModel().getColumn(UNIT_PRICE_COLUMN).setMaxWidth(100);
         invoiceDetailTable.getColumnModel().getColumn(UNIT_PRICE_COLUMN).setPreferredWidth(100);
         invoiceDetailTable.getColumnModel().getColumn(UNIT_PRICE_COLUMN).setPreferredWidth(100);
-        invoiceDetailTable.getColumnModel().getColumn(UNIT_PRICE_COLUMN).setCellRenderer(rightRenderer);
+        invoiceDetailTable.getColumnModel().getColumn(UNIT_PRICE_COLUMN).setCellEditor(new UnitPriceCellEditor());
+        invoiceDetailTable.getColumnModel().getColumn(UNIT_PRICE_COLUMN).setCellRenderer(new UnitPriceCellRenderer());
         
         invoiceDetailTable.getColumnModel().getColumn(TAX_5_COLUMN).setMaxWidth(100);
         invoiceDetailTable.getColumnModel().getColumn(TAX_5_COLUMN).setPreferredWidth(100);
@@ -551,65 +579,106 @@ public class InvoiceCreate extends JInternalFrame{
     
     private void addDetailsButtonAction(){
         int eventId = Integer.valueOf(eventMap.get("id").toString());
-        ArrayList furnitureDetailList = (ArrayList) eventMap.get("detail");
-        furnitureDetailList.addAll((ArrayList) eventMap.get("penaltyDetail"));
-        furnitureInvoiceSearch = searchController.getInvoiceFurnitureSearch(eventId, furnitureDetailList, furnitureCodesAdded);
-        furnitureInvoiceSearch.setVisible(true);
-        showSearchDialog(furnitureInvoiceSearch);
-        inactivateElements();
-        furnitureInvoiceSearch.addInternalFrameListener(new InternalFrameListener() {
+        ArrayList furnitureDetailList;
+        
+        if(detailedInvoice){
+            furnitureDetailList = (ArrayList) eventMap.get("detail");
+            furnitureDetailList.addAll((ArrayList) eventMap.get("penaltyDetail"));
+            furnitureInvoiceSearch = searchController.getInvoiceFurnitureSearch(eventId, furnitureDetailList, furnitureCodesAdded);
+            furnitureInvoiceSearch.setVisible(true);
+            showSearchDialog(furnitureInvoiceSearch);
+            inactivateElements();
+            furnitureInvoiceSearch.addInternalFrameListener(new InternalFrameListener() {
 
-            @Override
-            public void internalFrameOpened(InternalFrameEvent e) {}
+                @Override
+                public void internalFrameOpened(InternalFrameEvent e) {}
 
-            @Override
-            public void internalFrameClosing(InternalFrameEvent e) {}
+                @Override
+                public void internalFrameClosing(InternalFrameEvent e) {}
 
-            @Override
-            public void internalFrameClosed(InternalFrameEvent e) {
-                activateElements();
-                if(!searchController.getFurnitureInvoicedCodes().isEmpty()){
-                    addFuritureSelectedToDetailTable(searchController.getFurnitureInvoicedCodes());
+                @Override
+                public void internalFrameClosed(InternalFrameEvent e) {
+                    activateElements();
+                    if(!searchController.getFurnitureInvoicedCodes().isEmpty()){
+                        addFuritureSelectedToDetailTable(searchController.getFurnitureInvoicedCodes());
+                    }
+                }
+
+                @Override
+                public void internalFrameIconified(InternalFrameEvent e) {}
+
+                @Override
+                public void internalFrameDeiconified(InternalFrameEvent e) {}
+
+                @Override
+                public void internalFrameActivated(InternalFrameEvent e) {}
+
+                @Override
+                public void internalFrameDeactivated(InternalFrameEvent e) {}
+            });
+        }else{
+            Object[] row = new Object[invoiceDetailDefaultTableModel.getColumnCount()];
+            ComboBoxItem[] taxRateComboBox;
+            ComboBoxItem taxRateComboBoxItem = null;
+            int rowNum = invoiceDetailDefaultTableModel.getRowCount()+1;
+            for(int i = 0; i < invoiceDetailDefaultTableModel.getColumnCount(); i++){
+                if( i == QUANTITY_COLUMN || i == UNIT_PRICE_COLUMN || i == EXEMPT_COLUMN || i == TAX_5_COLUMN || i == TAX_10_COLUMN || i == SUB_TOTAL_COLUMN){
+                    row[i] = "0";
+                }else if(i == TAX_RATE_COLUMN){
+                    taxRateComboBox = FurnitureController.getFurnitureTaxRatesForComboBox(false);
+                    taxRateComboBoxItem = null;
+                    for(int j=0; j<taxRateComboBox.length; j++){
+                        taxRateComboBoxItem = taxRateComboBox[j];
+                        if(taxRateComboBoxItem.getKey().equals("10")){
+                            break;
+                        }
+                    }
+                    row[TAX_RATE_COLUMN] = taxRateComboBoxItem;
+                }else if( i == ITEM_COLUMN){
+                    row[i] = rowNum;
+                }else{
+                    row[i] = "";
                 }
             }
-
-            @Override
-            public void internalFrameIconified(InternalFrameEvent e) {}
-
-            @Override
-            public void internalFrameDeiconified(InternalFrameEvent e) {}
-
-            @Override
-            public void internalFrameActivated(InternalFrameEvent e) {}
-
-            @Override
-            public void internalFrameDeactivated(InternalFrameEvent e) {}
-        });
-        
+            invoiceDetailDefaultTableModel.addRow(row);
+        }
     }
     
     private void saveInvoiceButtonAction(){
-        JOptionPane optionPane;
-        JDialog dialog;
-        if (invoiceDetailTable.isEditing()){
-            invoiceDetailTable.getCellEditor().stopCellEditing();
-        }
-        
-        if(invoiceDetailTable.getRowCount()==0){
-            optionPane = new JOptionPane("No ha sido agregado ningun detalle (item)", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
-            dialog = optionPane.createDialog(this, "Atencion!");
-            dialog.setVisible(true);
-        }else{
-            Date invoceDate = (Date) datePicker.getModel().getValue();
-            HashMap detailMap;
-            ArrayList invoiceDetailList = new ArrayList();
-            Vector dataVector;
-            double netTotal = 0;
-            double exemptTotal = 0, tax05total = 0, tax10total = 0, taxTotal = 0, taxted05total = 0, taxted10total = 0;
-            String observation = observationTextArea.getText();
-            int eventId = Integer.valueOf(eventMap.get("id").toString());
-            try {
-            
+        try {
+            JOptionPane optionPane;
+            JDialog dialog;
+            double billableBalance = (Double) eventMap.get("billableBalance");
+            double netTotal = amountFormat.parse(totalTextField.getText()).doubleValue();
+            if (invoiceDetailTable.isEditing()){
+                invoiceDetailTable.getCellEditor().stopCellEditing();
+            }
+
+            if(invoiceDetailTable.getRowCount()==0){
+                optionPane = new JOptionPane("No ha sido agregado ningun detalle (item)", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+                dialog = optionPane.createDialog(this, "Atencion!");
+                dialog.setVisible(true);
+            }else if(!allQuantityAdded()){
+                optionPane = new JOptionPane("Existen detalles con cantidad y/0 precio 0 (Cero). Favor ingrese correctamente todos los valores necesarios.", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+                dialog = optionPane.createDialog(this, "Atencion!");
+                dialog.setVisible(true);
+            }else if(!allConceptAdded()){
+                optionPane = new JOptionPane("Existen detalles sin concepto. Favor ingrese correctamente todos los valores necesarios.", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+                dialog = optionPane.createDialog(this, "Atencion!");
+                dialog.setVisible(true);
+            }else if(netTotal > billableBalance){
+                optionPane = new JOptionPane("El total de la factura supera al total facturable del evento de Gs. "+amountFormat.format(billableBalance)+".", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+                dialog = optionPane.createDialog(this, "Atencion!");
+                dialog.setVisible(true);
+            }else{
+                Date invoceDate = (Date) datePicker.getModel().getValue();
+                HashMap detailMap;
+                ArrayList invoiceDetailList = new ArrayList();
+                Vector dataVector;
+                double exemptTotal = 0, tax05total = 0, tax10total = 0, taxTotal = 0, taxted05total = 0, taxted10total = 0;
+                String observation = observationTextArea.getText();
+                int eventId = Integer.valueOf(eventMap.get("id").toString());
+
                 for (int row = 0; row < invoiceDetailTable.getRowCount(); row++){
                     dataVector = (Vector) invoiceDetailDefaultTableModel.getDataVector().get(row);
                     detailMap = new HashMap();
@@ -623,11 +692,11 @@ public class InvoiceCreate extends JInternalFrame{
                     detailMap.put("tax5Amount", amountFormat.parse(dataVector.get(TAX_5_COLUMN).toString()).doubleValue());
                     detailMap.put("tax10Amount", amountFormat.parse(dataVector.get(TAX_10_COLUMN).toString()).doubleValue());
                     detailMap.put("totalAmount", amountFormat.parse(dataVector.get(SUB_TOTAL_COLUMN).toString()).doubleValue());
-                    detailMap.put("taxAmount", Double.valueOf(dataVector.get(TAX_AMOUNT_COLUMN).toString()));
+                    detailMap.put("taxAmount", amountFormatTax.parse(dataVector.get(TAX_AMOUNT_COLUMN).toString()).doubleValue());
                     detailMap.put("eventDetailId", dataVector.get(EVENT_DETAIL_ID_COLUMN).toString());
                     invoiceDetailList.add(detailMap);
                 }
-                
+
                 netTotal = amountFormat.parse(totalTextField.getText()).doubleValue();
                 exemptTotal = amountFormat.parse(exemptTotalTextField.getText()).doubleValue();
                 tax05total = amountFormat.parse(tax5TextField.getText()).doubleValue();
@@ -635,19 +704,111 @@ public class InvoiceCreate extends JInternalFrame{
                 taxTotal = amountFormat.parse(totalTaxTextField.getText()).doubleValue();
                 taxted05total = amountFormat.parse(total5TextField.getText()).doubleValue();
                 taxted10total = amountFormat.parse(total10TextField.getText()).doubleValue();
-                        
-            } catch (ParseException ex) {
-                Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, ex);
+
+                HashMap returnMap = invoiceController.createInvoice(subjectMap, invoiceDetailList, invoceDate, eventId, invoiceNumMap, netTotal, exemptTotal, tax05total, tax10total, taxTotal, taxted05total, taxted10total, observation, detailedInvoice);
+
+                if(((Integer)returnMap.get("status"))==InvoiceController.SUCCESFULLY_SAVED){
+                    JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
+                    doDefaultCloseAction();
+                }else if((Integer)returnMap.get("status") == InvoiceController.ERROR_IN_SAVED){
+                    JOptionPane.showMessageDialog(null, returnMap.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        } catch (ParseException ex) {
+            Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void updateValues(int row, String taxRateString, double unitPrice, double quantity){
+        try {
+            double taxRate = 0;
+            if(taxRateString.equals("")){
+                taxRate = amountFormat.parse(invoiceDetailDefaultTableModel.getValueAt(row, TAX_RATE_COLUMN).toString()).doubleValue();
+            }else{
+                taxRate = Double.valueOf(taxRateString);
+            }
+                
+            if(unitPrice == 0){
+                unitPrice = amountFormat.parse(invoiceDetailDefaultTableModel.getValueAt(row, UNIT_PRICE_COLUMN).toString()).doubleValue();
             }
             
-            HashMap returnMap = invoiceController.createInvoice(subjectMap, invoiceDetailList, invoceDate, eventId, invoiceNumMap, netTotal, exemptTotal, tax05total, tax10total, taxTotal, taxted05total, taxted10total, observation);
-            
-            if(((Integer)returnMap.get("status"))==InvoiceController.SUCCESFULLY_SAVED){
-                JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
-                doDefaultCloseAction();
-            }else if((Integer)returnMap.get("status") == InvoiceController.ERROR_IN_SAVED){
-                JOptionPane.showMessageDialog(null, returnMap.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+            if(quantity == 0){
+                quantity = amountFormat.parse(invoiceDetailDefaultTableModel.getValueAt(row, QUANTITY_COLUMN).toString()).doubleValue();
             }
+            
+            //SubTotal
+            double oldSubTotal = amountFormat.parse(invoiceDetailDefaultTableModel.getValueAt(row, SUB_TOTAL_COLUMN).toString()).doubleValue();
+            
+            double subTotal = quantity * unitPrice;
+            
+            invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(subTotal), row, SUB_TOTAL_COLUMN);
+            
+            //TOTAL
+            double total = amountFormat.parse(totalTextField.getText()).doubleValue();
+            total = (total - oldSubTotal) + subTotal;
+            totalTextField.setText(amountFormat.format(total));
+            
+            //Item tax
+            String furnitureTaxRateString = invoiceDetailDefaultTableModel.getValueAt(row, TAX_RATE_COLUMN).toString();
+            switch (furnitureTaxRateString) {
+                case "0":
+                    invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(subTotal), row, EXEMPT_COLUMN);
+                    invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(new Double("0")), row, TAX_5_COLUMN);
+                    invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(new Double("0")), row, TAX_10_COLUMN);
+                    break;
+                case "5":
+                    invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(new Double("0")), row, EXEMPT_COLUMN);
+                    invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(subTotal), row, TAX_5_COLUMN);
+                    invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(new Double("0")), row, TAX_10_COLUMN);
+                    break;
+                case "10":
+                    invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(new Double("0")), row, EXEMPT_COLUMN);
+                    invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(new Double("0")), row, TAX_5_COLUMN);
+                    invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(subTotal), row, TAX_10_COLUMN);
+                    break;
+            }
+            
+            //CERAMOS subTotal para reutilizar, solo para dejar constancia y no confundir
+            subTotal = 0; 
+            
+            Vector dataVector;
+            double total5 = 0 , total10 = 0, exemptTotal = 0, totalTax5 = 0, totalTax10 = 0, totalTax = 0;
+            
+            for (int i = 0; i < invoiceDetailTable.getRowCount(); i++){
+                dataVector = (Vector) invoiceDetailDefaultTableModel.getDataVector().get(i);
+                dataVector.get(TAX_RATE_COLUMN);
+                subTotal = amountFormat.parse(dataVector.get(SUB_TOTAL_COLUMN).toString()).doubleValue();
+                switch (dataVector.get(TAX_RATE_COLUMN).toString()) {
+                    case "0":
+                        exemptTotal = exemptTotal + subTotal;
+                        invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(new Double("0")), i, TAX_AMOUNT_COLUMN);
+                        break;
+                    case "5":
+                        total5 = total5 + subTotal;
+                        totalTax5 = totalTax5 + (new BigDecimal(subTotal / TAX5).setScale(2, RoundingMode.CEILING).doubleValue());
+                        totalTax = totalTax + (new BigDecimal(subTotal / TAX5).setScale(2, RoundingMode.CEILING).doubleValue());
+                        invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(new BigDecimal(subTotal / TAX5).setScale(2, RoundingMode.CEILING).doubleValue()), i, TAX_AMOUNT_COLUMN);
+                        break;
+                    case "10":
+                        total10 = total10 + subTotal;
+                        totalTax10 = totalTax10 + (new BigDecimal(subTotal / TAX10).setScale(2, RoundingMode.CEILING).doubleValue());
+                        totalTax = totalTax + (new BigDecimal(subTotal / TAX10).setScale(2, RoundingMode.CEILING).doubleValue());
+                        invoiceDetailDefaultTableModel.setValueAt(amountFormat.format(new BigDecimal(subTotal / TAX10).setScale(2, RoundingMode.CEILING).doubleValue()), i, TAX_AMOUNT_COLUMN);
+                        break;
+                }
+            }
+            //SUBTOTALES
+            total5TextField.setText(amountFormat.format(total5));
+            total10TextField.setText(amountFormat.format(total10));
+            exemptTotalTextField.setText(amountFormat.format(exemptTotal));
+            
+            //LIQUIDACION IVA
+            tax5TextField.setText(amountFormat.format(totalTax5));
+            tax10TextField.setText(amountFormat.format(totalTax10));
+            totalTaxTextField.setText(amountFormat.format(totalTax));
+            
+        } catch (ParseException ex) {
+            Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -746,6 +907,37 @@ public class InvoiceCreate extends JInternalFrame{
             invoiceDetailDefaultTableModel.setValueAt(i, (i-1), ITEM_COLUMN);
         }
         
+    }
+    
+    private boolean allQuantityAdded(){
+        Vector dataVector;
+        try {
+            for (int row = 0; row < invoiceDetailTable.getRowCount(); row++){
+               dataVector = (Vector) invoiceDetailDefaultTableModel.getDataVector().get(row);
+                   if(amountFormat.parse(dataVector.get(QUANTITY_COLUMN).toString()).intValue()==0 || 
+                           amountFormat.parse(dataVector.get(UNIT_PRICE_COLUMN).toString()).intValue()==0){
+                       return false;
+                   }
+           }
+        } catch (ParseException ex) {
+            Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return true;
+    }
+    
+    private boolean allConceptAdded(){
+        Vector dataVector;
+        try {
+            for (int row = 0; row < invoiceDetailTable.getRowCount(); row++){
+               dataVector = (Vector) invoiceDetailDefaultTableModel.getDataVector().get(row);
+                   if(dataVector.get(DESCRIPTION_COLUMN).toString().equals("")){
+                       return false;
+                   }
+           }
+        } catch (Throwable th) {
+            Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, th);
+        }
+        return true;
     }
     
     private void removeRow(int row) throws ParseException{
@@ -856,6 +1048,14 @@ public class InvoiceCreate extends JInternalFrame{
         @Override
         public boolean isCellEditable(int row, int column) {
             switch(column){
+                case DESCRIPTION_COLUMN:
+                    return !detailedInvoice;
+                case UNIT_PRICE_COLUMN:
+                    return !detailedInvoice;
+                case QUANTITY_COLUMN:
+                    return !detailedInvoice;
+                case TAX_RATE_COLUMN:
+                    return !detailedInvoice;                    
                 case DELETE_COLUMN:
                     return true;
                 default:    return false;
@@ -942,4 +1142,245 @@ public class InvoiceCreate extends JInternalFrame{
             }
         }
       }
+    
+    class QuantityCellEditor extends AbstractCellEditor implements TableCellEditor {
+
+        JComponent component = new NumericTextField(20, amountFormat);
+        int row;
+        int column;        
+        
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
+            int rowIndex, int vColIndex) {
+            
+            this.row = rowIndex;
+            this.column = vColIndex;
+            ((NumericTextField) this.component).addKeyListener(new KeyListener() {
+
+                     @Override
+                     public void keyTyped(KeyEvent e) {
+                         
+                     }
+
+                     @Override
+                     public void keyPressed(KeyEvent e) {
+                     }
+
+                     @Override
+                     public void keyReleased(KeyEvent e) {
+                         update(e);
+                     }
+                     
+                     public void update(KeyEvent e){
+                         String texto = ((NumericTextField) component).getText();
+                         texto = texto.replaceAll("\\.", "");
+                         if(e.getKeyChar()!=','){
+                            texto = texto.replaceAll(",", ".");
+                            if(!texto.isEmpty()){
+                                ((NumericTextField) component).setValue(Double.valueOf(texto));
+                            }
+                         }
+                     }
+                 });
+            
+            try {
+                ((NumericTextField) this.component).setValue(amountFormat.parse(value.toString()));
+            } catch (ParseException ex) {
+                Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, ex);
+            }
+           
+            return component;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            try {
+
+                String newQuantityString = ((JTextField) component).getText();
+                if(newQuantityString.equals("")){
+                    newQuantityString = "0";
+                }
+                double newQuantity = amountFormat.parse(newQuantityString).doubleValue();
+                ((JTextField) component).setText(amountFormat.format(newQuantity));
+                updateValues(row, "", 0, newQuantity);
+            } catch (HeadlessException | ParseException th) {
+                Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, th);
+            }
+            return ((JTextField) component).getText();
+        }
+
+    }
+    
+    class QuantityCellRenderer extends JTextField implements TableCellRenderer {
+
+        public QuantityCellRenderer() {
+            setOpaque(true);
+            setBackground(new Color(237, 247, 243));
+            setHorizontalAlignment(JLabel.RIGHT);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+            setToolTipText("Cantidad");
+            setHorizontalAlignment(JLabel.RIGHT);
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
+    
+    class UnitPriceCellEditor extends AbstractCellEditor implements TableCellEditor {
+
+        JComponent component = new NumericTextField(20, amountFormat);
+        int row;
+        int column;        
+        
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
+            int rowIndex, int vColIndex) {
+            
+            this.row = rowIndex;
+            this.column = vColIndex;
+            ((NumericTextField) this.component).addKeyListener(new KeyListener() {
+
+                     @Override
+                     public void keyTyped(KeyEvent e) {
+                         
+                     }
+
+                     @Override
+                     public void keyPressed(KeyEvent e) {
+                     }
+
+                     @Override
+                     public void keyReleased(KeyEvent e) {
+                         update(e);
+                     }
+                     
+                     public void update(KeyEvent e){
+                         String texto = ((NumericTextField) component).getText();
+                         texto = texto.replaceAll("\\.", "");
+                         if(e.getKeyChar()!=','){
+                            texto = texto.replaceAll(",", ".");
+                            if(!texto.isEmpty()){
+                                ((NumericTextField) component).setValue(Double.valueOf(texto));
+                            }
+                         }
+                     }
+                 });
+            
+            try {
+                ((NumericTextField) this.component).setValue(amountFormat.parse(value.toString()));
+            } catch (ParseException ex) {
+                Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, ex);
+            }
+           
+            return component;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            try {
+
+                String newQuantityString = ((JTextField) component).getText();
+                if(newQuantityString.equals("")){
+                    newQuantityString = "0";
+                }
+                double newPrice = amountFormat.parse(newQuantityString).doubleValue();
+                ((JTextField) component).setText(amountFormat.format(newPrice));
+                updateValues(row, "", newPrice, 0);
+            } catch (HeadlessException | ParseException th) {
+                Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, th);
+            }
+            return ((JTextField) component).getText();
+        }
+
+    }
+    
+    class UnitPriceCellRenderer extends JTextField implements TableCellRenderer {
+
+        public UnitPriceCellRenderer() {
+            setOpaque(true);
+            setBackground(new Color(227, 231, 249));
+            setHorizontalAlignment(JLabel.RIGHT);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+            setToolTipText("Precio");
+            setHorizontalAlignment(JLabel.RIGHT);
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
+    
+    public class TaxRateCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            if (value instanceof ComboBoxItem) {
+                ComboBoxItem paymentMethod = (ComboBoxItem) value;
+                setText(paymentMethod.getValue());
+            }
+
+            if (isSelected) {
+                setBackground(table.getSelectionBackground());
+            } else {
+                setBackground(table.getSelectionForeground());
+            }
+
+            return this;
+        }
+    }
+      
+    public class TaxRateCellEditor extends AbstractCellEditor
+        implements TableCellEditor, ActionListener {
+        private ComboBoxItem item;
+        private final ComboBoxItem[] items;
+        private int row;
+
+        public TaxRateCellEditor(ComboBoxItem[] items) {
+            this.items = items;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return this.item;
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            this.row = row;
+            if (value instanceof ComboBoxItem) {
+                this.item = (ComboBoxItem) value;
+            }
+
+            JComboBox<ComboBoxItem> taxRateComboBox = new JComboBox<>();
+
+            for (ComboBoxItem taxRate : items) {
+                taxRateComboBox.addItem(taxRate);
+            }
+
+            taxRateComboBox.setSelectedItem(item);
+            taxRateComboBox.addActionListener(this);
+
+            if (isSelected) {
+                taxRateComboBox.setBackground(table.getSelectionBackground());
+            } else {
+                taxRateComboBox.setBackground(table.getSelectionForeground());
+            }
+            
+            return taxRateComboBox;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+            JComboBox<ComboBoxItem> taxRateItem = (JComboBox<ComboBoxItem>) event.getSource();
+            this.item = (ComboBoxItem) taxRateItem.getSelectedItem();
+            fireEditingStopped();
+            updateValues(row, this.item.getKey(), 0, 0);
+        }
+    }
 }

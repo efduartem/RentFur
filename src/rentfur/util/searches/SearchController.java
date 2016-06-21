@@ -386,6 +386,7 @@ public class SearchController {
                 furnituresResultDefaultTableModel.addColumn("Id");
                 furnituresResultDefaultTableModel.addColumn("Código");
                 furnituresResultDefaultTableModel.addColumn("ID");
+                furnituresResultDefaultTableModel.addColumn("Sub Total");
             }
             
             int numeroRegistrosTablaPermisos=0;
@@ -399,6 +400,7 @@ public class SearchController {
                 HashMap resultValueMap;
                 HashMap furnituresAddedMap = new HashMap();
                 int oldQuantity;
+                double subTotal = 0;
                 Object[] row;
                 for(int rowNumber = 0; rowNumber < furnitureEventList.size(); rowNumber++){
 
@@ -420,13 +422,17 @@ public class SearchController {
                             row[3] = amountFormat.format((Double)resultValueMap.get("taxRate"));
                             if((Boolean)resultValueMap.get("penalty")){
                                 row[4] = amountFormat.format((Double)resultValueMap.get("fineAmountPerUnit"));
+                                subTotal = (Double)resultValueMap.get("fineAmountPerUnit") * (Integer)resultValueMap.get("quantity");
                             }else{
                                 row[4] = amountFormat.format((Double)resultValueMap.get("unitPrice"));
+                                subTotal = (Double)resultValueMap.get("unitPrice") * (Integer)resultValueMap.get("quantity");
                             }
                             row[5] = amountFormat.format((Integer)resultValueMap.get("quantity"));
                             row[6] = resultValueMap.get("id");
                             row[7] = resultValueMap.get("furnitureCode");
                             row[8] = resultValueMap.get("eventDetailId");
+                            
+                            row[9] =  amountFormat.format(subTotal);
                             furnituresResultDefaultTableModel.addRow(row);
                             furnituresAddedMap.put(resultValueMap.get("furnitureCode").toString(), furnituresResultDefaultTableModel.getRowCount());
                         }

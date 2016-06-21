@@ -216,8 +216,8 @@ public class EventController {
             int contractNumber = 0;
             
             StringBuilder eventInsertSb = new StringBuilder();
-            eventInsertSb.append("INSERT INTO event(id, number, creation_date, delivery_date, pickup_date, status, place_of_delivery, observation, contract_number, net_total, total_tax_5, total_tax_10, total_tax, total_taxable_5, total_taxable_10, total_taxable, subject_code, subject_name, subject_address, subject_fiscal_number, subject_telephone, subject_city, subject_tradename, creator_user_id, last_modification_user_id, last_modification_date, balance)");
-            eventInsertSb.append(" VALUES (nextval('event_seq'), nextval('event_number_seq'), current_timestamp, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, ?)");
+            eventInsertSb.append("INSERT INTO event(id, number, creation_date, delivery_date, pickup_date, status, place_of_delivery, observation, contract_number, net_total, total_tax_5, total_tax_10, total_tax, total_taxable_5, total_taxable_10, total_taxable, subject_code, subject_name, subject_address, subject_fiscal_number, subject_telephone, subject_city, subject_tradename, creator_user_id, last_modification_user_id, last_modification_date, balance, billable_balance)");
+            eventInsertSb.append(" VALUES (nextval('event_seq'), nextval('event_number_seq'), current_timestamp, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, ?, ?)");
 
             ps = connRentFur.prepareStatement(eventInsertSb.toString(), Statement.RETURN_GENERATED_KEYS);
             ps.setDate(1, new java.sql.Date (deliveryDate.getTime())); //Fecha de Entrega
@@ -255,6 +255,7 @@ public class EventController {
             ps.setInt(21, loggedUser.getId());
             ps.setInt(22, loggedUser.getId());
             ps.setDouble(23, netTotal);
+            ps.setDouble(24, netTotal);
             ps.executeUpdate();
             
             rs = ps.getGeneratedKeys();
@@ -389,7 +390,7 @@ public class EventController {
             int contractNumber = 0;
             
             StringBuilder eventInsertSb = new StringBuilder();
-            eventInsertSb.append("UPDATE event SET delivery_date=?, pickup_date=?, status=?, place_of_delivery=?, observation=?, net_total=?, total_tax_5=?, total_tax_10=?, total_tax=?, total_taxable_5=?, total_taxable_10=?, total_taxable=?, subject_code=?, subject_name=?, subject_address=?, subject_fiscal_number=?, subject_telephone=?, subject_city=?, subject_tradename=?, last_modification_date=current_timestamp, last_modification_user_id=?, balance=?, contract_number = ? WHERE id = ?");
+            eventInsertSb.append("UPDATE event SET delivery_date=?, pickup_date=?, status=?, place_of_delivery=?, observation=?, net_total=?, total_tax_5=?, total_tax_10=?, total_tax=?, total_taxable_5=?, total_taxable_10=?, total_taxable=?, subject_code=?, subject_name=?, subject_address=?, subject_fiscal_number=?, subject_telephone=?, subject_city=?, subject_tradename=?, last_modification_date=current_timestamp, last_modification_user_id=?, balance=?, contract_number = ?, billable_balance = ? WHERE id = ?");
 
             ps = connRentFur.prepareStatement(eventInsertSb.toString());
             ps.setDate(1, new java.sql.Date (deliveryDate.getTime())); //Fecha de Entrega
@@ -426,7 +427,8 @@ public class EventController {
                 }
                 ps.setInt(22, contractNumber);
             }
-            ps.setInt(23, eventId);
+            ps.setDouble(23, netTotal);
+            ps.setInt(24, eventId);
             ps.executeUpdate();
             
             String deleteDetails = "DELETE FROM event_detail WHERE event_id = ?";
@@ -541,7 +543,7 @@ public class EventController {
         return mapToReturn;
     }
     
-    public HashMap updateEventConfirmed(HashMap subjectMap, HashMap eventMap, int status, String placeOfDelivery, String observation, ArrayList furnitureList, ArrayList penaltyFurnitureList, double netTotal, double balanceTotal){
+    public HashMap updateEventConfirmed(HashMap subjectMap, HashMap eventMap, int status, String placeOfDelivery, String observation, ArrayList furnitureList, ArrayList penaltyFurnitureList, double netTotal, double balanceTotal, double billableBalanceTotal){
         HashMap mapToReturn = new HashMap();
         Connection connRentFur = null;
         PreparedStatement ps = null;
@@ -743,7 +745,7 @@ public class EventController {
                 ps.executeBatch();
                 ps.clearBatch();
                 
-                eventUpdateSb.append("UPDATE event SET balance = ?, net_total = ?, total_tax_5 = (total_tax_5 + ?), total_tax_10 = (total_tax_10 + ?), total_tax = (total_tax + ?), total_taxable_5 = (total_taxable_5 + ?), total_taxable_10 = (total_taxable_10 + ?), total_taxable = (total_taxable + ?), last_modification_user_id = ?, place_of_delivery = ?, observation = ? , last_modification_date = current_timestamp WHERE id = ?");
+                eventUpdateSb.append("UPDATE event SET balance = ?, net_total = ?, total_tax_5 = (total_tax_5 + ?), total_tax_10 = (total_tax_10 + ?), total_tax = (total_tax + ?), total_taxable_5 = (total_taxable_5 + ?), total_taxable_10 = (total_taxable_10 + ?), total_taxable = (total_taxable + ?), last_modification_user_id = ?, place_of_delivery = ?, observation = ? , last_modification_date = current_timestamp, billable_balance = ? WHERE id = ?");
                 ps = connRentFur.prepareStatement(eventUpdateSb.toString());
                 ps.setDouble(1, balanceTotal); 
                 ps.setDouble(2, netTotal);
@@ -756,7 +758,8 @@ public class EventController {
                 ps.setInt(9, loggedUser.getId()); //Usuario
                 ps.setString(10, placeOfDelivery);
                 ps.setString(11, observation);
-                ps.setInt(12, eventId);
+                ps.setDouble(12, billableBalanceTotal);
+                ps.setInt(13, eventId);
                 ps.executeUpdate();
                 
                 mapToReturn.put("message", "Evento actualizado correctamente");
@@ -907,6 +910,48 @@ public class EventController {
         }
     }
     
+    public static void updateEventBillableBalance(Integer eventId, double netTotal){
+        
+        Connection connRentFur = null;
+        PreparedStatement ps;
+
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+
+            StringBuilder eventBillableBalanceUpdateSb = new StringBuilder();
+            eventBillableBalanceUpdateSb.append("UPDATE event SET billable_balance = (billable_balance - ?) WHERE id = ?");
+
+            ps = connRentFur.prepareStatement(eventBillableBalanceUpdateSb.toString());
+            ps.setDouble(1, netTotal);
+            ps.setInt(2, eventId);
+            ps.executeUpdate();
+            
+            connRentFur.commit();
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(EventController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+    }
+    
     public void updateDayStockReturn(String id, Date deliveryDate, String quantity){
         
         Connection connRentFur = null;
@@ -963,7 +1008,7 @@ public class EventController {
             connRentFur.setAutoCommit(false);
 
             StringBuilder eventHeaderSelectSb = new StringBuilder();
-            eventHeaderSelectSb.append("SELECT id, \"number\" as eventNumber, creation_date, delivery_date, pickup_date, status, place_of_delivery, observation, contract_number, net_total, total_tax_5, total_tax_10, total_tax, total_taxable_5, total_taxable_10, total_taxable, subject_code, subject_name, subject_address, subject_fiscal_number, subject_telephone, subject_city, subject_tradename, creator_user_id, last_modification_date, last_modification_user_id, balance, detailed_invoice FROM event WHERE id = ?");
+            eventHeaderSelectSb.append("SELECT id, \"number\" as eventNumber, creation_date, delivery_date, pickup_date, status, place_of_delivery, observation, contract_number, net_total, total_tax_5, total_tax_10, total_tax, total_taxable_5, total_taxable_10, total_taxable, subject_code, subject_name, subject_address, subject_fiscal_number, subject_telephone, subject_city, subject_tradename, creator_user_id, last_modification_date, last_modification_user_id, balance, detailed_invoice, billable_balance FROM event WHERE id = ?");
 
             ps = connRentFur.prepareStatement(eventHeaderSelectSb.toString());
             ps.setInt(1, eventId);
@@ -991,7 +1036,9 @@ public class EventController {
                 eventMap.put("lastModificationUserId", rs.getString("last_modification_user_id"));
                 eventMap.put("lastModificationDate", rs.getTimestamp("last_modification_date"));
                 eventMap.put("balance", rs.getDouble("balance"));
-                eventMap.put("detailedInvoice", rs.getString("detailed_invoice"));
+                eventMap.put("detailedInvoice", rs.getBoolean("detailed_invoice"));
+                eventMap.put("detailedInvoiceString", rs.getString("detailed_invoice"));
+                eventMap.put("billableBalance", rs.getDouble("billable_balance"));
             }
             
             StringBuilder eventDetailSelectSb = new StringBuilder();

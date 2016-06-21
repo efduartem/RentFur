@@ -214,6 +214,11 @@ public class FurnitureInvoiceSearch extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(8).setMinWidth(0);
         furnituresResultTable.getColumnModel().getColumn(8).setPreferredWidth(0);
         
+        //SubTOTAL
+        furnituresResultTable.getColumnModel().getColumn(9).setMaxWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(9).setMinWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(9).setCellRenderer(rightRenderer);
+        
         furnituresResultTableJScrollPane = new JScrollPane();
         furnituresResultTableJScrollPane.setBounds(30, 140, 900, 220);
         furnituresResultTableJScrollPane.setViewportView(furnituresResultTable);

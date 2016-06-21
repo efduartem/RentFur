@@ -261,7 +261,7 @@ public class InvoiceController {
         return invoiceMap;
     }
     
-    public HashMap createInvoice(HashMap subjectMap, ArrayList invoiceDetailList, Date invoceDate, int eventId, HashMap invoiceNumMap, double netTotal, double exemptTotal, double tax05total, double tax10total, double taxTotal, double taxted05total, double taxted10total, String observation){
+    public HashMap createInvoice(HashMap subjectMap, ArrayList invoiceDetailList, Date invoceDate, int eventId, HashMap invoiceNumMap, double netTotal, double exemptTotal, double tax05total, double tax10total, double taxTotal, double taxted05total, double taxted10total, String observation, boolean detailedInvoice){
         HashMap mapToReturn = new HashMap();
         Connection connRentFur = null;
         PreparedStatement ps;
@@ -368,8 +368,10 @@ public class InvoiceController {
                     ps.setDouble(18, Double.valueOf("0"));
                 }
                 
-                EventController.updateEventDetailBilled(Integer.valueOf(detailMap.get("eventDetailId").toString()));
-                
+                if(detailedInvoice){
+                    EventController.updateEventDetailBilled(Integer.valueOf(detailMap.get("eventDetailId").toString()));
+                }
+                EventController.updateEventBillableBalance(eventId, netTotal);
                 ps.addBatch();
 
             }

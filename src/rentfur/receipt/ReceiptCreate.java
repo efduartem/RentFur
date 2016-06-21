@@ -440,7 +440,7 @@ public class ReceiptCreate extends JInternalFrame{
             dialog = optionPane.createDialog(this, "Atencion!");
             dialog.setVisible(true);
         }else if(!allFieldAdded()){
-            optionPane = new JOptionPane("Existen detalles loco.", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+            optionPane = new JOptionPane("Existen datos obligatorios de CHEQUES que no han sido ingresados, favor verificar e intentar nuevamente", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
             dialog = optionPane.createDialog(this, "Atencion!");
             dialog.setVisible(true);
         }else{
@@ -692,7 +692,6 @@ public class ReceiptCreate extends JInternalFrame{
 
             paymentMethodComboBox.setSelectedItem(item);
             paymentMethodComboBox.addActionListener(this);
-
             if (isSelected) {
                 paymentMethodComboBox.setBackground(table.getSelectionBackground());
             } else {
@@ -707,6 +706,7 @@ public class ReceiptCreate extends JInternalFrame{
             JComboBox<ComboBoxItem> paymentMethodItem = (JComboBox<ComboBoxItem>) event.getSource();
             this.item = (ComboBoxItem) paymentMethodItem.getSelectedItem();
             updateFields(this.item, row);
+            fireEditingStopped();
         }
     }
     
@@ -743,6 +743,27 @@ public class ReceiptCreate extends JInternalFrame{
 
         public DatePickerCell() {
             this.clickCountToStart = 1;
+        }
+
+        @Override
+        public Date getCellEditorValue() {
+            return super.getCellEditorValue(); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            return super.getTableCellEditorComponent(table, value, isSelected, row, column); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            return super.stopCellEditing(); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+        @Override
+        protected void fireEditingStopped() {
+          super.fireEditingStopped();
+          //removeRow(row);
         }
 
     }

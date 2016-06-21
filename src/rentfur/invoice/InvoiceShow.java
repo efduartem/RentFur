@@ -6,63 +6,38 @@
 
 package rentfur.invoice;
 
-import javax.swing.JInternalFrame;
-
-/**
- *
- * @author FDuarte
- */
-
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractCellEditor;
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
-import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.border.BevelBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 import rentfur.event.EventController;
 import rentfur.subject.SubjectController;
-import rentfur.util.ComboBoxItem;
 import rentfur.util.DateLabelFormatter;
-import rentfur.event.EventCreate;
-import rentfur.util.NumericTextField;
 
 /**
  *
@@ -236,6 +211,7 @@ public class InvoiceShow extends JInternalFrame{
         observationTextArea.setLineWrap(true);
         observationTextArea.setWrapStyleWord(true);
         observationTextArea.setText(invoiceMap.get("observation").toString());
+        observationTextArea.setEditable(false);
         JScrollPane observationScrollPane = new JScrollPane();
         observationScrollPane.setBounds(830, 150, 230, 110);
         observationScrollPane.setViewportView(observationTextArea);

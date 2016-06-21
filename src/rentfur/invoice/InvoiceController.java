@@ -79,11 +79,11 @@ public class InvoiceController {
 
             //Invoice
             StringBuilder invoiceSelectSb = new StringBuilder();
-            invoiceSelectSb.append("SELECT id, balance, cancelled, cancelled_date, cancelled_reason, creation_date, creation_user_id, subject_address, subject_code, subject_tradename, subject_fiscal_number, subject_name, subject_phone, discount_rate, discount_total, exempt_total, fiscal_stamp_number, gross_total, invoice_branch, invoice_number, invoice_printer, invoice_type, invoicing_date, last_modification_date, last_modification_user_id, net_total, observation, status, term, type, tax05total, tax10total, tax_total, taxted05total, taxted10total, printed, event_id FROM invoice WHERE event_id = ?");
+            invoiceSelectSb.append("SELECT id, balance, cancelled, cancelled_date, cancelled_reason, creation_date, creation_user_id, subject_address, subject_code, subject_tradename, subject_fiscal_number, subject_name, subject_phone, discount_rate, discount_total, exempt_total, fiscal_stamp_number, gross_total, invoice_branch, invoice_number, invoice_printer, invoice_type, invoicing_date, last_modification_date, last_modification_user_id, net_total, observation, status, term, type, tax05total, tax10total, tax_total, taxted05total, taxted10total, printed, event_id, whith_credit_note FROM invoice WHERE event_id = ?");
 
             //Invoice Detail
             StringBuilder invoiceDetailSelectSb = new StringBuilder();
-            invoiceDetailSelectSb.append("SELECT id, description, discount_amount, discount_rate, exempt_amount, gross_amount, invoice_id, net_amount, observation, furniture_code, furniture_name, tax_rate, quantity, row_number, status, unit_price, tax05amount, tax10amount, tax_amount, taxted05amount, taxted10amount FROM invoice_detail WHERE  invoice_id = ? ORDER BY row_number ASC");
+            invoiceDetailSelectSb.append("SELECT id, description, discount_amount, discount_rate, exempt_amount, gross_amount, invoice_id, net_amount, observation, furniture_code, furniture_name, tax_rate, quantity, row_number, status, unit_price, tax05amount, tax10amount, tax_amount, taxted05amount, taxted10amount, event_detail_id FROM invoice_detail WHERE  invoice_id = ? ORDER BY row_number ASC");
 
             
             psInvoice = connRentFur.prepareStatement(invoiceSelectSb.toString());
@@ -183,7 +183,7 @@ public class InvoiceController {
 
             //Invoice Detail
             StringBuilder invoiceDetailSelectSb = new StringBuilder();
-            invoiceDetailSelectSb.append("SELECT id, description, discount_amount, discount_rate, exempt_amount, gross_amount, invoice_id, net_amount, observation, furniture_code, furniture_name, tax_rate, quantity, row_number, status, unit_price, tax05amount, tax10amount, tax_amount, taxted05amount, taxted10amount FROM invoice_detail WHERE  invoice_id = ? ORDER BY row_number ASC");
+            invoiceDetailSelectSb.append("SELECT id, description, discount_amount, discount_rate, exempt_amount, gross_amount, invoice_id, net_amount, observation, furniture_code, furniture_name, tax_rate, quantity, row_number, status, unit_price, tax05amount, tax10amount, tax_amount, taxted05amount, taxted10amount, event_detail_id FROM invoice_detail WHERE  invoice_id = ? ORDER BY row_number ASC");
 
             
             psInvoice = connRentFur.prepareStatement(invoiceSelectSb.toString());
@@ -321,7 +321,7 @@ public class InvoiceController {
             
             StringBuilder invoiceDetailInsertSb = new StringBuilder();
             HashMap detailMap = new HashMap();
-            invoiceDetailInsertSb.append("INSERT INTO invoice_detail(id, description, discount_amount, discount_rate, exempt_amount, gross_amount, invoice_id, net_amount, furniture_code, furniture_name, tax_rate, quantity, row_number, unit_price, tax05amount, tax10amount, tax_amount, taxted05amount, taxted10amount) VALUES (nextval('invoice_detail_seq'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            invoiceDetailInsertSb.append("INSERT INTO invoice_detail(id, description, discount_amount, discount_rate, exempt_amount, gross_amount, invoice_id, net_amount, furniture_code, furniture_name, tax_rate, quantity, row_number, unit_price, tax05amount, tax10amount, tax_amount, taxted05amount, taxted10amount, event_detail_id) VALUES (nextval('invoice_detail_seq'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             ps = connRentFur.prepareStatement(invoiceDetailInsertSb.toString());
             
             for(int i = 0 ; i < invoiceDetailList.size(); i++){
@@ -342,8 +342,8 @@ public class InvoiceController {
                 ps.setInt(12, Integer.valueOf(detailMap.get("rowNumber").toString()));
                 ps.setDouble(13, Double.valueOf(detailMap.get("unitPrice").toString()));
                 
-                ps.setDouble(14, Double.valueOf(detailMap.get("tax5Amount").toString()));
-                ps.setDouble(15, Double.valueOf(detailMap.get("tax10Amount").toString()));
+//                ps.setDouble(14, Double.valueOf(detailMap.get("tax5Amount").toString()));
+//                ps.setDouble(15, Double.valueOf(detailMap.get("tax10Amount").toString()));
                 
                 
                 ps.setDouble(16, Double.valueOf(detailMap.get("taxAmount").toString()));
@@ -369,14 +369,19 @@ public class InvoiceController {
                 }
                 
                 if(detailedInvoice){
+                    ps.setInt(19, Integer.valueOf(detailMap.get("eventDetailId").toString()));
                     EventController.updateEventDetailBilled(Integer.valueOf(detailMap.get("eventDetailId").toString()));
+                }else{
+                    ps.setInt(19, Integer.valueOf("0"));
                 }
-                EventController.updateEventBillableBalance(eventId, netTotal);
+                
                 ps.addBatch();
 
             }
             ps.executeBatch();
             ps.clearBatch();
+            
+            EventController.updateEventBillableBalance(eventId, netTotal);
             
             updateBook((Integer) invoiceNumMap.get("number"));
             

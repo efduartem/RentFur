@@ -54,6 +54,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import rentfur.creditNote.CreditNoteController;
+import rentfur.creditNote.CreditNoteCreate;
 import rentfur.furniture.FurnitureController;
 import rentfur.invoice.InvoiceController;
 import rentfur.invoice.InvoiceCreate;
@@ -80,6 +82,8 @@ public class EventShowAndEdit extends JInternalFrame{
     private InvoiceController invoiceController;
     private InvoiceCreate invoiceCreate;
     private InvoiceShow invoiceShow;
+    private CreditNoteController creditNoteController;
+    private CreditNoteCreate creditNoteCreate;
     private final SearchController searchController;
     private FurnitureSearch furnitureSearch;
     private FurniturePenaltySearch furniturePenaltySearch;
@@ -212,8 +216,9 @@ public class EventShowAndEdit extends JInternalFrame{
     private static final int INVOICE_CANCELLED_COLUMN = 4;
     private static final int INVOICE_CANCELLED_DATE_COLUMN = 5;
     private static final int INVOICE_CANCELLED_REASON_COLUMN = 6;
-    private static final int INVOICE_CANCELLED_BUTTON_COLUMN = 7;
-    private static final int INVOICE_SHOW_BUTTON_COLUMN = 8;
+    private static final int INVOICE_WITH_CREDIT_NOTE_COLUMN = 7;
+    private static final int INVOICE_CANCELLED_BUTTON_COLUMN = 8;
+    private static final int INVOICE_SHOW_BUTTON_COLUMN = 9;
     
     //DETALLES DE FACTURA
     private final int INVOICE_DETAIL_ITEM_COLUMN = 0;
@@ -252,6 +257,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private HashMap subjectMap;
     private ArrayList receiptList;
     private ArrayList invoiceList;
+    private ArrayList creditNoteList;
     private int eventId;
     private final DecimalFormat amountFormat = new DecimalFormat("#,###");
     
@@ -266,6 +272,7 @@ public class EventShowAndEdit extends JInternalFrame{
         searchController = new SearchController();
         receiptController = new ReceiptController();
         invoiceController = new InvoiceController();
+        creditNoteController = new CreditNoteController();
         
         amountFormat.setGroupingUsed(true);
         amountFormat.setGroupingSize(3);
@@ -279,6 +286,7 @@ public class EventShowAndEdit extends JInternalFrame{
         subjectMap = SubjectController.getSubjectByCode(eventMap.get("subjectCode").toString());
         receiptList = ReceiptController.getReceiptsByEventId(eventId);
         invoiceList = InvoiceController.getInvoicesByEventId(eventId);
+        creditNoteList = CreditNoteController.getCreditNotesByEventId(eventId);
         
         titleLabel = new JLabel("<HTML><U>Detalles del Evento</U></HTML>");
         titleLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 25));
@@ -522,7 +530,7 @@ public class EventShowAndEdit extends JInternalFrame{
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                //invoiceRecordButtonAction();
+                creditNoteRecordButtonAction();
             }
         });
         add(createCreditNoteButton);
@@ -926,6 +934,7 @@ public class EventShowAndEdit extends JInternalFrame{
             invoicesDefaultTableModel.addColumn("Anulado");
             invoicesDefaultTableModel.addColumn("Fecha de Anulación");
             invoicesDefaultTableModel.addColumn("Motivo de Anulación");
+            invoicesDefaultTableModel.addColumn("Nota de Credito");
             invoicesDefaultTableModel.addColumn("");
             invoicesDefaultTableModel.addColumn("");
 
@@ -1113,9 +1122,9 @@ public class EventShowAndEdit extends JInternalFrame{
             @Override
             public void valueChanged(ListSelectionEvent event) {
                     if(creditNotesTable.getSelectedRow()>0){
-                        //addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(creditNotesTable.getSelectedRow()));
+                        addCreditNoteDetailToCreditNotesTable((HashMap)creditNoteList.get(creditNotesTable.getSelectedRow()));
                     }else{
-                        //addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(0));
+                        addCreditNoteDetailToCreditNotesTable((HashMap)creditNoteList.get(0));
                     }
                 }
             }
@@ -1158,7 +1167,7 @@ public class EventShowAndEdit extends JInternalFrame{
         creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_SHOW_BUTTON_COLUMN).setCellRenderer(new InvoiceButtonRenderer());
         creditNotesTable.getColumnModel().getColumn(CREDIT_NOTE_SHOW_BUTTON_COLUMN).setCellEditor(new InvoiceButtonEditor(new JTextField()));
 
-        //addInvoicesToInvoiceTable(invoiceList);
+        addCreditNotesToInvoiceTable(creditNoteList);
 
         creditNotesTableJScrollPane = new JScrollPane();
         creditNotesTableJScrollPane.setViewportView(creditNotesTable);
@@ -1229,9 +1238,9 @@ public class EventShowAndEdit extends JInternalFrame{
         creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_10_COLUMN).setPreferredWidth(100);
         creditNoteDetailTable.getColumnModel().getColumn(CREDIT_NOTE_DETAIL_TAX_10_COLUMN).setCellRenderer(rightRenderer);
 
-//        if(!invoiceList.isEmpty()){
-//            addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(0));
-//        }
+        if(!creditNoteList.isEmpty()){
+            addCreditNoteDetailToCreditNotesTable((HashMap)creditNoteList.get(0));
+        }
 
         creditNoteDetailTableJScrollPane = new JScrollPane();
         creditNoteDetailTableJScrollPane.setViewportView(creditNoteDetailTable);
@@ -1632,9 +1641,17 @@ public class EventShowAndEdit extends JInternalFrame{
                     row[INVOICE_CANCELLED_COLUMN] = "SI";
                 }else{
                     row[INVOICE_CANCELLED_COLUMN] = "NO";
-                    totalInvoiced += (Double)invoiceMap.get("net_total");
                 }
                 
+                if((Boolean)invoiceMap.get("whith_credit_note")){
+                    row[INVOICE_WITH_CREDIT_NOTE_COLUMN] = "SI";
+                }else{
+                    row[INVOICE_WITH_CREDIT_NOTE_COLUMN] = "NO";
+                }
+                
+                if(!(Boolean)invoiceMap.get("cancelled") && !(Boolean)invoiceMap.get("whith_credit_note")){
+                    totalInvoiced += (Double)invoiceMap.get("net_total");
+                }
                 
                 if(invoiceMap.get("cancelled_date")!=null){
                     row[INVOICE_CANCELLED_DATE_COLUMN] =  new Date(((Timestamp)invoiceMap.get("cancelled_date")).getTime());
@@ -1651,6 +1668,48 @@ public class EventShowAndEdit extends JInternalFrame{
             
             //TOTAL FACTURADO
             invoicedTotalTextField.setText(amountFormat.format(totalInvoiced));
+        } catch (Throwable ex) {
+            Logger.getLogger(EventShowAndEdit.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void addCreditNotesToInvoiceTable(ArrayList creditNoteList){
+        try {
+            HashMap creditNoteMap;
+            int numeroRegistros = creditNotesDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistros;i++){
+                creditNotesDefaultTableModel.removeRow(0);
+            }
+            
+            Object[] row = new Object[creditNotesTable.getColumnCount()];
+            for(int i = 0; i < creditNoteList.size(); i++){
+                creditNoteMap = (HashMap) creditNoteList.get(i);
+                
+                row[CREDIT_NOTE_ID_COLUMN] = (Long) creditNoteMap.get("id");
+                row[CREDIT_NOTE_DATE_COLUMN] = new Date(((Timestamp)creditNoteMap.get("credit_note_date")).getTime());
+                row[CREDIT_NOTE_NUMBER_COLUMN] = creditNoteMap.get("credit_note_branch") + "-" + creditNoteMap.get("credit_note_printer") + "-" + creditNoteMap.get("credit_note_number");
+                
+                row[CREDIT_NOTE_AMOUNT_COLUMN] = amountFormat.format((Double)creditNoteMap.get("net_total"));
+                
+                if((Boolean)creditNoteMap.get("cancelled")){
+                    row[CREDIT_NOTE_CANCELLED_COLUMN] = "SI";
+                }else{
+                    row[CREDIT_NOTE_CANCELLED_COLUMN] = "NO";
+                }
+                
+                if(creditNoteMap.get("cancelled_date")!=null){
+                    row[CREDIT_NOTE_CANCELLED_DATE_COLUMN] =  new Date(((Timestamp)creditNoteMap.get("cancelled_date")).getTime());
+                }else{
+                    row[CREDIT_NOTE_CANCELLED_DATE_COLUMN] = "";
+                }
+                
+                row[CREDIT_NOTE_CANCELLED_REASON_COLUMN] = creditNoteMap.get("cancelled_reason");
+                row[CREDIT_NOTE_CANCELLED_BUTTON_COLUMN] = " Anular";
+                row[CREDIT_NOTE_SHOW_BUTTON_COLUMN] = "Ver";
+                
+                creditNotesDefaultTableModel.addRow(row);
+            }
+            
         } catch (Throwable ex) {
             Logger.getLogger(EventShowAndEdit.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -1680,6 +1739,33 @@ public class EventShowAndEdit extends JInternalFrame{
             row[INVOICE_DETAIL_TAX_10_COLUMN] = amountFormat.format((Double)invoiceDetailMap.get("taxted10amount"));
         
             invoiceDetailDefaultTableModel.addRow(row);
+        }
+    }
+    
+    private void addCreditNoteDetailToCreditNotesTable(HashMap creditNoteMap){
+        HashMap creditNoteDetailMap;
+        ArrayList creditNoteDetailList = (ArrayList) creditNoteMap.get("creditNoteDetail");
+        Object[] row = new Object[creditNoteDetailTable.getColumnCount()];
+        
+        int numeroRegistros = creditNoteDetailDefaultTableModel.getRowCount();
+        for(int i=0;i<numeroRegistros;i++){
+            creditNoteDetailDefaultTableModel.removeRow(0);
+        }
+
+        for(int i = 0; i < creditNoteDetailList.size(); i++){
+            creditNoteDetailMap = (HashMap) creditNoteDetailList.get(i);
+
+            row[CREDIT_NOTE_DETAIL_ITEM_COLUMN] = creditNoteDetailMap.get("row_number");
+            row[CREDIT_NOTE_DETAIL_CODE_COLUMN] = creditNoteDetailMap.get("furniture_code");
+            row[CREDIT_NOTE_DETAIL_DESCRIPTION_COLUMN] = creditNoteDetailMap.get("description");
+            row[CREDIT_NOTE_DETAIL_TAX_RATE_COLUMN] = amountFormat.format((Double)creditNoteDetailMap.get("tax_rate"));
+            row[CREDIT_NOTE_DETAIL_QUANTITY_COLUMN] = amountFormat.format((Double)creditNoteDetailMap.get("quantity"));
+            row[CREDIT_NOTE_DETAIL_UNIT_PRICE_COLUMN] = amountFormat.format((Double)creditNoteDetailMap.get("unit_price"));
+            row[CREDIT_NOTE_DETAIL_EXEMPT_COLUMN] = amountFormat.format((Double)creditNoteDetailMap.get("exempt_amount"));
+            row[CREDIT_NOTE_DETAIL_TAX_5_COLUMN] = amountFormat.format((Double)creditNoteDetailMap.get("taxted05amount"));
+            row[CREDIT_NOTE_DETAIL_TAX_10_COLUMN] = amountFormat.format((Double)creditNoteDetailMap.get("taxted10amount"));
+        
+            creditNoteDetailDefaultTableModel.addRow(row);
         }
     }
     
@@ -1922,6 +2008,41 @@ public class EventShowAndEdit extends JInternalFrame{
         
     }
     
+    private void creditNoteRecordButtonAction(){
+        creditNoteCreate = creditNoteController.getCreditNoteCreate(eventId);
+        creditNoteCreate.setVisible(true);
+        showSearchDialog(creditNoteCreate);
+        inactivateElements();
+        creditNoteCreate.addInternalFrameListener(new InternalFrameListener() {
+
+            @Override
+            public void internalFrameOpened(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosing(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosed(InternalFrameEvent e) {
+                activateElements();
+                updateCreditNotesTable();
+                updateInvoicesTable();
+            }
+
+            @Override
+            public void internalFrameIconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeiconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameActivated(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeactivated(InternalFrameEvent e) {}
+        });
+        
+    }
+    
     private void updateReceiptsTable(){
         receiptList = ReceiptController.getReceiptsByEventId(eventId);
         addReceiptsToReceiptTable(receiptList);
@@ -1935,6 +2056,14 @@ public class EventShowAndEdit extends JInternalFrame{
         addInvoicesToInvoiceTable(invoiceList);
         if(!invoiceList.isEmpty()){
             addInvoiceDetailToInvoicesTable((HashMap)invoiceList.get(0));
+        }
+    }
+    
+    private void updateCreditNotesTable(){
+        creditNoteList = CreditNoteController.getCreditNotesByEventId(eventId);
+        addCreditNotesToInvoiceTable(creditNoteList);
+        if(!creditNoteList.isEmpty()){
+            addCreditNoteDetailToCreditNotesTable((HashMap)creditNoteList.get(0));
         }
     }
     

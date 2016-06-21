@@ -30,8 +30,10 @@ public class SearchController {
     private FurniturePenaltySearch furniturePenaltySearch;
     private FurnitureInvoiceSearch furnitureInvoiceSearch;
     private ProviderSearch providerSearch;
+    private EventInvoiceSearch eventInvoiceSearch;
     private String subjetcSelectedCode = "";
     private String providerSelectedCode = "";
+    private int invoiceSelectedId = 0;
     private ArrayList furnitureSelectedCodes = new ArrayList();
     private ArrayList furniturePenalizedCodes = new ArrayList();
     private HashMap furnitureInvoicedCodes = new HashMap();
@@ -71,6 +73,14 @@ public class SearchController {
         }
         
         return furnitureInvoiceSearch;
+    }
+    
+    public EventInvoiceSearch getEventInvoiceSearch(int eventId){
+        if(eventInvoiceSearch == null){
+            eventInvoiceSearch = new EventInvoiceSearch(this, eventId);
+        }
+        
+        return eventInvoiceSearch;
     }
     
     public void setSubjectIndexResultsTable(DefaultTableModel subjectResultDefaultTableModel, boolean searchPressed, String code, String name, String tradename, String address, String city, String telephone, String fiscalNumber){
@@ -517,6 +527,53 @@ public class SearchController {
         
         return listToReturn;
     }
+    
+    public ArrayList getEventInvoiceSearchResultList(int eventId){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        ArrayList listToReturn = new ArrayList();
+        
+        try{
+            HashMap resultValuesMap;
+            connRentFur = DbConnectUtil.getConnection();
+            
+            StringBuilder invoicesQuery = new StringBuilder();
+            invoicesQuery.append("SELECT id, invoice_branch || ' - ' || invoice_printer || ' - ' || invoice_number as invoiceNumber, invoicing_date, net_total FROM invoice WHERE event_id = ? AND cancelled = false AND whith_credit_note = false");
+            invoicesQuery.append(" ORDER BY id ASC");
+            
+            ps = connRentFur.prepareStatement(invoicesQuery.toString());
+            ps.setInt(1, eventId);
+            rs = ps.executeQuery();
+            while(rs.next()){
+                resultValuesMap = new HashMap();
+                resultValuesMap.put("id", rs.getInt("id"));
+                resultValuesMap.put("number", rs.getString("invoiceNumber"));
+                resultValuesMap.put("invoicingDate", rs.getTimestamp("invoicing_date"));
+                resultValuesMap.put("netTotal", rs.getDouble("net_total"));
+                listToReturn.add(resultValuesMap);
+            }
+            rs.close();
+            ps.close();
+
+        }catch(SQLException th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return listToReturn;
+    }
+    
 
     //PROVIDER
     public void setProviderIndexResultsTable(DefaultTableModel providerResultDefaultTableModel, boolean searchPressed, String code, String name, String tradename, String address, String city, String telephone, String fiscalNumber){
@@ -668,6 +725,53 @@ public class SearchController {
         return listToReturn;
     }
     
+    //EVENT INVOICE
+    public void setEventInvoiceResultsTable(DefaultTableModel eventInvoicesResultDefaultTableModel, int eventId){
+        
+        try{
+            
+            eventInvoicesResultDefaultTableModel.addColumn("");
+            eventInvoicesResultDefaultTableModel.addColumn("Numero");
+            eventInvoicesResultDefaultTableModel.addColumn("Fecha");
+            eventInvoicesResultDefaultTableModel.addColumn("Total");
+            eventInvoicesResultDefaultTableModel.addColumn("Id");
+            eventInvoicesResultDefaultTableModel.addColumn("Numero");
+            
+            
+            int numeroRegistrosTablaPermisos=0;
+            numeroRegistrosTablaPermisos = eventInvoicesResultDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistrosTablaPermisos;i++){
+                eventInvoicesResultDefaultTableModel.removeRow(0);
+            }
+            ArrayList searchResultList = getEventInvoiceSearchResultList(eventId);
+            if(searchResultList!=null && !searchResultList.isEmpty()){
+                DecimalFormat amountFormat = new DecimalFormat("#,###");
+                HashMap resultValueMap;
+                Object[] row;
+                for(int rowNumber = 0; rowNumber < searchResultList.size(); rowNumber++){
+
+                    row = new Object[eventInvoicesResultDefaultTableModel.getColumnCount()];
+                    resultValueMap = (HashMap) searchResultList.get(rowNumber);
+
+                    row[0] = new JRadioButton("");
+                    row[1] = resultValueMap.get("number");
+                    row[2] = resultValueMap.get("invoicingDate");
+                    row[3] = amountFormat.format((Double) resultValueMap.get("netTotal"));
+                    row[4] = resultValueMap.get("id");
+                    row[5] = resultValueMap.get("number");
+                    
+                    eventInvoicesResultDefaultTableModel.addRow(row);
+
+                }
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }
+    }
+    
     public void setFurnitureSelectedCodes(ArrayList furnitureSelectedCodes){
         this.furnitureSelectedCodes = furnitureSelectedCodes;
     }
@@ -695,4 +799,17 @@ public class SearchController {
     public void setClosedProviderSearch(){
         providerSearch = null;
     }
+    
+    public void setClosedEventInvoiceSearch(){
+        eventInvoiceSearch = null;
+    }
+    
+    public void setInvoiceSelectedId(int invoiceId){
+        this.invoiceSelectedId = invoiceId;
+    }
+    
+    public int getInvoiceSelectedId(){
+        return this.invoiceSelectedId;
+    }
+    
 }

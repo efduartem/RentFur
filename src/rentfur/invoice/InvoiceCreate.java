@@ -20,9 +20,12 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -146,7 +149,7 @@ public class InvoiceCreate extends JInternalFrame{
     private static final double TAX5 = 21;
     private static final double TAX10 = 11;
     
-    private final ArrayList furnitureCodesAdded = new ArrayList();
+    private final ArrayList eventDetailsAdded = new ArrayList();
     
     public InvoiceCreate(InvoiceController invoiceController, int eventId){
         this.invoiceController = invoiceController;
@@ -579,12 +582,19 @@ public class InvoiceCreate extends JInternalFrame{
     
     private void addDetailsButtonAction(){
         int eventId = Integer.valueOf(eventMap.get("id").toString());
-        ArrayList furnitureDetailList;
+        ArrayList furnitureDetailList = new ArrayList();
         
         if(detailedInvoice){
-            furnitureDetailList = (ArrayList) eventMap.get("detail");
-            furnitureDetailList.addAll((ArrayList) eventMap.get("penaltyDetail"));
-            furnitureInvoiceSearch = searchController.getInvoiceFurnitureSearch(eventId, furnitureDetailList, furnitureCodesAdded);
+            
+            if(!furnitureDetailList.isEmpty()){
+                furnitureDetailList.clear();
+            }
+            ArrayList deailtList = (ArrayList) eventMap.get("detail");
+            ArrayList penaltyLlist = (ArrayList) eventMap.get("penaltyDetail");
+            furnitureDetailList.addAll(deailtList);
+            furnitureDetailList.addAll(penaltyLlist);
+            
+            furnitureInvoiceSearch = searchController.getInvoiceFurnitureSearch(eventId, furnitureDetailList, eventDetailsAdded);
             furnitureInvoiceSearch.setVisible(true);
             showSearchDialog(furnitureInvoiceSearch);
             inactivateElements();
@@ -599,8 +609,8 @@ public class InvoiceCreate extends JInternalFrame{
                 @Override
                 public void internalFrameClosed(InternalFrameEvent e) {
                     activateElements();
-                    if(!searchController.getFurnitureInvoicedCodes().isEmpty()){
-                        addFuritureSelectedToDetailTable(searchController.getFurnitureInvoicedCodes());
+                    if(!searchController.getFurnitureInvoicedIds().isEmpty()){
+                        addFuritureSelectedToDetailTable(searchController.getFurnitureInvoicedIds());
                     }
                 }
 
@@ -812,12 +822,22 @@ public class InvoiceCreate extends JInternalFrame{
         }
     }
     
-    private void addFuritureSelectedToDetailTable(HashMap furnitureCodes){
+    private void addFuritureSelectedToDetailTable(HashMap furnitureIds){
         try {
+            
             HashMap furnitureMap;
             HashMap itemValuesMap;
-            ArrayList<Object> furnitureCodesList = new ArrayList<>(furnitureCodes.keySet());
-            ArrayList furnitureList = FurnitureController.getFurnitureListByCodeList(furnitureCodesList);
+            ArrayList furnitureCodesList = new ArrayList();
+            ArrayList eventDetailIdList = new ArrayList();
+            Collection ref =  furnitureIds.values();
+            Iterator it = ref.iterator();
+            HashMap valuesItemMap;
+            while (it.hasNext()) {
+                valuesItemMap = (HashMap)it.next();
+                furnitureCodesList.add(valuesItemMap.get("code").toString());
+                eventDetailIdList.add(valuesItemMap.get("eventDetailId").toString());
+            }
+            //ArrayList furnitureList = FurnitureController.getFurnitureListByCodeList(furnitureCodesList);
             int rowNum = invoiceDetailDefaultTableModel.getRowCount()+1;
             double price, quantity, subTotal;
             
@@ -832,16 +852,16 @@ public class InvoiceCreate extends JInternalFrame{
             double total = amountFormat.parse(totalTextField.getText()).doubleValue();
             
             Object[] row = new Object[invoiceDetailTable.getColumnCount()];
-            for(int i = 0; i < furnitureList.size(); i++){
-                furnitureMap = (HashMap) furnitureList.get(i);
-                itemValuesMap = (HashMap) furnitureCodes.get(furnitureMap.get("code").toString());
-                furnitureCodesAdded.add(furnitureMap.get("code"));
+            for(int i = 0; i < furnitureCodesList.size(); i++){
+                furnitureMap = FurnitureController.getFurnitureByCode(furnitureCodesList.get(i).toString());
+                itemValuesMap = (HashMap) furnitureIds.get(Integer.valueOf(eventDetailIdList.get(i).toString()));
+                eventDetailsAdded.add(eventDetailIdList.get(i).toString());
                 price = Double.valueOf(itemValuesMap.get("price").toString());
                 quantity = Double.valueOf(itemValuesMap.get("quantity").toString());
                 
                 row[ITEM_COLUMN] = rowNum++;
                 row[CODE_COLUMN] = furnitureMap.get("code");
-                row[DESCRIPTION_COLUMN] = furnitureMap.get("description");
+                row[DESCRIPTION_COLUMN] = itemValuesMap.get("description");
                 row[TAX_RATE_COLUMN] = amountFormat.format(Double.valueOf(itemValuesMap.get("taxRate").toString()));
                 row[QUANTITY_COLUMN] = amountFormat.format(Double.valueOf(itemValuesMap.get("quantity").toString()));
                 row[UNIT_PRICE_COLUMN] = amountFormat.format(Double.valueOf(itemValuesMap.get("price").toString()));
@@ -1001,8 +1021,8 @@ public class InvoiceCreate extends JInternalFrame{
             totalTax = totalTax - itemTaxAmount;
             totalTaxTextField.setText(amountFormat.format(totalTax));
 
-            String furnitureCode = invoiceDetailDefaultTableModel.getValueAt(row, CODE_COLUMN).toString();
-            furnitureCodesAdded.remove(furnitureCode);
+            String eventDetailIdString = invoiceDetailDefaultTableModel.getValueAt(row, EVENT_DETAIL_ID_COLUMN).toString();
+            eventDetailsAdded.remove(eventDetailIdString);
             invoiceDetailDefaultTableModel.removeRow(row);
             
             updateDetailTableRowItem();

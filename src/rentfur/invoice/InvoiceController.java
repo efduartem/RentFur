@@ -79,7 +79,7 @@ public class InvoiceController {
 
             //Invoice
             StringBuilder invoiceSelectSb = new StringBuilder();
-            invoiceSelectSb.append("SELECT id, balance, cancelled, cancelled_date, cancelled_reason, creation_date, creation_user_id, subject_address, subject_code, subject_tradename, subject_fiscal_number, subject_name, subject_phone, discount_rate, discount_total, exempt_total, fiscal_stamp_number, gross_total, invoice_branch, invoice_number, invoice_printer, invoice_type, invoicing_date, last_modification_date, last_modification_user_id, net_total, observation, status, term, type, tax05total, tax10total, tax_total, taxted05total, taxted10total, printed, event_id, whith_credit_note FROM invoice WHERE event_id = ?");
+            invoiceSelectSb.append("SELECT id, balance, cancelled, cancelled_date, cancelled_reason, creation_date, creation_user_id, subject_address, subject_code, subject_tradename, subject_fiscal_number, subject_name, subject_phone, discount_rate, discount_total, exempt_total, fiscal_stamp_number, gross_total, invoice_branch, invoice_number, invoice_printer, invoice_type, invoicing_date, last_modification_date, last_modification_user_id, net_total, observation, status, term, type, tax05total, tax10total, tax_total, taxted05total, taxted10total, printed, event_id, whith_credit_note FROM invoice WHERE event_id = ? ORDER BY id ASC");
 
             //Invoice Detail
             StringBuilder invoiceDetailSelectSb = new StringBuilder();

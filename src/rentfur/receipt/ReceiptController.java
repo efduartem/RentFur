@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rentfur.book.BookController;
+import rentfur.subjectMovement.SubjectMovementController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
@@ -197,7 +198,7 @@ public class ReceiptController {
         ResultSet rs;
         ResultSet rsContractNumber = null;
         int receiptId = 0;
-        
+        String receiptNumberString = "";
         try{
             
             connRentFur = DbConnectUtil.getConnection();
@@ -206,6 +207,8 @@ public class ReceiptController {
             User loggedUser = userRoles.getUser();
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
+            
+            receiptNumberString = receiptNumMap.get("branch").toString() + "-" + receiptNumMap.get("printer").toString() + "-" + String.format ("%07d", (Integer) receiptNumMap.get("number"));
             
             StringBuilder eventInsertSb = new StringBuilder();
             eventInsertSb.append("INSERT INTO receipt(id, advance_amount, creation_date, creation_user_id, subject_code, subject_name, last_modification_date, last_modification_user_id, observation, receipt_branch, receipt_date, receipt_number, receipt_printer, status, total_payed, total_to_pay, event_id) VALUES (nextval('receipt_seq'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -267,7 +270,17 @@ public class ReceiptController {
             ps.executeBatch();
             ps.clearBatch();
             
+            
+            //Registrar movimineto de credito
+            
+            String movement = "Pago - Recibo Nro. "+receiptNumberString;
+            SubjectMovementController.updateEventBalance(SubjectMovementController.CREDIT_MOVEMENT_TYPE, SubjectMovementController.RECEIPT_MOVEMENT_TYPE, receiptNumberString, netTotal, subjectMap.get("code").toString(), movement);
+            
+            
+            //Actualizar saldo del evento
             updateEventBalance(balance, eventId);
+            
+            //Actualizar Numeracion de recibos
             updateBook((Integer) receiptNumMap.get("number"));
             
             connRentFur.commit();
@@ -608,19 +621,23 @@ public class ReceiptController {
         ResultSet rs;
         double totalPayed = 0;
         int eventId = 0;
+        String receiptNumberString = "";
+        String subjectCode = "";
         try{
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
             
             connRentFur = DbConnectUtil.getConnection();
             connRentFur.setAutoCommit(false);
-            String receiptSelect = "SELECT total_payed, event_id FROM receipt WHERE id = ?";
+            String receiptSelect = "SELECT total_payed, event_id, receipt_branch, receipt_printer, receipt_number, subject_code FROM receipt WHERE id = ?";
             ps = connRentFur.prepareStatement(receiptSelect);
             ps.setInt(1, receiptId);
             rs = ps.executeQuery();
             if(rs.next()){
                 totalPayed = rs.getDouble("total_payed");
                 eventId = rs.getInt("event_id");
+                receiptNumberString = rs.getString("receipt_branch") + "-" + rs.getString("receipt_printer") + "-" + rs.getString("receipt_number");
+                subjectCode = rs.getString("subject_code");
             }
             
             String receiptUpdate = "UPDATE receipt SET cancelled = ?, cancelled_reason = ?, cancelled_date = current_timestamp WHERE id = ?";
@@ -637,6 +654,10 @@ public class ReceiptController {
             ps.executeUpdate();
             
             ps.close();
+            
+            //Registrar movimineto de debito
+            String movement = "Anulacion Pago - Recibo Nro. "+receiptNumberString;
+            SubjectMovementController.updateEventBalance(SubjectMovementController.DEBIT_MOVEMENT_TYPE, SubjectMovementController.RECEIPT_CANCELLED_MOVEMENT_TYPE, receiptNumberString, totalPayed, subjectCode, movement);
             
             connRentFur.commit();
             

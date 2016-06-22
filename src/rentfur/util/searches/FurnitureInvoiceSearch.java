@@ -62,10 +62,10 @@ public class FurnitureInvoiceSearch extends JInternalFrame{
     private final TableRowSorter trsfiltro;
     private final JButton selectButton;
     private final JButton cancelButton;
-    private final HashMap currentSelectedCode = new HashMap();
+    private final HashMap currentSelectedIds = new HashMap();
     private final DecimalFormat amountFormat = new DecimalFormat("#,###");
     
-    public FurnitureInvoiceSearch(SearchController searchController, ArrayList furnitureCodesAdded, ArrayList furnitureEventList, int eventId){
+    public FurnitureInvoiceSearch(SearchController searchController, ArrayList eventDetailsAdded, ArrayList furnitureEventList, int eventId){
         this.searchController = searchController;
         
         furnitureParamPanel = new JPanel();
@@ -163,7 +163,7 @@ public class FurnitureInvoiceSearch extends JInternalFrame{
         DefaultTableCellRenderer statusRenderer = new DefaultTableCellRenderer();
         statusRenderer.setHorizontalAlignment(JLabel.CENTER);
         
-        searchController.setFurnitureInvoicedResultsTable(furnituresResultDefaultTableModel, false, furnitureCodesAdded, furnitureEventList, eventId);
+        searchController.setFurnitureInvoicedResultsTable(furnituresResultDefaultTableModel, false, eventDetailsAdded, furnitureEventList, eventId);
         furnituresResultTable.setRowHeight(22);
         
         //Code
@@ -173,13 +173,15 @@ public class FurnitureInvoiceSearch extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(0).setCellRenderer(new RadioButtonRenderer());
         furnituresResultTable.getColumnModel().getColumn(0).setCellEditor(new RadioButtonEditor(new JCheckBox()));
         
-        //Name
-        furnituresResultTable.getColumnModel().getColumn(1).setMaxWidth(200);
-        furnituresResultTable.getColumnModel().getColumn(1).setMinWidth(200);
-        furnituresResultTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+//        //Name
+//        furnituresResultTable.getColumnModel().getColumn(1).setMaxWidth(200);
+        furnituresResultTable.getColumnModel().getColumn(1).setMinWidth(270);
+        furnituresResultTable.getColumnModel().getColumn(1).setPreferredWidth(270);
         
         //Family
-        furnituresResultTable.getColumnModel().getColumn(2).setPreferredWidth(180);
+        furnituresResultTable.getColumnModel().getColumn(2).setMaxWidth(96);
+        furnituresResultTable.getColumnModel().getColumn(2).setMinWidth(96);
+        furnituresResultTable.getColumnModel().getColumn(2).setPreferredWidth(96);
         
         //TaxRate
         furnituresResultTable.getColumnModel().getColumn(3).setMaxWidth(120);
@@ -190,12 +192,14 @@ public class FurnitureInvoiceSearch extends JInternalFrame{
         //FineAmountPerUnit
         furnituresResultTable.getColumnModel().getColumn(4).setMaxWidth(90);
         furnituresResultTable.getColumnModel().getColumn(4).setMinWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(4).setPreferredWidth(90);
         furnituresResultTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
         
         //StockDisponible
         furnituresResultTable.getColumnModel().getColumn(5).setHeaderRenderer(new AvailableSimpleHeaderRenderer());
-        furnituresResultTable.getColumnModel().getColumn(5).setMaxWidth(110);
-        furnituresResultTable.getColumnModel().getColumn(5).setMinWidth(110);
+        furnituresResultTable.getColumnModel().getColumn(5).setMaxWidth(130);
+        furnituresResultTable.getColumnModel().getColumn(5).setMinWidth(130);
+        furnituresResultTable.getColumnModel().getColumn(5).setPreferredWidth(130);
         furnituresResultTable.getColumnModel().getColumn(5).setResizable(false);
         furnituresResultTable.getColumnModel().getColumn(5).setCellRenderer(new AvailableCellRenderer());
         
@@ -215,8 +219,9 @@ public class FurnitureInvoiceSearch extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(8).setPreferredWidth(0);
         
         //SubTOTAL
-        furnituresResultTable.getColumnModel().getColumn(9).setMaxWidth(90);
-        furnituresResultTable.getColumnModel().getColumn(9).setMinWidth(90);
+        furnituresResultTable.getColumnModel().getColumn(9).setMaxWidth(100);
+        furnituresResultTable.getColumnModel().getColumn(9).setMinWidth(100);
+        furnituresResultTable.getColumnModel().getColumn(8).setPreferredWidth(100);
         furnituresResultTable.getColumnModel().getColumn(9).setCellRenderer(rightRenderer);
         
         furnituresResultTableJScrollPane = new JScrollPane();
@@ -247,21 +252,21 @@ public class FurnitureInvoiceSearch extends JInternalFrame{
     public void doDefaultCloseAction() {
         this.dispose();
         searchController.setClosedFurnitureInvoicedSearch();
-        searchController.setFurnitureInvoicedCodes(new HashMap());
+        searchController.setFurnitureInvoicedIds(new HashMap());
     }
     
     private void cancelButtonAction(ActionEvent e) {
-        searchController.setFurnitureInvoicedCodes(new HashMap());
+        searchController.setFurnitureInvoicedIds(new HashMap());
         doDefaultCloseAction();
     }
     
     private void selectButtonAction(ActionEvent e){
-        if(currentSelectedCode.isEmpty()){
+        if(currentSelectedIds.isEmpty()){
             JOptionPane optionPane = new JOptionPane("No ha seleccionado ningun Mobiliario", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
             JDialog dialog = optionPane.createDialog(this, "Atencion!");
             dialog.setVisible(true);
         }else{
-            searchController.setFurnitureInvoicedCodes(currentSelectedCode);
+            searchController.setFurnitureInvoicedIds(currentSelectedIds);
             doDefaultCloseAction();
         }
     };
@@ -273,15 +278,27 @@ public class FurnitureInvoiceSearch extends JInternalFrame{
             double price = amountFormat.parse(furnituresResultDefaultTableModel.getValueAt(row, 4).toString()).doubleValue();
             double quantity = Integer.valueOf(furnituresResultDefaultTableModel.getValueAt(row, 5).toString());
             int eventDetailId = Integer.valueOf(furnituresResultDefaultTableModel.getValueAt(row, 8).toString());
+            String description = furnituresResultDefaultTableModel.getValueAt(row, 1).toString();
             
+            itemValues.put("code", code);
             itemValues.put("taxRate", taxRate);
             itemValues.put("price", price);
             itemValues.put("quantity", quantity);
             itemValues.put("eventDetailId", eventDetailId);
+            itemValues.put("description", description);
             
-            currentSelectedCode.put(code, itemValues);
+            currentSelectedIds.put(eventDetailId, itemValues);
         } catch (ParseException ex) {
             Logger.getLogger(FurnitureInvoiceSearch.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void removeItemFromMap(int row){
+        try {
+            int eventDetailId = Integer.valueOf(furnituresResultDefaultTableModel.getValueAt(row, 8).toString());
+            currentSelectedIds.remove(eventDetailId);
+        } catch (Throwable th) {
+            Logger.getLogger(FurnitureInvoiceSearch.class.getName()).log(Level.SEVERE, null, th);
         }
     }
     
@@ -354,7 +371,7 @@ public class FurnitureInvoiceSearch extends JInternalFrame{
         public Object getCellEditorValue() {
           button.removeItemListener(this);
             if(isSelected){
-                currentSelectedCode.remove(code);
+                removeItemFromMap( row);
             }else{
                 addItemToMap(code, row);
             }

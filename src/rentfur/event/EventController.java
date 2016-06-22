@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.security.sasl.Sasl;
 import rentfur.furniture.FurnitureController;
+import rentfur.subjectMovement.SubjectMovementController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
@@ -326,6 +327,13 @@ public class EventController {
             }
             ps.executeBatch();
             ps.clearBatch();
+            
+            if(status == CONFIRMED){
+                //Registrar movimiento de debito
+                String movement = "Contrato Nro. "+contractNumber;
+                SubjectMovementController.updateEventBalance(SubjectMovementController.DEBIT_MOVEMENT_TYPE, SubjectMovementController.CONTRACT_MOVEMENT_DOCUMENT_TYPE, String.valueOf(contractNumber), netTotal, subjectMap.get("code").toString(), movement);
+            }
+            
             connRentFur.commit();
             ps.close();
             
@@ -500,6 +508,12 @@ public class EventController {
             }
             ps.executeBatch();
             ps.clearBatch();
+            
+            if(status == CONFIRMED){
+                //Registrar movimiento de debito
+                String movement = "Contrato Nro. "+contractNumber;
+                SubjectMovementController.updateEventBalance(SubjectMovementController.DEBIT_MOVEMENT_TYPE, SubjectMovementController.CONTRACT_MOVEMENT_DOCUMENT_TYPE, String.valueOf(contractNumber), netTotal, subjectMap.get("code").toString(), movement);
+            }
             connRentFur.commit();
             ps.close();
             
@@ -549,12 +563,14 @@ public class EventController {
         PreparedStatement ps = null;
         ResultSet rs = null;
         int eventId = 0;
+        int contractNumber = 0;
         ArrayList furnitureDetailList;
         HashMap furnitureMap;
         Date deliveryDate;
         try{
             eventId = (Integer) eventMap.get("id");
             deliveryDate = new Date(((Timestamp)eventMap.get("deliveryDate")).getTime());
+            contractNumber = (Integer) eventMap.get("contractNumber");
             connRentFur = DbConnectUtil.getConnection();
             connRentFur.setAutoCommit(false);
             UserRoles userRoles = new UserRoles();
@@ -589,6 +605,10 @@ public class EventController {
                 double totalTaxable5 = 0;
                 double totalTaxable10 = 0;
                 double totalTaxable = 0;
+                
+                double totalAnnexed = 0;
+                double totalPenalty = 0;
+                
                 StringBuilder eventDetailInsertSb = new StringBuilder();
                 eventDetailInsertSb.append("INSERT INTO event_detail(id, furniture_code, furniture_description, unit_price, fine_amount_per_unit, quantity, total_amount, tax_amount_5, tax_amount_10, tax_amount, taxable_amount_5, taxable_amount_10, taxable_amount, observation, penalty, billable, annexed, event_id) VALUES (nextval('event_detail_seq'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
                 ps = connRentFur.prepareStatement(eventDetailInsertSb.toString());
@@ -602,6 +622,8 @@ public class EventController {
                     ps.setInt(5, Integer.valueOf(furnitureMap.get("quantity").toString()));
                     ps.setDouble(6, Double.valueOf(furnitureMap.get("subTotal").toString()));
                     
+                    totalAnnexed = totalAnnexed + Double.valueOf(furnitureMap.get("subTotal").toString());
+                            
                     if(Double.valueOf(furnitureMap.get("taxRate").toString())==5){
                         tax = new BigDecimal(Double.valueOf(furnitureMap.get("subTotal").toString()) / 21).setScale(0, RoundingMode.HALF_UP).doubleValue();
                         totalTax += tax;
@@ -669,13 +691,15 @@ public class EventController {
                 for(int i = 0 ; i < penaltyFurnitureList.size(); i++){
                     furnitureMap = (HashMap) penaltyFurnitureList.get(i);
                     furnitureMap = deepMerge(furnitureMap, FurnitureController.getFurnitureByCode(furnitureMap.get("code").toString()));
-                    System.out.println("furnitureMap: "+furnitureMap);
+                    
                     ps.setString(1, furnitureMap.get("code").toString());
                     ps.setString(2, furnitureMap.get("description").toString());
                     ps.setDouble(3, Double.valueOf(furnitureMap.get("unitPrice").toString()));
                     ps.setDouble(4, Double.valueOf(furnitureMap.get("fineAmountPerUnit").toString()));
                     ps.setInt(5, Integer.valueOf(furnitureMap.get("quantity").toString()));
                     ps.setDouble(6, Double.valueOf(furnitureMap.get("subTotal").toString()));
+                    
+                    totalPenalty = totalPenalty + Double.valueOf(furnitureMap.get("subTotal").toString());
                     
                     if(Double.valueOf(furnitureMap.get("taxRate").toString())==5){
                         tax = new BigDecimal(Double.valueOf(furnitureMap.get("subTotal").toString()) / 21).setScale(0, RoundingMode.HALF_UP).doubleValue();
@@ -745,6 +769,19 @@ public class EventController {
                 ps.executeBatch();
                 ps.clearBatch();
                 
+                //REGISTRAR MOVIMIENTOS DE DEBITO
+                String movement;
+                if(totalAnnexed > 0){
+                    movement = "Anexos - Cargos - Contrato Nro. "+contractNumber;
+                    SubjectMovementController.updateEventBalance(SubjectMovementController.DEBIT_MOVEMENT_TYPE, SubjectMovementController.CONTRACT_ANEXED_MOVEMENT_TYPE, String.valueOf(contractNumber), totalAnnexed, subjectMap.get("code").toString(), movement);
+                }
+                
+                if(totalPenalty > 0){
+                    movement = "Multa - Contrato Nro. "+contractNumber;
+                    SubjectMovementController.updateEventBalance(SubjectMovementController.DEBIT_MOVEMENT_TYPE, SubjectMovementController.PENALTY_MOVEMENT_TYPE, String.valueOf(contractNumber), totalPenalty, subjectMap.get("code").toString(), movement);
+                }
+                
+                //ACTUALIZAR DATOS GENERALES DEL EVENTO
                 eventUpdateSb.append("UPDATE event SET balance = ?, net_total = ?, total_tax_5 = (total_tax_5 + ?), total_tax_10 = (total_tax_10 + ?), total_tax = (total_tax + ?), total_taxable_5 = (total_taxable_5 + ?), total_taxable_10 = (total_taxable_10 + ?), total_taxable = (total_taxable + ?), last_modification_user_id = ?, place_of_delivery = ?, observation = ? , last_modification_date = current_timestamp, billable_balance = ? WHERE id = ?");
                 ps = connRentFur.prepareStatement(eventUpdateSb.toString());
                 ps.setDouble(1, balanceTotal); 
@@ -1042,7 +1079,7 @@ public class EventController {
             }
             
             StringBuilder eventDetailSelectSb = new StringBuilder();
-            eventDetailSelectSb.append("SELECT id, furniture_code, furniture_description, unit_price, fine_amount_per_unit, quantity, total_amount, tax_amount_5, tax_amount_10, tax_amount, taxable_amount_5, taxable_amount_10, taxable_amount, observation, penalty, billable, annexed FROM event_detail WHERE event_id = ?");
+            eventDetailSelectSb.append("SELECT id, furniture_code, furniture_description, unit_price, fine_amount_per_unit, quantity, total_amount, tax_amount_5, tax_amount_10, tax_amount, taxable_amount_5, taxable_amount_10, taxable_amount, observation, penalty, billable, annexed FROM event_detail WHERE event_id = ? ORDER BY id ASC");
             ArrayList eventDetailList = new ArrayList();
             ArrayList penaltyEventDetailList = new ArrayList();
             HashMap eventDetailMap;
@@ -1121,7 +1158,7 @@ public class EventController {
             connRentFur.setAutoCommit(false);
 
             StringBuilder eventHeaderSelectSb = new StringBuilder();
-            eventHeaderSelectSb.append("SELECT id, \"number\" as eventNumber, place_of_delivery, observation, contract_number, net_total, subject_code, subject_name, subject_telephone, balance, status FROM event WHERE CAST(delivery_date AS DATE) = ? ORDER BY status");
+            eventHeaderSelectSb.append("SELECT id, \"number\" as eventNumber, place_of_delivery, observation, contract_number, net_total, subject_code, subject_name, subject_telephone, balance, status FROM event WHERE CAST(delivery_date AS DATE) = ? ORDER BY status, id ASC");
 
             ps = connRentFur.prepareStatement(eventHeaderSelectSb.toString());
             ps.setDate(1, new java.sql.Date(deliveryDate.getTime()));
@@ -1207,7 +1244,7 @@ public class EventController {
             connRentFur.setAutoCommit(false);
 
             StringBuilder eventHeaderSelectSb = new StringBuilder();
-            eventHeaderSelectSb.append("SELECT f.id, f.code, f.description, (SELECT description FROM furniture_family WHERE id = f.furniture_family_id) as family, (SELECT stock_total FROM furniture_stock WHERE furniture_id = f.id AND day = ?) as stock_total, (SELECT stock_available FROM furniture_stock WHERE furniture_id = f.id AND day = ?) as stock_available, (SELECT stock_committed FROM furniture_stock WHERE furniture_id = f.id AND day = ?) as stock_committed FROM furniture f WHERE f.active = true");
+            eventHeaderSelectSb.append("SELECT f.id, f.code, f.description, (SELECT description FROM furniture_family WHERE id = f.furniture_family_id) as family, (SELECT stock_total FROM furniture_stock WHERE furniture_id = f.id AND day = ?) as stock_total, (SELECT stock_available FROM furniture_stock WHERE furniture_id = f.id AND day = ?) as stock_available, (SELECT stock_committed FROM furniture_stock WHERE furniture_id = f.id AND day = ?) as stock_committed FROM furniture f WHERE f.active = true ORDER BY f.description");
 
             ps = connRentFur.prepareStatement(eventHeaderSelectSb.toString());
             ps.setDate(1, new java.sql.Date(deliveryDate.getTime()));

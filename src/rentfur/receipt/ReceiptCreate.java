@@ -385,17 +385,17 @@ public class ReceiptCreate extends JInternalFrame{
         receiptDetailTable.getColumnModel().getColumn(DOC_NUMBER_COLUMN).setPreferredWidth(160);
         receiptDetailTable.getColumnModel().getColumn(DOC_NUMBER_COLUMN).setCellRenderer(rightRenderer);
         
-        receiptDetailTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN).setCellEditor(new DatePickerCell());
-        receiptDetailTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN).setCellRenderer(new DatePickerCellRenderer());
+        receiptDetailTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN).setCellEditor(new EmitionDatePickerCell());
+        receiptDetailTable.getColumnModel().getColumn(DOC_EMITION_DATE_COLUMN).setCellRenderer(new EmitionDatePickerCellRenderer());
         
-        receiptDetailTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setCellEditor(new DatePickerCell());
-        receiptDetailTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setCellRenderer(new DatePickerCellRenderer());
+        receiptDetailTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setCellEditor(new PaymentDatePickerCell());
+        receiptDetailTable.getColumnModel().getColumn(DOC_PAYMENT_DATE_COLUMN).setCellRenderer(new PaymentDatePickerCellRenderer());
         
-        receiptDetailTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setCellEditor(new DatePickerCell());
-        receiptDetailTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setCellRenderer(new DatePickerCellRenderer());
+        receiptDetailTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setCellEditor(new DueDatePickerCell());
+        receiptDetailTable.getColumnModel().getColumn(DOC_DUE_DATE_COLUMN).setCellRenderer(new DueDatePickerCellRenderer());
         
-        receiptDetailTable.getColumnModel().getColumn(BANK_COLUMN).setCellEditor(new PaymentMethodCellEditor(ReceiptController.getBanksForComboBox(false)));
-        receiptDetailTable.getColumnModel().getColumn(BANK_COLUMN).setCellRenderer(new PaymentMethodCellRenderer());
+        receiptDetailTable.getColumnModel().getColumn(BANK_COLUMN).setCellEditor(new BankCellEditor(ReceiptController.getBanksForComboBox(false)));
+        receiptDetailTable.getColumnModel().getColumn(BANK_COLUMN).setCellRenderer(new BankCellRenderer());
         
         //AMOUNT
         receiptDetailTable.getColumnModel().getColumn(AMOUNT_COLUMN).setCellEditor(new AmountCellEditor());
@@ -520,6 +520,7 @@ public class ReceiptCreate extends JInternalFrame{
         ComboBoxItem paymentMethod;
         for (int row = 0; row < receiptDetailTable.getRowCount(); row++){
             dataVector = (Vector) receiptDetailDefaultTableModel.getDataVector().get(row);
+            System.out.println("dataVector: "+dataVector);
             paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
             if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK){
                 if(dataVector.get(DOC_DUE_DATE_COLUMN).equals("") || dataVector.get(DOC_EMITION_DATE_COLUMN).equals("") || dataVector.get(DOC_NUMBER_COLUMN).equals("") || dataVector.get(BANK_COLUMN).equals("")){
@@ -710,7 +711,76 @@ public class ReceiptCreate extends JInternalFrame{
         }
     }
     
-    public class DatePickerCellRenderer extends DefaultTableCellRenderer {
+    public class BankCellRenderer extends DefaultTableCellRenderer {
+     
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            if (value instanceof ComboBoxItem) {
+                ComboBoxItem paymentMethod = (ComboBoxItem) value;
+                setText(paymentMethod.getValue());
+            }
+
+            if (isSelected) {
+                setBackground(table.getSelectionBackground());
+            } else {
+                setBackground(table.getSelectionForeground());
+            }
+
+            return this;
+        }
+
+    }
+      
+    public class BankCellEditor extends AbstractCellEditor
+        implements TableCellEditor, ActionListener {
+        private ComboBoxItem item;
+        private final ComboBoxItem[] items;
+        private int row;
+
+        public BankCellEditor(ComboBoxItem[] items) {
+            this.items = items;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return this.item;
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            this.row = row;
+            if (value instanceof ComboBoxItem) {
+                this.item = (ComboBoxItem) value;
+            }
+
+            JComboBox<ComboBoxItem> paymentMethodComboBox = new JComboBox<>();
+
+            for (ComboBoxItem paymentMethod : items) {
+                paymentMethodComboBox.addItem(paymentMethod);
+            }
+
+            paymentMethodComboBox.setSelectedItem(item);
+            paymentMethodComboBox.addActionListener(this);
+            if (isSelected) {
+                paymentMethodComboBox.setBackground(table.getSelectionBackground());
+            } else {
+                paymentMethodComboBox.setBackground(table.getSelectionForeground());
+            }
+            
+            return paymentMethodComboBox;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+            JComboBox<ComboBoxItem> paymentMethodItem = (JComboBox<ComboBoxItem>) event.getSource();
+            this.item = (ComboBoxItem) paymentMethodItem.getSelectedItem();
+            fireEditingStopped();
+        }
+    }
+    
+    private class EmitionDatePickerCellRenderer extends DefaultTableCellRenderer {
      
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
@@ -739,9 +809,125 @@ public class ReceiptCreate extends JInternalFrame{
 
     }
     
-    private class DatePickerCell extends DatePickerCellEditor{
+    private class EmitionDatePickerCell extends DatePickerCellEditor{
 
-        public DatePickerCell() {
+        public EmitionDatePickerCell() {
+            this.clickCountToStart = 1;
+        }
+
+        @Override
+        public Date getCellEditorValue() {
+            return super.getCellEditorValue(); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            return super.getTableCellEditorComponent(table, value, isSelected, row, column); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            return super.stopCellEditing(); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+        @Override
+        protected void fireEditingStopped() {
+          super.fireEditingStopped();
+          //removeRow(row);
+        }
+
+    }
+    
+    private class DueDatePickerCellRenderer extends DefaultTableCellRenderer {
+     
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            ComboBoxItem paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
+            if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK ||
+                    Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK){
+                if (value instanceof Date) {
+                    String pattern = "yyyy-MM-dd";
+                    SimpleDateFormat format = new SimpleDateFormat(pattern);
+                    String dateString = format.format((Date) value);
+                    this.setText(dateString);
+                }
+                if (isSelected) {
+                    setBackground(table.getSelectionBackground());
+                } else {
+                    setBackground(table.getSelectionForeground());
+                }
+                return this;
+            }else{
+                this.setText("");
+                return this;
+            }
+            
+        }
+
+    }
+    
+    private class DueDatePickerCell extends DatePickerCellEditor{
+
+        public DueDatePickerCell() {
+            this.clickCountToStart = 1;
+        }
+
+        @Override
+        public Date getCellEditorValue() {
+            return super.getCellEditorValue(); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            return super.getTableCellEditorComponent(table, value, isSelected, row, column); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            return super.stopCellEditing(); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+        @Override
+        protected void fireEditingStopped() {
+          super.fireEditingStopped();
+          //removeRow(row);
+        }
+
+    }
+    
+    private class PaymentDatePickerCellRenderer extends DefaultTableCellRenderer {
+     
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            ComboBoxItem paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
+            if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK ||
+                    Integer.valueOf(paymentMethod.getKey())==ReceiptController.DATED_CHECK){
+                if (value instanceof Date) {
+                    String pattern = "yyyy-MM-dd";
+                    SimpleDateFormat format = new SimpleDateFormat(pattern);
+                    String dateString = format.format((Date) value);
+                    this.setText(dateString);
+                }
+                if (isSelected) {
+                    setBackground(table.getSelectionBackground());
+                } else {
+                    setBackground(table.getSelectionForeground());
+                }
+                return this;
+            }else{
+                this.setText("");
+                return this;
+            }
+            
+        }
+
+    }
+    
+    private class PaymentDatePickerCell extends DatePickerCellEditor{
+
+        public PaymentDatePickerCell() {
             this.clickCountToStart = 1;
         }
 
@@ -940,11 +1126,8 @@ public class ReceiptCreate extends JInternalFrame{
 
         @Override
         public boolean stopCellEditing() {
-            System.out.println("OPA");
             return super.stopCellEditing(); //To change body of generated methods, choose Tools | Templates.
-        }
-        
-        
+        } 
 
     }
 }

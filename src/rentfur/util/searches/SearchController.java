@@ -36,7 +36,7 @@ public class SearchController {
     private int invoiceSelectedId = 0;
     private ArrayList furnitureSelectedCodes = new ArrayList();
     private ArrayList furniturePenalizedCodes = new ArrayList();
-    private HashMap furnitureInvoicedCodes = new HashMap();
+    private HashMap furnitureInvoicedIds = new HashMap();
     
     public SubjectSearch getSubjectSearch(){
         if(subjectSearch == null){
@@ -67,9 +67,9 @@ public class SearchController {
         return providerSearch;
     }
     
-    public FurnitureInvoiceSearch getInvoiceFurnitureSearch(int eventId, ArrayList furnitureEventList, ArrayList furnitureCodesAdded){
+    public FurnitureInvoiceSearch getInvoiceFurnitureSearch(int eventId, ArrayList furnitureEventList, ArrayList eventDetailsAdded){
         if(furnitureInvoiceSearch == null){
-            furnitureInvoiceSearch = new FurnitureInvoiceSearch(this, furnitureCodesAdded, furnitureEventList, eventId);
+            furnitureInvoiceSearch = new FurnitureInvoiceSearch(this, eventDetailsAdded, furnitureEventList, eventId);
         }
         
         return furnitureInvoiceSearch;
@@ -383,7 +383,7 @@ public class SearchController {
         }
     }
     
-    public void setFurnitureInvoicedResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, ArrayList furnitureCodesAdded, ArrayList furnitureEventList, int eventId){
+    public void setFurnitureInvoicedResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, ArrayList eventDetailsAdded, ArrayList furnitureEventList, int eventId){
         
         try{
             if(!searchPressed){
@@ -391,8 +391,8 @@ public class SearchController {
                 furnituresResultDefaultTableModel.addColumn("Descripción");
                 furnituresResultDefaultTableModel.addColumn("Familia");
                 furnituresResultDefaultTableModel.addColumn("Tasa de Impuesto");
-                furnituresResultDefaultTableModel.addColumn("Precio");
-                furnituresResultDefaultTableModel.addColumn("Contratado");
+                furnituresResultDefaultTableModel.addColumn("Precio/Multa");
+                furnituresResultDefaultTableModel.addColumn("Contratado/Multado");
                 furnituresResultDefaultTableModel.addColumn("Id");
                 furnituresResultDefaultTableModel.addColumn("Código");
                 furnituresResultDefaultTableModel.addColumn("ID");
@@ -408,32 +408,40 @@ public class SearchController {
             if(furnitureEventList!=null && !furnitureEventList.isEmpty()){
                 DecimalFormat amountFormat = new DecimalFormat("#,###");
                 HashMap resultValueMap;
-                HashMap furnituresAddedMap = new HashMap();
-                int oldQuantity;
+//                HashMap furnituresAddedMap = new HashMap();
+//                int oldQuantity;
                 double subTotal = 0;
                 Object[] row;
+                System.out.println("furnitureEventList: "+furnitureEventList.size());
                 for(int rowNumber = 0; rowNumber < furnitureEventList.size(); rowNumber++){
 
                     row = new Object[furnituresResultDefaultTableModel.getColumnCount()];
                     resultValueMap = (HashMap) furnitureEventList.get(rowNumber);
+                    //System.out.println("resultValueMap: "+resultValueMap);
                     if((Boolean)resultValueMap.get("billable")){
-                        if(furnituresAddedMap.containsKey(resultValueMap.get("furnitureCode").toString())){
-                            //Ya no se ingresa como fila nueva, solo se actualiza la cantidad (Suma de contratado mas anexos)
-                            oldQuantity = Integer.valueOf(furnituresResultDefaultTableModel.getValueAt(
-                                    ((Integer)furnituresAddedMap.get(resultValueMap.get("furnitureCode").toString())-1), 5).toString());
-                            furnituresResultDefaultTableModel.setValueAt((oldQuantity + (Integer)resultValueMap.get("quantity")), 
-                                    ((Integer)furnituresAddedMap.get(resultValueMap.get("furnitureCode").toString())-1), 5);
-
-                        }else if(!furnitureCodesAdded.contains(resultValueMap.get("furnitureCode").toString())){
+//                        if(furnituresAddedMap.containsKey(resultValueMap.get("furnitureCode").toString()) && !(Boolean)resultValueMap.get("penalty")){
+//                            //Ya no se ingresa como fila nueva, solo se actualiza la cantidad (Suma de contratado mas anexos)
+//                            oldQuantity = Integer.valueOf(furnituresResultDefaultTableModel.getValueAt(
+//                                    ((Integer)furnituresAddedMap.get(resultValueMap.get("furnitureCode").toString())-1), 5).toString());
+//                            furnituresResultDefaultTableModel.setValueAt((oldQuantity + (Integer)resultValueMap.get("quantity")), 
+//                                    ((Integer)furnituresAddedMap.get(resultValueMap.get("furnitureCode").toString())-1), 5);
+//
+//                        }else 
+                        if(!eventDetailsAdded.contains(resultValueMap.get("eventDetailId").toString())){
                             //Se inserta nueva fila
                             row[0] = new JCheckBox(resultValueMap.get("furnitureCode").toString());
-                            row[1] = resultValueMap.get("description");
                             row[2] = resultValueMap.get("family");
                             row[3] = amountFormat.format((Double)resultValueMap.get("taxRate"));
                             if((Boolean)resultValueMap.get("penalty")){
+                                row[1] = resultValueMap.get("description") + " (Multa)";
                                 row[4] = amountFormat.format((Double)resultValueMap.get("fineAmountPerUnit"));
                                 subTotal = (Double)resultValueMap.get("fineAmountPerUnit") * (Integer)resultValueMap.get("quantity");
+                            }else if(!(Boolean)resultValueMap.get("penalty") && (Boolean)resultValueMap.get("annexed")){
+                                row[1] = resultValueMap.get("description") + " (Anexo)";
+                                row[4] = amountFormat.format((Double)resultValueMap.get("unitPrice"));
+                                subTotal = (Double)resultValueMap.get("unitPrice") * (Integer)resultValueMap.get("quantity");
                             }else{
+                                row[1] = resultValueMap.get("description");
                                 row[4] = amountFormat.format((Double)resultValueMap.get("unitPrice"));
                                 subTotal = (Double)resultValueMap.get("unitPrice") * (Integer)resultValueMap.get("quantity");
                             }
@@ -444,7 +452,12 @@ public class SearchController {
                             
                             row[9] =  amountFormat.format(subTotal);
                             furnituresResultDefaultTableModel.addRow(row);
-                            furnituresAddedMap.put(resultValueMap.get("furnitureCode").toString(), furnituresResultDefaultTableModel.getRowCount());
+//                            if((Boolean)resultValueMap.get("penalty")){
+//                                furnituresAddedMap.put(resultValueMap.get("furnitureCode").toString()+"P", furnituresResultDefaultTableModel.getRowCount());
+//                            }else{
+//                                furnituresAddedMap.put(resultValueMap.get("furnitureCode").toString(), furnituresResultDefaultTableModel.getRowCount());
+//                            }
+                            
                         }
                     }
                 }
@@ -788,12 +801,12 @@ public class SearchController {
         this.furniturePenalizedCodes = furniturePenalizedCodes;
     }
     
-    public HashMap getFurnitureInvoicedCodes() {
-        return furnitureInvoicedCodes;
+    public HashMap getFurnitureInvoicedIds() {
+        return furnitureInvoicedIds;
     }
 
-    public void setFurnitureInvoicedCodes(HashMap furnitureInvoicedCodes) {
-        this.furnitureInvoicedCodes = furnitureInvoicedCodes;
+    public void setFurnitureInvoicedIds(HashMap furnitureInvoicedIds) {
+        this.furnitureInvoicedIds = furnitureInvoicedIds;
     }
     
     public void setClosedProviderSearch(){

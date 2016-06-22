@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rentfur.book.BookController;
+import rentfur.event.EventController;
+import rentfur.invoice.InvoiceController;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.User;
 import rentfur.util.UserRoles;
@@ -28,6 +30,7 @@ import rentfur.util.UserRoles;
  */
 public class CreditNoteController {
     private CreditNoteCreate creditNoteCreate;
+    private CreditNoteShow creditNoteShow;
     
     public static final int SUCCESFULLY_SAVED = 0;
     public static final int ERROR_IN_SAVED = 1;
@@ -39,8 +42,19 @@ public class CreditNoteController {
         return creditNoteCreate;
     }
     
+    public CreditNoteShow getCreditNoteShow(int eventId, int creditNoteId){
+        if(creditNoteShow == null){
+            creditNoteShow = new CreditNoteShow(this, eventId, creditNoteId);
+        }
+        return creditNoteShow;
+    }
+    
     public void creditNoteCreateClosed(){
         creditNoteCreate = null;
+    }
+    
+    public void creditNoteShowClosed(){
+        creditNoteShow = null;
     }
     
     public HashMap createCreditNote(HashMap subjectMap, ArrayList invoiceDetailList, Date invoceDate, int eventId, HashMap invoiceNumMap, double netTotal, double exemptTotal, double tax05total, double tax10total, double taxTotal, double taxted05total, double taxted10total, String observation, int invoiceId){
@@ -359,5 +373,196 @@ public class CreditNoteController {
         }
         
         return creditNoteList;
+    }
+    
+    public static HashMap getCreditNoteById(int credtiNoteId){
+        Connection connRentFur = null;
+        PreparedStatement psCreditNote;
+        PreparedStatement psCreditNoteDetail = null;
+        ResultSet rsCreditNote;
+        ResultSet rsCreditNoteDetail = null;
+        ResultSetMetaData rsCreditNoteMd;
+        ResultSetMetaData rsCreditNoteDetailMd;
+        HashMap <String,Object> creditNoteMap = null;
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+
+            //Invoice
+            StringBuilder creditNoteSelectSb = new StringBuilder();
+            creditNoteSelectSb.append("SELECT id, cancelled, cancelled_date, cancelled_reason, creation_date, creation_user_id, credit_note_branch, credit_note_date, credit_note_number, credit_note_printer, subject_address, subject_code, subject_company_alias, subject_fiscal_number, subject_name, subject_phone, discount_rate, discount_total, exempt_total, fiscal_stamp_number, gross_total, invoice_id, last_modification_date, last_modification_user_id, net_total, observation, status, tax05total, tax10total, tax_total, taxted05total, taxted10total, event_id FROM credit_note WHERE id = ?");
+
+            //Invoice Detail
+            StringBuilder creditNoteDetailSelectSb = new StringBuilder();
+            creditNoteDetailSelectSb.append("SELECT id, credit_note_id, discount_amount, discount_rate, exempt_amount, gross_amount, net_amount, observation, furniture_code, furniture_name, tax_rate, quantity, row_number, unit_price, tax05amount, tax10amount, tax_amount, taxted05amount, taxted10amount, description FROM credit_note_detail WHERE  credit_note_id = ? ORDER BY row_number ASC");
+
+            
+            psCreditNote = connRentFur.prepareStatement(creditNoteSelectSb.toString());
+            psCreditNote.setInt(1, credtiNoteId);
+            ArrayList creditNoteDetailList;
+            HashMap <String,Object> creditNoteDetailMap;
+            rsCreditNote = psCreditNote.executeQuery();
+            rsCreditNoteMd = rsCreditNote.getMetaData();
+            ArrayList<String> columns;
+            ArrayList<String> detailColumns;
+            columns = new ArrayList<>(rsCreditNoteMd.getColumnCount());
+            
+            for(int i = 1; i <= rsCreditNoteMd.getColumnCount(); i++){
+                columns.add(rsCreditNoteMd.getColumnName(i));
+            }
+            
+            while(rsCreditNote.next()){                
+                creditNoteMap = new HashMap<>(columns.size());
+                for(String col : columns) {
+                    creditNoteMap.put(col, rsCreditNote.getObject(col));
+                }
+                
+                psCreditNoteDetail = connRentFur.prepareStatement(creditNoteDetailSelectSb.toString());
+                psCreditNoteDetail.setInt(1, credtiNoteId);
+                creditNoteDetailList = new ArrayList();
+                rsCreditNoteDetail = psCreditNoteDetail.executeQuery();
+                rsCreditNoteDetailMd = rsCreditNoteDetail.getMetaData();
+                detailColumns = new ArrayList<>(rsCreditNoteDetailMd.getColumnCount());
+                for(int i = 1; i <= rsCreditNoteDetailMd.getColumnCount(); i++){
+                    detailColumns.add(rsCreditNoteDetailMd.getColumnName(i));
+                }
+                
+                while(rsCreditNoteDetail.next()){
+                    creditNoteDetailMap = new HashMap<>(detailColumns.size());
+                    for(String col : detailColumns) {
+                        creditNoteDetailMap.put(col, rsCreditNoteDetail.getObject(col));
+                    }
+                    creditNoteDetailList.add(creditNoteDetailMap);
+                }
+                creditNoteMap.put("creditNoteDetail", creditNoteDetailList);
+            }
+            
+            connRentFur.commit();
+            
+            if(psCreditNoteDetail != null){
+                psCreditNoteDetail.close();
+            }
+            if(rsCreditNoteDetail != null){
+                rsCreditNoteDetail.close();
+            }
+            psCreditNote.close();
+            rsCreditNote.close();
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(CreditNoteController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return creditNoteMap;
+    }
+    
+    public HashMap cancelCreditNote(int creditNoteId, String cancelledReason){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        int invoiceId = 0;
+        int eventId = 0;
+        double creditNoteNetTotal = 0;
+        try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+            String receiptSelect = "SELECT invoice_id, event_id,net_total FROM credit_note WHERE id = ?";
+            ps = connRentFur.prepareStatement(receiptSelect);
+            ps.setInt(1, creditNoteId);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                invoiceId = rs.getInt("invoice_id");
+                eventId = rs.getInt("event_id");
+                creditNoteNetTotal = rs.getDouble("net_total");
+            }
+            
+            String receiptUpdate = "UPDATE credit_note SET cancelled = ?, cancelled_reason = ?, cancelled_date = current_timestamp WHERE id = ?";
+            ps = connRentFur.prepareStatement(receiptUpdate);
+            ps.setBoolean(1, Boolean.TRUE);
+            ps.setString(2, cancelledReason);
+            ps.setInt(3, creditNoteId);
+            ps.executeUpdate();
+            
+            String eventUpdate = "UPDATE invoice SET whith_credit_note = false WHERE id = ?";
+            ps = connRentFur.prepareStatement(eventUpdate);
+            ps.setInt(1, invoiceId);
+            ps.executeUpdate();
+            
+            StringBuilder invoiceDetailBillableUpdateSb = new StringBuilder();
+            invoiceDetailBillableUpdateSb.append("UPDATE event_detail SET billable = false WHERE id = ?");
+            ps = connRentFur.prepareStatement(invoiceDetailBillableUpdateSb.toString());
+            HashMap evenMap = EventController.getEventById(eventId);
+            if((Boolean) evenMap.get("detailedInvoice")){
+                HashMap detailMap;
+                HashMap invoiceMap = InvoiceController.getInvoiceById(invoiceId);
+                ArrayList invoiceDetailList = (ArrayList) invoiceMap.get("invoiceDetail");
+                for(int i = 0 ; i < invoiceDetailList.size(); i++){
+                    detailMap = (HashMap) invoiceDetailList.get(i);
+                    //furnitureMap = deepMerge(furnitureMap, FurnitureController.getFurnitureByCode(furnitureMap.get("code").toString()));      
+                    System.out.println("detailMap: "+detailMap);
+                    if(Integer.valueOf(detailMap.get("event_detail_id").toString()) != 0){
+                        ps.setInt(1, Integer.valueOf(detailMap.get("event_detail_id").toString()));
+                        System.out.println("ps: "+ps.toString());
+                        ps.executeUpdate();
+                    }
+
+                }
+            }
+            
+            StringBuilder eventUpdateSb = new StringBuilder();
+            eventUpdateSb.append("UPDATE event SET billable_balance = billable_balance - ? WHERE id = ?");
+            ps = connRentFur.prepareStatement(eventUpdateSb.toString());
+            ps.setDouble(1, creditNoteNetTotal);
+            ps.setInt(2, eventId);
+            ps.executeUpdate();
+            
+            ps.close();
+            
+            connRentFur.commit();
+            
+            mapToReturn.put("status", SUCCESFULLY_SAVED);
+            mapToReturn.put("message", "Nota de Credito Anulada correctamente");
+        }catch(SQLException th){
+            try {
+                connRentFur.rollback();
+            } catch (SQLException ex) {
+                Logger.getLogger(CreditNoteController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            mapToReturn.put("message", th.getMessage());
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
     }
 }

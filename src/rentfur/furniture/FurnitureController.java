@@ -14,11 +14,15 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
 import rentfur.furnitureFamily.FurnitureFamilyCreate;
+import rentfur.furnitureMovement.FurnitureMovementController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
@@ -819,7 +823,7 @@ public class FurnitureController {
                 mapToReturn.put("code",rs.getString("code"));
                 mapToReturn.put("description", rs.getString("description"));
                 mapToReturn.put("unitPrice", rs.getDouble("unit_price"));
-                mapToReturn.put("totalStock", rs.getDouble("total_stock"));
+                mapToReturn.put("totalStock", rs.getInt("total_stock"));
                 mapToReturn.put("observation", rs.getString("observation"));
                 mapToReturn.put("fineAmountPerUnit", rs.getDouble("fine_amount_per_unit"));
                 mapToReturn.put("unitCostPrice", rs.getDouble("unit_cost_price"));
@@ -827,6 +831,198 @@ public class FurnitureController {
                 mapToReturn.put("furnitureFamilyId", rs.getInt("furniture_family_id"));
                 mapToReturn.put("family", rs.getString("family"));
                 mapToReturn.put("taxRate", rs.getDouble("tax_rate"));
+            }
+            
+            rs.close();
+            ps.close();
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
+    }
+    
+    public static boolean furnitureHasInitialInventoryMovement(String furnitureCode){
+        boolean valueToReturn = false;
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        int count = 0;
+        try{
+            connRentFur = DbConnectUtil.getConnection();
+            StringBuilder furnitureQuery = new StringBuilder();
+            furnitureQuery.append("SELECT count(*) FROM movement_detail mv, movement m WHERE mv.furniture_code = ? AND mv.movement_id = m.id AND m.concept_code = ?");
+            ps = connRentFur.prepareStatement(furnitureQuery.toString());
+            ps.setString(1, furnitureCode);
+            ps.setInt(2, FurnitureMovementController.MOVEMENT_CONCEPT_INITIAL_INVENTORY);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                count = rs.getInt(1);
+            }
+            if(count > 0){
+                valueToReturn = true;
+            }
+            
+            rs.close();
+            ps.close();
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return valueToReturn;
+    }
+    
+    public static void updateFurnitureStockDaysInput(int furnitureId , String furnitureCode, int quantity, int totalStock){
+        
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+            int dayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+            
+            int daysToInsert = (365 - dayOfYear) + 1;
+            StringBuilder furnitureStockUpdateSb = new StringBuilder();
+            furnitureStockUpdateSb.append("UPDATE furniture_stock SET stock_total = (stock_total + ?), stock_available = (stock_available + ?) WHERE furniture_id = ? AND day >= current_date ");
+            
+            StringBuilder furnitureStockInsertSb = new StringBuilder();
+            furnitureStockInsertSb.append("INSERT INTO furniture_stock(id, stock_total, stock_available, furniture_id, day, stock_committed) VALUES (nextval('furniture_stock_seq'), ?, ?, ?, (current_date + ?), 0)");
+
+            boolean furnitureStockExists = furnitureStockExists(furnitureId);
+            
+            if(furnitureStockExists){
+                ps = connRentFur.prepareStatement(furnitureStockUpdateSb.toString());
+                ps.setInt(1, quantity);
+                ps.setInt(2, quantity);
+                ps.setInt(3, furnitureId);
+                ps.executeUpdate();
+            }else{
+                ps = connRentFur.prepareStatement(furnitureStockInsertSb.toString());
+                for(int i = 0 ; i <= daysToInsert; i++){
+                    ps.setInt(1, totalStock);
+                    ps.setInt(2, totalStock);
+                    ps.setInt(3, furnitureId);
+                    ps.setInt(4, i);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+                ps.clearBatch();
+            }
+            
+            connRentFur.commit();
+            ps.close();
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(FurnitureController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+    }
+    
+    private static boolean furnitureStockExists(int furnitureId){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        boolean valueToReturn = false;
+        
+        try{
+            
+            connRentFur = DbConnectUtil.getConnection();
+            int count = 0;
+            StringBuilder furnitureStockExistsQuerySB = new StringBuilder();
+            furnitureStockExistsQuerySB.append("SELECT count(*) FROM furniture_stock WHERE furniture_id = ?");
+
+            ps = connRentFur.prepareStatement(furnitureStockExistsQuerySB.toString());
+            ps.setInt(1, furnitureId);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                count = rs.getInt(1);
+            }
+            
+            if(count > 0){
+                valueToReturn = true;
+            }
+            
+            ps.close();
+            
+        }catch(SQLException th){
+            try {
+                if(connRentFur!=null){
+                    connRentFur.rollback();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(FurnitureController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.err.println("Error: "+th.getMessage());
+            System.err.println(th.getNextException());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        System.out.println("furnitureStockExist:" + valueToReturn);
+        return valueToReturn;
+    }
+    
+    public static HashMap getFurnitureFamilyByCode(String furnitureCode){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        
+        try{
+            connRentFur = DbConnectUtil.getConnection();
+            StringBuilder furnitureQuery = new StringBuilder();
+            furnitureQuery.append("SELECT f.furniture_family_id, (SELECT ff.description FROM furniture_family ff WHERE ff.id = f.furniture_family_id) as description, (SELECT ff.code FROM furniture_family ff WHERE ff.id = f.furniture_family_id) as code FROM furniture f WHERE f.code = ?");
+            ps = connRentFur.prepareStatement(furnitureQuery.toString());
+            ps.setString(1, furnitureCode);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                mapToReturn.put("id",rs.getInt("furniture_family_id"));
+                mapToReturn.put("code",rs.getString("code"));
+                mapToReturn.put("description", rs.getString("description"));
             }
             
             rs.close();

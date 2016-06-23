@@ -68,7 +68,7 @@ public class FurnitureSearch extends JInternalFrame{
     private final ArrayList currentSelectedCode = new ArrayList();
     private boolean showStock;
     
-    public FurnitureSearch(SearchController searchController, ArrayList furnitureCodesAdded, Date day, boolean showStock){
+    public FurnitureSearch(SearchController searchController, ArrayList furnitureCodesAdded, Date day, boolean showStock, boolean initialInventory){
         this.searchController = searchController;
         
         furnitureParamPanel = new JPanel();
@@ -166,7 +166,7 @@ public class FurnitureSearch extends JInternalFrame{
         DefaultTableCellRenderer statusRenderer = new DefaultTableCellRenderer();
         statusRenderer.setHorizontalAlignment(JLabel.CENTER);
         
-        searchController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null, furnitureCodesAdded, day);
+        searchController.setFurnitureIndexResultsTable(furnituresResultDefaultTableModel, false, null, null, null, furnitureCodesAdded, day, initialInventory);
         furnituresResultTable.setRowHeight(22);
         
         //Code

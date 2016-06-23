@@ -258,7 +258,7 @@ public class UserController {
         userCreate = null;
     }
     
-    public HashMap getUserById(int userId){
+    public static HashMap getUserById(int userId){
         HashMap userMap = new HashMap();
         Connection connRentFur = null;
         PreparedStatement userPs;

@@ -99,7 +99,7 @@ public class SubjectMovementController {
         }
     }
     
-    public static String getMovementType(int movementType){
+    public static String getSubjectMovementType(int movementType){
         String movementTypeString = "";
         switch(movementType){
             case DEBIT_MOVEMENT_TYPE: 

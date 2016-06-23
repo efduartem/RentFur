@@ -28,6 +28,9 @@ import rentfur.furniture.FurnitureCreate;
 import rentfur.furniture.FurnitureShowAndEdit;
 import rentfur.furniture.FurnitureIndex;
 import rentfur.furnitureFamily.FurnitureFamilyCreate;
+import rentfur.furnitureMovement.FurnitureMovementController;
+import rentfur.furnitureMovement.FurnitureMovementIndex;
+import rentfur.furnitureMovement.FurnitureMovementInputCreate;
 import rentfur.position.PositionController;
 import rentfur.position.PositionCreate;
 import rentfur.position.PositionIndex;
@@ -46,8 +49,6 @@ import rentfur.user.UserController;
 import rentfur.user.UserCreate;
 import rentfur.user.UserIndex;
 import rentfur.user.UserShowAndEdit;
-import rentfur.util.searches.SearchController;
-import rentfur.util.searches.SubjectSearch;
 
 /**
  *
@@ -65,6 +66,12 @@ public class MainWindow extends JFrame{
     private final JMenu eventsMenu = new JMenu(" Eventos");
 
     private final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
+    
+    private final JMenu furnitureInventoryItem = new JMenu("Inventario");
+    private final JMenuItem manageFurnitureMovementItem = new JMenuItem("Movimientos de Stock");
+    private final JMenuItem inputMovementItem = new JMenuItem("Registrar Entradas");
+    private final JMenuItem outputMovementItem = new JMenuItem("Registrar Salidas");
+    
     private final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
     private final JMenuItem manageProviderItem = new JMenuItem("Administrar Proveedores");
     private final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
@@ -80,6 +87,10 @@ public class MainWindow extends JFrame{
     FurnitureCreate furnitureCreate;
     FurnitureShowAndEdit furnitureShowAndEdit;
     FurnitureFamilyCreate furnitureFamilyCreate;
+    
+    FurnitureMovementController furnitureMovementController = new FurnitureMovementController();
+    FurnitureMovementIndex furnitureMovementIndex;
+    FurnitureMovementInputCreate furnitureMovementInputCreate;
     
     //SUBJECT
     SubjectController subjectController = new SubjectController();
@@ -136,13 +147,55 @@ public class MainWindow extends JFrame{
         //Furniture
         ImageIcon furnitureIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/furniture_24x24.png"));
         furnitureMenu.setIcon(furnitureIconImage);
+        
+        ImageIcon manageFurnitureIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/drinks_24_x_24.png"));
+        manageFurnitureItem.setIcon(manageFurnitureIconImage);
+        
+        ImageIcon furnitureInventoryItemIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/inventory_maintenance_32_x_32.png"));
+        furnitureInventoryItem.setIcon(furnitureInventoryItemIconImage);
+        
+        ImageIcon furnitureMovementIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/movement_24x24.png"));
+        manageFurnitureMovementItem.setIcon(furnitureMovementIconImage);
+        
+        ImageIcon inputMovementIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/input_movement_20x20.png"));
+        inputMovementItem.setIcon(inputMovementIconImage);
+        
+        ImageIcon outputMovementIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/exit_movement_20x20.png"));
+        outputMovementItem.setIcon(outputMovementIconImage);
+                
         menuBar.add(furnitureMenu);
             furnitureMenu.add(manageFurnitureItem);
-        
+            furnitureMenu.add(furnitureInventoryItem);
+                furnitureInventoryItem.add(manageFurnitureMovementItem);
+                furnitureInventoryItem.add(inputMovementItem);
+                furnitureInventoryItem.add(outputMovementItem);
+                
+            
         if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_FURNITURE)){
             manageFurnitureItem.setEnabled(false);
             manageFurnitureItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Mobiliarios");
         }
+        
+        manageFurnitureItem.addActionListener(new ActionListener() {
+            @Override
+             public void actionPerformed(ActionEvent e) {
+                   setVisibleFurnitureIndexInternalFrame();
+            }
+        });
+        
+        manageFurnitureMovementItem.addActionListener(new ActionListener() {
+            @Override
+             public void actionPerformed(ActionEvent e) {
+                   setVisibleFurnitureMovementIndexInternalFrame();
+            }
+        });
+        
+        inputMovementItem.addActionListener(new ActionListener() {
+            @Override
+             public void actionPerformed(ActionEvent e) {
+                   setVisibleFurnitureMovementInputCreateInternalFrame();
+            }
+        });
             
         //Subject
         ImageIcon subjectIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/subject_24x24.png"));
@@ -199,13 +252,6 @@ public class MainWindow extends JFrame{
                 eventsMenu.add(manageEvents);
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
-        
-        manageFurnitureItem.addActionListener(new ActionListener() {
-            @Override
-             public void actionPerformed(ActionEvent e) {
-                   setVisibleFurnitureIndexInternalFrame();
-            }
-        });
         
         manageSubjectItem.addActionListener(new ActionListener() {
 
@@ -272,6 +318,19 @@ public class MainWindow extends JFrame{
         furnitureIndex = furnitureController.getFurnitureIndex(this.mainWindowController, userRoles);
         desktop.add(furnitureIndex);
         
+    }
+    
+    //Muestra InternalFrame de Movimientos de Mobiliatios
+    public void setVisibleFurnitureMovementIndexInternalFrame(){
+        furnitureMovementIndex = furnitureMovementController.getFurnitureMovementIndex(this.mainWindowController, userRoles);
+        desktop.add(furnitureMovementIndex);
+        
+    }
+    
+    //Muestra InternalFrame de Movimientos de Mobiliatios
+    public void setVisibleFurnitureMovementInputCreateInternalFrame(){
+        furnitureMovementInputCreate = furnitureMovementController.getFurnitureMovementInputCreate(this.mainWindowController, userRoles);
+        desktop.add(furnitureMovementInputCreate);
     }
     
     //Muestra InternalFrame de Detalles de un Mobiliario

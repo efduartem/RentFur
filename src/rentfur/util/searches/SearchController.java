@@ -46,8 +46,12 @@ public class SearchController {
     }
     
     public FurnitureSearch getFurnitureSearch(ArrayList furnitureCodesAdded, Date day, boolean showStock){
+        return getFurnitureSearch(furnitureCodesAdded, day, showStock, false);
+    }
+    
+    public FurnitureSearch getFurnitureSearch(ArrayList furnitureCodesAdded, Date day, boolean showStock, boolean initialInventory){
         if(furnitureSearch == null){
-            furnitureSearch = new FurnitureSearch(this, furnitureCodesAdded, day, showStock);
+            furnitureSearch = new FurnitureSearch(this, furnitureCodesAdded, day, showStock, initialInventory);
         }
         return furnitureSearch;
     }
@@ -265,7 +269,7 @@ public class SearchController {
     
     //FURNITURE
     
-    public void setFurnitureIndexResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, String code, String description, String familyId, ArrayList furnitureCodesAdded, Date day){
+    public void setFurnitureIndexResultsTable(DefaultTableModel furnituresResultDefaultTableModel, boolean searchPressed, String code, String description, String familyId, ArrayList furnitureCodesAdded, Date day, boolean initialInventory){
         
         try{
             if(!searchPressed){
@@ -286,7 +290,7 @@ public class SearchController {
             for(int i=0;i<numeroRegistrosTablaPermisos;i++){
                 furnituresResultDefaultTableModel.removeRow(0);
             }
-            ArrayList searchResultList = getSearchResultList(code, description, familyId, furnitureCodesAdded, day);
+            ArrayList searchResultList = getSearchResultList(code, description, familyId, furnitureCodesAdded, day, initialInventory);
             if(searchResultList!=null && !searchResultList.isEmpty()){
                 DecimalFormat amountFormat = new DecimalFormat("#,###");
                 HashMap resultValueMap;
@@ -471,7 +475,7 @@ public class SearchController {
     }
     
     
-    public ArrayList getSearchResultList(String code, String description, String familyId, ArrayList furnitureCodesAdded, Date day){
+    public ArrayList getSearchResultList(String code, String description, String familyId, ArrayList furnitureCodesAdded, Date day, boolean initialInventory){
         Connection connRentFur = null;
         PreparedStatement ps;
         ResultSet rs;
@@ -508,17 +512,32 @@ public class SearchController {
             rs = ps.executeQuery();
             while(rs.next()){
                 resultValuesMap = new HashMap();
-                resultValuesMap.put("id", rs.getInt("id"));
-                resultValuesMap.put("code", rs.getString("code"));
-                resultValuesMap.put("description", rs.getString("description"));
-                resultValuesMap.put("unitPrice", rs.getDouble("unit_price"));
-                resultValuesMap.put("fineAmountPerUnit", rs.getDouble("fine_amount_per_unit"));
-                resultValuesMap.put("unitCostPrice", rs.getDouble("unit_cost_price"));
-                resultValuesMap.put("stockAvailable", rs.getDouble("stock_available"));
-                resultValuesMap.put("family", rs.getString("family"));
-                resultValuesMap.put("active", rs.getBoolean("active"));
-                resultValuesMap.put("taxRate", rs.getInt("tax_rate"));
-                listToReturn.add(resultValuesMap);
+                if(!initialInventory){
+                    resultValuesMap.put("id", rs.getInt("id"));
+                    resultValuesMap.put("code", rs.getString("code"));
+                    resultValuesMap.put("description", rs.getString("description"));
+                    resultValuesMap.put("unitPrice", rs.getDouble("unit_price"));
+                    resultValuesMap.put("fineAmountPerUnit", rs.getDouble("fine_amount_per_unit"));
+                    resultValuesMap.put("unitCostPrice", rs.getDouble("unit_cost_price"));
+                    resultValuesMap.put("stockAvailable", rs.getDouble("stock_available"));
+                    resultValuesMap.put("family", rs.getString("family"));
+                    resultValuesMap.put("active", rs.getBoolean("active"));
+                    resultValuesMap.put("taxRate", rs.getInt("tax_rate"));
+                    listToReturn.add(resultValuesMap);
+                }else if(!FurnitureController.furnitureHasInitialInventoryMovement(rs.getString("code"))){
+                    resultValuesMap.put("id", rs.getInt("id"));
+                    resultValuesMap.put("code", rs.getString("code"));
+                    resultValuesMap.put("description", rs.getString("description"));
+                    resultValuesMap.put("unitPrice", rs.getDouble("unit_price"));
+                    resultValuesMap.put("fineAmountPerUnit", rs.getDouble("fine_amount_per_unit"));
+                    resultValuesMap.put("unitCostPrice", rs.getDouble("unit_cost_price"));
+                    resultValuesMap.put("stockAvailable", rs.getDouble("stock_available"));
+                    resultValuesMap.put("family", rs.getString("family"));
+                    resultValuesMap.put("active", rs.getBoolean("active"));
+                    resultValuesMap.put("taxRate", rs.getInt("tax_rate"));
+                    listToReturn.add(resultValuesMap);
+                }
+                
             }
             rs.close();
             ps.close();

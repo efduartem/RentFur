@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.security.sasl.Sasl;
 import rentfur.furniture.FurnitureController;
+import rentfur.furnitureMovement.FurnitureMovementController;
 import rentfur.subjectMovement.SubjectMovementController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
@@ -688,6 +689,10 @@ public class EventController {
 
                 }
                 
+                HashMap movementDetailMap;
+                ArrayList movementDetailList = new ArrayList();
+                double outputMovementImport = 0;
+                        
                 for(int i = 0 ; i < penaltyFurnitureList.size(); i++){
                     furnitureMap = (HashMap) penaltyFurnitureList.get(i);
                     furnitureMap = deepMerge(furnitureMap, FurnitureController.getFurnitureByCode(furnitureMap.get("code").toString()));
@@ -760,7 +765,16 @@ public class EventController {
                     ps.setInt(17, eventId);
                     ps.addBatch();
                     
-                    //Movimiento de baja
+                    movementDetailMap = new HashMap();
+                    movementDetailMap.put("furnitureId", Integer.valueOf(furnitureMap.get("id").toString()));
+                    movementDetailMap.put("code", furnitureMap.get("code").toString());
+                    movementDetailMap.put("description", furnitureMap.get("description").toString());
+                    movementDetailMap.put("quantity", Integer.valueOf(furnitureMap.get("quantity").toString()));
+                    movementDetailMap.put("cost", Double.valueOf(furnitureMap.get("unitCostPrice").toString()));
+                    outputMovementImport = Double.valueOf(furnitureMap.get("unitCostPrice").toString()) * Double.valueOf(furnitureMap.get("quantity").toString());
+                    movementDetailMap.put("import", outputMovementImport);
+                    movementDetailList.add(movementDetailMap);
+                    
                     //Actualizar stock para el dia 
                     updateStockByPenalty(furnitureMap.get("id").toString(), furnitureMap.get("quantity").toString());
                     
@@ -768,6 +782,9 @@ public class EventController {
                 
                 ps.executeBatch();
                 ps.clearBatch();
+                
+                //Movimiento de baja de mobiliarios
+                FurnitureMovementController.outputMovementRecord(movementDetailList, FurnitureMovementController.MOVEMENT_CONCEPT_DAMAGED_PENALTY, new Date());
                 
                 //REGISTRAR MOVIMIENTOS DE DEBITO
                 String movement;

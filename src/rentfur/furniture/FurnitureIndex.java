@@ -196,8 +196,8 @@ public class FurnitureIndex extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(3).setResizable(false);
         
         //TaxRate
-        furnituresResultTable.getColumnModel().getColumn(4).setMaxWidth(100);
-        furnituresResultTable.getColumnModel().getColumn(4).setMinWidth(100);
+        furnituresResultTable.getColumnModel().getColumn(4).setMaxWidth(120);
+        furnituresResultTable.getColumnModel().getColumn(4).setMinWidth(120);
         furnituresResultTable.getColumnModel().getColumn(4).setResizable(false);
         furnituresResultTable.getColumnModel().getColumn(4).setCellRenderer(statusRenderer);
         
@@ -248,7 +248,7 @@ public class FurnitureIndex extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(12).setPreferredWidth(0);
         
         furnituresResultTableJScrollPane = new JScrollPane();
-        furnituresResultTableJScrollPane.setBounds(30, 260, 1100, 300);
+        furnituresResultTableJScrollPane.setBounds(30, 260, 1300, 300);
         furnituresResultTableJScrollPane.setViewportView(furnituresResultTable);
         
         add(furnituresResultTableJScrollPane);
@@ -260,7 +260,7 @@ public class FurnitureIndex extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Administrar Mobiliarios");
-        setBounds(100,50,1200,650);
+        setBounds(100,50,1400,650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         

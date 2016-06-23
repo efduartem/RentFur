@@ -242,7 +242,7 @@ public class SubjectIndex extends JInternalFrame{
         subjectsResultTable.getColumnModel().getColumn(3).setPreferredWidth(180);
         
         //Address
-        subjectsResultTable.getColumnModel().getColumn(4).setPreferredWidth(180);
+        subjectsResultTable.getColumnModel().getColumn(4).setPreferredWidth(210);
         
         //City
         subjectsResultTable.getColumnModel().getColumn(5).setMaxWidth(100);
@@ -287,7 +287,7 @@ public class SubjectIndex extends JInternalFrame{
         subjectsResultTable.getColumnModel().getColumn(11).setResizable(false);
         
         subjectsResultTableJScrollPane = new JScrollPane();
-        subjectsResultTableJScrollPane.setBounds(30, 240, 1100, 300);
+        subjectsResultTableJScrollPane.setBounds(30, 240, 1200, 300);
         subjectsResultTableJScrollPane.setViewportView(subjectsResultTable);
         
         add(subjectsResultTableJScrollPane);
@@ -299,7 +299,7 @@ public class SubjectIndex extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Administrar Clientes");
-        setBounds(100,50,1200,700);
+        setBounds(100,50,1300,700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         

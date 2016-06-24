@@ -194,7 +194,7 @@ public class SubjectIndex extends JInternalFrame{
         });
         subjectIndexParamsPanel.add(searchButton);
         
-        //BOTON PARA CREAR MOBILIARIO
+        //BOTON PARA CREAR CLIENTE
         createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
         createButton = new JButton("  Crear Cliente", createIconImage);
         createButton.setBounds(160, 190, 180, 32);

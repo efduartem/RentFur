@@ -206,7 +206,7 @@ public class CreditNoteController {
             
             mapToReturn.put("id", eventId);
             mapToReturn.put("status", SUCCESFULLY_SAVED);
-            mapToReturn.put("message", "Evento registrado correctamente");
+            mapToReturn.put("message", "Nota de Credito registrada correctamente");
             
         }catch(SQLException th){
             try {

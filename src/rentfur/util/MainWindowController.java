@@ -75,8 +75,8 @@ public class MainWindowController {
     }
 
     //PURCHASE PROVIDER
-    public void setVisiblePurchaseInvoiceCreateInternalFrame(){
-        mainWindow.setVisiblePurchaseInvoiceCreateInternalFrame();
-    }
+//    public void setVisiblePurchaseInvoiceCreateInternalFrame(){
+//        mainWindow.setVisiblePurchaseInvoiceCreateInternalFrame();
+//    }
     
 }

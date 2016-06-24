@@ -15,7 +15,9 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+import rentfur.subjectMovement.SubjectMovementController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
 import rentfur.util.MainWindowController;
@@ -32,6 +34,7 @@ public class SubjectController {
     private SubjectCreate subjectCreate;
     private SubjectIndex subjectIndex;
     private SubjectShowAndEdit subjectShowAndEdit;
+    private SubjectAccountStatus subjectAccountStatus;
     private UserRoles userRoles;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
@@ -62,6 +65,14 @@ public class SubjectController {
         return subjectShowAndEdit;
     }
     
+   public SubjectAccountStatus getSubjectAccountStatusView(int subjectId){
+       if(subjectAccountStatus == null){
+            subjectAccountStatus = new SubjectAccountStatus(this, subjectId);
+        }
+        return subjectAccountStatus;
+   }
+   
+    
     public void searchSubjectButtonAction(){
         subjectIndex.searchSubjectButtonAction(null);
     }
@@ -76,6 +87,10 @@ public class SubjectController {
     
     public void setEnabledIndexView(){
         subjectIndex.setEnableddElements();
+    }
+    
+    public void setSubjectAccountStatusClosed(){
+        subjectAccountStatus = null;
     }
     
     public void getSubjectShowAndEditView(int subjectId){
@@ -634,6 +649,137 @@ public class SubjectController {
         }
         
         return mapToReturn;
+    }
+    
+    public void setSubejctAccountStatusResultsTable(DefaultTableModel subjectResultDefaultTableModel, boolean searchPressed, String code, String name, String subjectCode, JTextField balanceTextField, JTextField previousBalanceTextField){
+         try{
+            if(!searchPressed){
+                subjectResultDefaultTableModel.addColumn("Id");
+                subjectResultDefaultTableModel.addColumn("Fecha");
+                subjectResultDefaultTableModel.addColumn("Documento Identificador");
+                subjectResultDefaultTableModel.addColumn("Documento");
+                subjectResultDefaultTableModel.addColumn("Nro. Documento");
+                subjectResultDefaultTableModel.addColumn("Concepto");
+                subjectResultDefaultTableModel.addColumn("Debe");
+                subjectResultDefaultTableModel.addColumn("Haber");
+                subjectResultDefaultTableModel.addColumn("Saldo");
+                subjectResultDefaultTableModel.addColumn("Saldo Anterior");
+            }
+            
+            int numeroRegistrosTablaPermisos=0;
+            numeroRegistrosTablaPermisos = subjectResultDefaultTableModel.getRowCount();
+            for(int i=0;i<numeroRegistrosTablaPermisos;i++){
+                subjectResultDefaultTableModel.removeRow(0);
+            }
+            ArrayList searchResultList = getSubjectAccountStatusSearchResultList(code, name, subjectCode);
+            if(searchResultList!=null && !searchResultList.isEmpty()){
+                DecimalFormat amountFormat = new DecimalFormat("#,###");
+                HashMap resultValueMap;
+                Object[] row;
+                for(int rowNumber = 0; rowNumber < searchResultList.size(); rowNumber++){
+                    
+                    row = new Object[subjectResultDefaultTableModel.getColumnCount()];
+                    resultValueMap = (HashMap) searchResultList.get(rowNumber);
+
+                    row[0] = resultValueMap.get("id");
+                    row[1] = resultValueMap.get("movementDateString");
+                    row[2] = resultValueMap.get("document_type");
+                    row[3] = SubjectMovementController.getSubjectMovementDocumentType((Integer)resultValueMap.get("document_type"));
+                    row[4] = resultValueMap.get("document_number");
+                    row[5] = resultValueMap.get("movement");
+                    row[6] = amountFormat.format((Double)resultValueMap.get("debit"));
+                    row[7] = amountFormat.format((Double)resultValueMap.get("credit"));
+                    row[8] = amountFormat.format((Double)resultValueMap.get("balance"));
+                    row[9] = amountFormat.format((Double)resultValueMap.get("previous_balance"));
+
+                    subjectResultDefaultTableModel.addRow(row);
+                    if((rowNumber+1) == searchResultList.size()){
+                        balanceTextField.setText(amountFormat.format((Double)resultValueMap.get("balance")));
+                    }
+                    
+                    if(rowNumber == 0){
+                        previousBalanceTextField.setText(amountFormat.format((Double)resultValueMap.get("previous_balance")));
+                    }
+                }
+            }
+            
+        }catch(Throwable th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }
+     }
+    
+    public ArrayList getSubjectAccountStatusSearchResultList(String initDate, String endDate, String subjectCode){
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        ArrayList listToReturn = new ArrayList();
+        
+        try{
+            HashMap resultValuesMap;
+            connRentFur = DbConnectUtil.getConnection();
+            
+            if(initDate==null){
+                initDate="";
+            }
+            
+            if(endDate==null){
+                endDate="";
+            }
+            
+            StringBuilder subjectsQuery = new StringBuilder();
+            subjectsQuery.append("SELECT id, subject_code, type, movement, movement_date, document_type, document_number, debit, credit, balance, previous_balance, billable_balance, to_char(movement_date, 'YYYY-MM-DD HH24:MI:SS') as movementDateString FROM subject_movement WHERE subject_code = ?");
+            
+            if(!initDate.equals("")){
+                subjectsQuery.append(" AND CAST(movement_date as date) >= '").append(initDate).append("'");
+            }
+            
+            if(!endDate.equals("")){
+                subjectsQuery.append(" AND CAST(movement_date as date) <= '").append(endDate).append("'");
+            }
+            
+            ps = connRentFur.prepareStatement(subjectsQuery.toString());
+            ps.setString(1, subjectCode);
+//            ps.setString(2, "%"+name+"%");
+            rs = ps.executeQuery();
+            while(rs.next()){
+                resultValuesMap = new HashMap();
+                resultValuesMap.put("id", rs.getInt("id"));
+                resultValuesMap.put("subject_code", rs.getString("subject_code"));
+                resultValuesMap.put("type", rs.getInt("type"));
+                resultValuesMap.put("movement", rs.getString("movement"));
+                resultValuesMap.put("movement_date", rs.getTimestamp("movement_date"));
+                resultValuesMap.put("document_type", rs.getInt("document_type"));
+                resultValuesMap.put("document_number", rs.getString("document_number"));
+                resultValuesMap.put("debit", rs.getDouble("debit"));
+                resultValuesMap.put("credit", rs.getDouble("credit"));
+                resultValuesMap.put("balance", rs.getDouble("balance"));
+                resultValuesMap.put("previous_balance", rs.getDouble("previous_balance"));
+                resultValuesMap.put("billable_balance", rs.getDouble("billable_balance"));
+                resultValuesMap.put("movementDateString", rs.getString("movementDateString"));
+                
+                listToReturn.add(resultValuesMap);
+            }
+            rs.close();
+            ps.close();
+
+        }catch(SQLException th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        
+        return listToReturn;
     }
      
 }

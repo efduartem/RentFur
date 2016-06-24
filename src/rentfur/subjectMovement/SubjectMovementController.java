@@ -112,4 +112,28 @@ public class SubjectMovementController {
         
         return movementTypeString;
     }
+    
+    public static String getSubjectMovementDocumentType(int documentType){
+        String documentTypeString = "";
+        switch(documentType){
+            case CONTRACT_MOVEMENT_DOCUMENT_TYPE: 
+                documentTypeString = "CONTRATO";
+                break;
+            case CONTRACT_ANEXED_MOVEMENT_TYPE: 
+                documentTypeString = "ANEXO - CONTRATO";
+                break;
+            case PENALTY_MOVEMENT_TYPE: 
+                documentTypeString = "MULTA - CONTRATO";
+                break;
+            case RECEIPT_MOVEMENT_TYPE: 
+                documentTypeString = "RECIBO";
+                break;
+            case RECEIPT_CANCELLED_MOVEMENT_TYPE: 
+                documentTypeString = "RECIBO - ANULACION";
+                break;
+        }
+        
+        return documentTypeString;
+    }
+   
 }

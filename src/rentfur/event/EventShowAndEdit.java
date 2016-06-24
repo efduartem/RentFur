@@ -109,6 +109,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private final JLabel balanceTotalLabel;
     private final JLabel invoicedTotalLabel;
     private final JLabel payedTotalLabel;
+    private final JLabel billableBalanceLabel;
     private final JTextField subjectCodeTextField;
     private final JTextField subjectAddressTextField;
     private final JTextField subjectNameTextField;
@@ -125,6 +126,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private final JTextField balanceTotalTextField;
     private final JTextField invoicedTotalTextField;
     private final JTextField payedTotalTextField;
+    private final JTextField billableBalanceTextField;
     private JButton paymentRecordButton;
     private final JButton saveChangesButton;
     private final JButton addFurnitureButton;
@@ -321,6 +323,7 @@ public class EventShowAndEdit extends JInternalFrame{
         }
         
         statusComboBox = new JComboBox(eventStatusAvailableComboBox);
+        statusComboBox.setEnabled(false);
         statusComboBox.setSelectedItem(eventStatusComboBoxItem);
         statusComboBox.setBounds(490, 60, 170, 25);
         eventHeaderPanel.add(statusComboBox);
@@ -374,7 +377,7 @@ public class EventShowAndEdit extends JInternalFrame{
         
         totalSummaryLabel = new JLabel("<HTML><U>Totales</U></HTML>");
         totalSummaryLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 20));
-        totalSummaryLabel.setBounds(1130, 110, 200, 25);
+        totalSummaryLabel.setBounds(1130, 90, 200, 25);
         eventHeaderPanel.add(totalSummaryLabel);
         
         //FILA 1
@@ -398,13 +401,13 @@ public class EventShowAndEdit extends JInternalFrame{
         
         //Total Evento
         totalLabel = new JLabel("Total Gs.: ");
-        totalLabel.setBounds(1100, 150, 80, 25);
+        totalLabel.setBounds(1100, 130, 80, 25);
         eventHeaderPanel.add(totalLabel);
         
         totalTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("netTotal").toString())));
         totalTextField.setEditable(false);
         totalTextField.setHorizontalAlignment(JLabel.RIGHT);
-        totalTextField.setBounds(1220, 150, 170, 25);
+        totalTextField.setBounds(1230, 130, 170, 25);
         eventHeaderPanel.add(totalTextField);
         
         //FILA 2
@@ -427,13 +430,13 @@ public class EventShowAndEdit extends JInternalFrame{
         eventHeaderPanel.add(subjectTelephoneTextField);
         
         payedTotalLabel = new JLabel("Pagado Gs.: ");
-        payedTotalLabel.setBounds(1100, 180, 80, 25);
+        payedTotalLabel.setBounds(1100, 160, 80, 25);
         eventHeaderPanel.add(payedTotalLabel);
         
         payedTotalTextField = new JTextField();
         payedTotalTextField.setEditable(false);
         payedTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
-        payedTotalTextField.setBounds(1220, 180, 170, 25);
+        payedTotalTextField.setBounds(1230, 160, 170, 25);
         eventHeaderPanel.add(payedTotalTextField);
         
         //FILA 3
@@ -465,13 +468,13 @@ public class EventShowAndEdit extends JInternalFrame{
         
          //Total SALDO
         balanceTotalLabel = new JLabel("Saldo Gs.: ");
-        balanceTotalLabel.setBounds(1100, 210, 80, 25);
+        balanceTotalLabel.setBounds(1100, 190, 80, 25);
         eventHeaderPanel.add(balanceTotalLabel);
         
         balanceTotalTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("balance").toString())));
         balanceTotalTextField.setEditable(false);
         balanceTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
-        balanceTotalTextField.setBounds(1220, 210, 170, 25);
+        balanceTotalTextField.setBounds(1230, 190, 170, 25);
         eventHeaderPanel.add(balanceTotalTextField);
         
         //FILA 4
@@ -492,8 +495,18 @@ public class EventShowAndEdit extends JInternalFrame{
         invoicedTotalTextField = new JTextField("0");
         invoicedTotalTextField.setEditable(false);
         invoicedTotalTextField.setHorizontalAlignment(JLabel.RIGHT);
-        invoicedTotalTextField.setBounds(1220, 240, 170, 25);
+        invoicedTotalTextField.setBounds(1230, 240, 170, 25);
         eventHeaderPanel.add(invoicedTotalTextField);
+        
+        billableBalanceLabel = new JLabel("Saldo a Facturar Gs.: ");
+        billableBalanceLabel.setBounds(1100, 270, 130, 25);
+        eventHeaderPanel.add(billableBalanceLabel);
+        
+        billableBalanceTextField = new JTextField(amountFormat.format(Double.valueOf(eventMap.get("billableBalance").toString())));
+        billableBalanceTextField.setEditable(false);
+        billableBalanceTextField.setHorizontalAlignment(JLabel.RIGHT);
+        billableBalanceTextField.setBounds(1230, 270, 170, 25);
+        eventHeaderPanel.add(billableBalanceTextField);
         
         //Boton para registrar pagos
         ImageIcon paymentRecordImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/money_24x24.png"));
@@ -1695,6 +1708,12 @@ public class EventShowAndEdit extends JInternalFrame{
             
             //TOTAL FACTURADO
             invoicedTotalTextField.setText(amountFormat.format(totalInvoiced));
+            
+            //TOTAL FACTURABLE
+            double netTotal = amountFormat.parse(totalTextField.getText()).doubleValue();
+            double billableBalanceTotal = netTotal - totalInvoiced;
+            billableBalanceTextField.setText(amountFormat.format(billableBalanceTotal));
+            
         } catch (Throwable ex) {
             Logger.getLogger(EventShowAndEdit.class.getName()).log(Level.SEVERE, null, ex);
         }

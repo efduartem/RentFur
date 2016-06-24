@@ -20,11 +20,17 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 import rentfur.position.PositionController;
 import rentfur.util.NumericTextField;
 import rentfur.util.UserRoles;
@@ -35,6 +41,7 @@ import rentfur.util.UserRoles;
  */
 public class SubjectShowAndEdit extends JInternalFrame{
     private final SubjectController subjectController;
+    private SubjectAccountStatus subjectAccountStatus;
     private final JPanel subjectShowAndEditPanel;
     private final JLabel codeLabel;
     private final JLabel nameLabel;
@@ -49,7 +56,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
     private final JTextField tradenameTextField;
     private final NumericTextField fiscalNumberTextField;
     private final JTextField fiscalNumberDigitTextField;
-    private final JTextField addresssTextField;
+    private final JTextArea addresssTextField;
     private final JTextField telephoneTextField;
     private final JTextField cityTextField;
     private final JCheckBox activeCheckBox;
@@ -57,13 +64,16 @@ public class SubjectShowAndEdit extends JInternalFrame{
     private final ImageIcon saveIconImage;
     private final ImageIcon editIconImage;
     private final ImageIcon cancelIconImage;
+    private final ImageIcon acoountStatusIconImage;
     private final JButton saveButton;
     private final JButton editButton;
     private final JButton cancelButton;
+    private final JButton acoountStatusButton;
     private final String fiscalNumber;
     private String fiscalNumberVerificationDigit = "";
     private final HashMap subjectMap;
     private boolean rucIsEnabled = false;
+    private JDesktopPane subjectShowAndEditPane;
      
     public SubjectShowAndEdit(SubjectController subjectController, final int subjectId, UserRoles userRoles){
         this.subjectController = subjectController;
@@ -75,7 +85,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         
         saveIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
         saveButton = new JButton(" Guardar", saveIconImage);
-        saveButton.setBounds(60, 290, 120, 32);
+        saveButton.setBounds(110, 380, 200, 35);
         saveButton.setVisible(false);
         saveButton.addActionListener(new ActionListener() {
             @Override
@@ -87,7 +97,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         
         editIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/edit_24x24.png"));
         editButton = new JButton("     Editar", editIconImage);
-        editButton.setBounds(110, 290, 200, 35);
+        editButton.setBounds(110, 380, 200, 35);
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -105,7 +115,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelButton = new JButton(" Cancelar", cancelIconImage);
-        cancelButton.setBounds(200, 290, 120, 32);
+        cancelButton.setBounds(350, 380, 200, 35);
         cancelButton.setVisible(false);
         cancelButton.addActionListener(new ActionListener() {
             @Override
@@ -115,12 +125,25 @@ public class SubjectShowAndEdit extends JInternalFrame{
         });
         subjectShowAndEditPanel.add(cancelButton);
         
+        
+        acoountStatusIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/account_status_24x24.png"));
+        acoountStatusButton = new JButton(" Estado de Cuenta", acoountStatusIconImage);
+        acoountStatusButton.setBounds(350, 380, 200, 35);
+        acoountStatusButton.setVisible(true);
+        acoountStatusButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showSubjectAccountStatusView();
+            }
+        });
+        subjectShowAndEditPanel.add(acoountStatusButton);
+
         codeLabel = new JLabel("Codigo:");
-        codeLabel.setBounds(50,20, 100, 25);
+        codeLabel.setBounds(40,20, 100, 25);
         subjectShowAndEditPanel.add(codeLabel);
         
         codeTextField = new JTextField(String.valueOf(subjectMap.get("code")));
-        codeTextField.setBounds(180, 20, 160, 25);
+        codeTextField.setBounds(180, 20, 210, 25);
         codeTextField.setEditable(false);
         subjectShowAndEditPanel.add(codeTextField);
         
@@ -129,7 +152,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         subjectShowAndEditPanel.add(nameLabel);
         
         nameTextField = new JTextField(String.valueOf(subjectMap.get("name")));
-        nameTextField.setBounds(180, 50, 160, 25);
+        nameTextField.setBounds(180, 50, 210, 25);
         nameTextField.setEditable(false);
         subjectShowAndEditPanel.add(nameTextField);
         
@@ -138,7 +161,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         subjectShowAndEditPanel.add(tradenameLabel);
         
         tradenameTextField =  new JTextField(String.valueOf(subjectMap.get("tradename")));
-        tradenameTextField.setBounds(180, 80, 160, 25);
+        tradenameTextField.setBounds(180, 80, 210, 25);
         tradenameTextField.setEditable(false);
         subjectShowAndEditPanel.add(tradenameTextField);
         
@@ -150,7 +173,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         fiscalNumberComboBox.addItem(SubjectCreate.DOCUMENT_CI);
         fiscalNumberComboBox.addItem(SubjectCreate.DOCUMENT_RUC);
         fiscalNumberComboBox.setEnabled(false);
-        fiscalNumberComboBox.setBounds(180, 110, 160, 25);
+        fiscalNumberComboBox.setBounds(180, 110, 210, 25);
         subjectShowAndEditPanel.add(fiscalNumberComboBox);
         fiscalNumberComboBox.addItemListener(new ItemListener() {
             @Override
@@ -171,7 +194,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         });
         
         fiscalNumberDigitTextField = new JTextField();
-        fiscalNumberDigitTextField.setBounds(360, 140, 30, 25);
+        fiscalNumberDigitTextField.setBounds(400, 140, 30, 25);
         fiscalNumberDigitTextField.setEnabled(false);
         subjectShowAndEditPanel.add(fiscalNumberDigitTextField);
         
@@ -192,7 +215,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         }
         
         fiscalNumberTextField = new NumericTextField(fiscalNumber, 20, amountFormat);
-        fiscalNumberTextField.setBounds(180, 140, 160, 25);
+        fiscalNumberTextField.setBounds(180, 140, 210, 25);
         fiscalNumberTextField.setEnabled(false);
         fiscalNumberTextField.addKeyListener(new KeyListener() {
 
@@ -218,8 +241,6 @@ public class SubjectShowAndEdit extends JInternalFrame{
                             if(!texto.isEmpty()){
                                 fiscalNumberTextField.setValue(Double.valueOf(texto));
                             }
-                         }else{
-                             texto = texto.replaceAll(",", ".");
                          }
                      }
                  });
@@ -230,36 +251,45 @@ public class SubjectShowAndEdit extends JInternalFrame{
         addressLabel.setBounds(40,170, 80, 25);
         subjectShowAndEditPanel.add(addressLabel);
         
-        addresssTextField = new JTextField(String.valueOf(subjectMap.get("address")));
-        addresssTextField.setBounds(180, 170, 160, 25);
+        addresssTextField = new JTextArea(String.valueOf(subjectMap.get("address")),0,0);
+        addresssTextField.setLineWrap(true);
+        addresssTextField.setWrapStyleWord(true);
         addresssTextField.setEditable(false);
-        subjectShowAndEditPanel.add(addresssTextField);
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBounds(180, 170, 210, 90);
+        scrollPane.setViewportView(addresssTextField);
+        subjectShowAndEditPanel.add(scrollPane);
+        
+//        addresssTextField = new JTextField(String.valueOf(subjectMap.get("address")));
+//        addresssTextField.setBounds(180, 170, 210, 25);
+//        addresssTextField.setEditable(false);
+//        subjectShowAndEditPanel.add(addresssTextField);
         
         telephoneLabel = new JLabel("Telefono");
-        telephoneLabel.setBounds(40,200, 160, 25);
+        telephoneLabel.setBounds(40,270, 160, 25);
         subjectShowAndEditPanel.add(telephoneLabel);
         
         telephoneTextField = new JTextField(String.valueOf(subjectMap.get("telephone")));
-        telephoneTextField.setBounds(180,200, 160, 25);
+        telephoneTextField.setBounds(180,270, 210, 25);
         telephoneTextField.setEditable(false);
         subjectShowAndEditPanel.add(telephoneTextField);
         
         cityLabel = new JLabel("Ciudad");
-        cityLabel.setBounds(40,230, 160, 25);
+        cityLabel.setBounds(40,300, 160, 25);
         subjectShowAndEditPanel.add(cityLabel);
         
         cityTextField = new JTextField(String.valueOf(subjectMap.get("city")));
-        cityTextField.setBounds(180,230, 160, 25);
+        cityTextField.setBounds(180,300, 210, 25);
         cityTextField.setEditable(false);
         subjectShowAndEditPanel.add(cityTextField);
         
         activeLabel = new JLabel("Activo:");
-        activeLabel.setBounds(50,260, 80, 25);
+        activeLabel.setBounds(40,330, 80, 25);
         subjectShowAndEditPanel.add(activeLabel);
         
         activeCheckBox = new JCheckBox("", Boolean.valueOf(subjectMap.get("active").toString()));
         activeCheckBox.setEnabled(false);
-        activeCheckBox.setBounds(178,260, 80, 25);
+        activeCheckBox.setBounds(178,330, 80, 25);
         subjectShowAndEditPanel.add(activeCheckBox);
         
         
@@ -270,7 +300,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Detalles ["+subjectMap.get("code").toString()+" - "+subjectMap.get("name").toString()+"]");
-        setBounds(400,220,450,380);
+        setBounds(400,200,650,500);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
@@ -320,6 +350,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         editButton.setVisible(true);
         saveButton.setVisible(false);
         cancelButton.setVisible(false);
+        acoountStatusButton.setVisible(true);
     }
     
     public void enabledEditActions(ActionEvent e){
@@ -338,6 +369,7 @@ public class SubjectShowAndEdit extends JInternalFrame{
         editButton.setVisible(false);
         saveButton.setVisible(true);
         cancelButton.setVisible(true);
+        acoountStatusButton.setVisible(false);
     }
     
     
@@ -373,5 +405,66 @@ public class SubjectShowAndEdit extends JInternalFrame{
         subjectShowAndEditPanel.add(fiscalNumberDigitTextField);
         saveButton.setToolTipText("");
         saveButton.setEnabled(true);
+    }
+    
+    private void showSubjectAccountStatusView(){
+        
+        int subjectId = (Integer) subjectMap.get("id");
+        subjectAccountStatus = subjectController.getSubjectAccountStatusView(subjectId);
+        subjectAccountStatus.setVisible(true);
+        showSearchDialog(subjectAccountStatus);
+        inactivateElements();
+        subjectAccountStatus.addInternalFrameListener(new InternalFrameListener() {
+
+            @Override
+            public void internalFrameOpened(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosing(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameClosed(InternalFrameEvent e) {
+                activateElements();
+            }
+
+            @Override
+            public void internalFrameIconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeiconified(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameActivated(InternalFrameEvent e) {}
+
+            @Override
+            public void internalFrameDeactivated(InternalFrameEvent e) {}
+        });
+        
+    }
+    
+    public void inactivateElements(){
+        editButton.setEnabled(false);
+        saveButton.setEnabled(false);
+        cancelButton.setEnabled(false);
+        acoountStatusButton.setEnabled(false);
+        this.setClosable(false);
+        this.setIconifiable(false);
+        //furnitureMovementResultTable.setEnabled(false);
+    }
+    
+    public void activateElements(){
+        editButton.setEnabled(true);
+        saveButton.setEnabled(true);
+        cancelButton.setEnabled(true);
+        acoountStatusButton.setEnabled(true);
+        this.setClosable(true);
+        this.setIconifiable(true);
+        //furnitureMovementResultTable.setEnabled(true);
+    }
+    
+    private void showSearchDialog(Object dialogView){
+        subjectShowAndEditPane = this.getDesktopPane();
+        subjectShowAndEditPane.add((JInternalFrame) dialogView, JLayeredPane.POPUP_LAYER);
+        subjectShowAndEditPane.setVisible(true);
     }
 }

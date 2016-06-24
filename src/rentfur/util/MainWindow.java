@@ -41,6 +41,7 @@ import rentfur.provider.ProviderIndex;
 import rentfur.provider.ProviderShowAndEdit;
 import rentfur.purchaseInvoice.PurchaseInvoiceController;
 import rentfur.purchaseInvoice.PurchaseInvoiceCreate;
+import rentfur.purchaseInvoice.PurchaseInvoiceIndex;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
@@ -125,6 +126,7 @@ public class MainWindow extends JFrame{
     //PURCHASE PROVIDER
     PurchaseInvoiceController purchaseInvoiceController = new PurchaseInvoiceController();
     PurchaseInvoiceCreate purchaseInvoiceCreate;
+    PurchaseInvoiceIndex purchaseInvoiceIndex;
     public MainWindow(MainWindowController mainWindowController){
         
         this.mainWindowController = mainWindowController;
@@ -168,7 +170,7 @@ public class MainWindow extends JFrame{
             furnitureMenu.add(furnitureInventoryItem);
                 furnitureInventoryItem.add(manageFurnitureMovementItem);
                 furnitureInventoryItem.add(inputMovementItem);
-                furnitureInventoryItem.add(outputMovementItem);
+                //furnitureInventoryItem.add(outputMovementItem);
                 
             
         if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_FURNITURE)){
@@ -295,8 +297,7 @@ public class MainWindow extends JFrame{
         managePurchaseItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //setVisibleEventsIndexInternalFrame();
-                setVisiblePurchaseInvoiceCreateInternalFrame();
+                setVisiblePurchaseInvoiceIndexInternalFrame();
             }
         });
         
@@ -456,9 +457,9 @@ public class MainWindow extends JFrame{
     }
 
     //PURCHASE INVOICE
-    public void setVisiblePurchaseInvoiceCreateInternalFrame(){
-        purchaseInvoiceCreate = purchaseInvoiceController.getPurchaseInvoiceCreate(this.mainWindowController);
-        desktop.add(purchaseInvoiceCreate);
+    public void setVisiblePurchaseInvoiceIndexInternalFrame(){
+        purchaseInvoiceIndex = purchaseInvoiceController.getPurchaseInvoiceIndex(this.mainWindowController, userRoles);
+        desktop.add(purchaseInvoiceIndex);
         getContentPane().add(desktop);
     }
     

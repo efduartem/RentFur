@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -526,9 +527,78 @@ public class FurnitureMovementController {
         return mapToReturn;
     }
     
+    public static void inputMovementRecordFromPurchase(Connection connRentFur, HashMap purchaseInvoiceMap, ArrayList movementDetailList, User loggedUser){
+        
+       String documentNumber = purchaseInvoiceMap.get("invoiceBranch").toString()+"-"+purchaseInvoiceMap.get("invoicePrinter").toString()+"-"+purchaseInvoiceMap.get("invoiceNumber").toString();
+       Timestamp invoicePurchaseDate = new java.sql.Timestamp(((Date) purchaseInvoiceMap.get("invoicingDate")).getTime());       
+       PreparedStatement movementInsertPs;
+       PreparedStatement movementDetailInsertPs;
+       PreparedStatement movementPs;
+       ResultSet movementStockRs;
+       ResultSet movementRs;
+       long movementId = 0;
+       
+       StringBuilder movementInsertSb = new StringBuilder();
+       movementInsertSb.append("INSERT INTO movement(id, movement_number, movement_type, concept_code, concept, document_number, document_type, document_date, movement_date, creator_user_id, creation_date)");
+       movementInsertSb.append(" VALUES ((select nextval('movement_seq')), LPAD(nextval('movement_number_seq')::text, 6, '0'), ?, ?, ?, ?, ?, ?, current_timestamp, ?, current_timestamp);");
+    
+       StringBuilder movementDetailInsertSb = new StringBuilder();
+       movementDetailInsertSb.append("INSERT INTO movement_detail(id, furniture_code, furniture_description, quantity_input, quantity_output, stock, amount, movement_id, sub_total)");
+       movementDetailInsertSb.append("VALUES ((select nextval('movement_detail_seq')), ?, ?, ?, ?, ?, ?, ?, ?)");
+    
+       StringBuilder movementSb = new StringBuilder();
+       movementSb.append("SELECT stock FROM movement_detail WHERE furniture_code = ? ORDER BY id DESC LIMIT 1");
+       try{
+           movementInsertPs = connRentFur.prepareStatement(movementInsertSb.toString(), Statement.RETURN_GENERATED_KEYS);
+           movementInsertPs.setInt(1, FurnitureMovementController.MOVEMENT_TYPE_INPUT);
+           movementInsertPs.setInt(2, FurnitureMovementController.MOVEMENT_CONCEPT_PURCHASE);
+           movementInsertPs.setString(3, getFurnitureMovementConcept(FurnitureMovementController.MOVEMENT_CONCEPT_PURCHASE));
+           movementInsertPs.setString(4, documentNumber);
+           movementInsertPs.setInt(5, FurnitureMovementController.MOVEMENT_DOCUMENT_TYPE_PURCHASE);
+           movementInsertPs.setTimestamp(6, invoicePurchaseDate);
+           movementInsertPs.setInt(7, loggedUser.getId());
+           
+           movementInsertPs.executeUpdate();
+           
+           movementDetailInsertPs = connRentFur.prepareStatement(movementDetailInsertSb.toString());
+           
+           movementRs = movementInsertPs.getGeneratedKeys();
+            while(movementRs != null && movementRs.next()){
+                movementId = movementRs.getInt(1);
+            }
+
+            movementPs = connRentFur.prepareStatement(movementSb.toString());
+           for(int i=0; i<movementDetailList.size(); i++){
+                HashMap invoiceDetailMap = (HashMap) movementDetailList.get(i);
+                int quantityInput = Integer.valueOf(invoiceDetailMap.get("quantity").toString());
+                movementPs.setString(1, (String) invoiceDetailMap.get("code"));
+                movementStockRs = movementPs.executeQuery();
+            
+                movementDetailInsertPs.setString(1, (String) invoiceDetailMap.get("code"));
+                movementDetailInsertPs.setString(2, (String) invoiceDetailMap.get("description"));
+                movementDetailInsertPs.setInt(3, quantityInput);
+                movementDetailInsertPs.setInt(4, 0);
+                if(movementStockRs.next()){
+                    movementDetailInsertPs.setInt(5, movementStockRs.getInt("stock") + quantityInput);
+                }else{
+                    movementDetailInsertPs.setInt(5, quantityInput);
+                }
+                
+                movementDetailInsertPs.setDouble(6, Double.valueOf(invoiceDetailMap.get("cost").toString()));
+                movementDetailInsertPs.setLong(7, movementId);
+                movementDetailInsertPs.setDouble(8, Double.valueOf(invoiceDetailMap.get("import").toString()));
+                movementDetailInsertPs.executeUpdate();
+           }
+           
+       }catch(NumberFormatException | SQLException th){
+           System.err.println(th.getMessage());
+           System.err.println(th);
+       }finally{}
+       
+    }
+    
     public static ComboBoxItem[] getMovementTypesForComboBox(boolean addAllOption){
         ComboBoxItem[] movementTypes = null;
-        
         
         try{
             
@@ -696,5 +766,17 @@ public class FurnitureMovementController {
         }
         
         return conceptCodeString;
+    }
+    
+    public static String getFurnitureMovementDocumentType(int documentType){
+        String documentTypeString = "";
+        
+        switch(documentType){
+            case MOVEMENT_DOCUMENT_TYPE_PURCHASE: 
+                documentTypeString = "FACTURA DE COMPRA";
+                break;
+        }
+        
+        return documentTypeString;
     }
 }

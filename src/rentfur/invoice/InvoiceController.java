@@ -394,7 +394,7 @@ public class InvoiceController {
             
             mapToReturn.put("id", eventId);
             mapToReturn.put("status", SUCCESFULLY_SAVED);
-            mapToReturn.put("message", "Evento registrado correctamente");
+            mapToReturn.put("message", "Factura registrada correctamente");
             
         }catch(SQLException th){
             try {

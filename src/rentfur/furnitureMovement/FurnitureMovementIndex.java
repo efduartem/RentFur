@@ -293,12 +293,6 @@ public class FurnitureMovementIndex extends JInternalFrame{
         furnitureMovementResultTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
         furnitureMovementResultTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JTextField()));
         
-        //BOTON Ver
-//        furnitureMovementResultTable.getColumnModel().getColumn(10).setMaxWidth(60);
-//        furnitureMovementResultTable.getColumnModel().getColumn(10).setMinWidth(60);
-//        furnitureMovementResultTable.getColumnModel().getColumn(10).setPreferredWidth(60);
-
-        
         furnitureMovementResultTableJScrollPane = new JScrollPane();
         furnitureMovementResultTableJScrollPane.setBounds(30, 240, 1000, 300);
         furnitureMovementResultTableJScrollPane.setViewportView(furnitureMovementResultTable);

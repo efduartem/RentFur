@@ -6,6 +6,8 @@
 
 package rentfur.subject;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -25,6 +27,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -53,9 +56,9 @@ public class SubjectAccountStatus extends JInternalFrame{
     private final JDatePickerImpl initDateDatePicker;
     private final JDatePickerImpl endDateDatePicker;
     
-    private final JTable purchaseInvoicesResultTable;
-    private final DefaultTableModel purchaseInvoicesResultDefaultTableModel;
-    private final JScrollPane purchaseInvoicesResultTableJScrollPane;
+    private final JTable subjectAccountMovementsResultTable;
+    private final DefaultTableModel subjectAccountMovementsResultDefaultTableModel;
+    private final JScrollPane subjectAccountMovementsResultTableJScrollPane;
     
     private final int ID_COLUMN = 0;
     private final int DATE_COLUMN = 1;
@@ -85,7 +88,7 @@ public class SubjectAccountStatus extends JInternalFrame{
         
         titleLabel = new JLabel("<HTML><U>Registro de Movimientos</U></HTML>");
         titleLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 25));
-        titleLabel.setBounds(500, 20, 200, 25);
+        titleLabel.setBounds(500, 20, 300, 25);
         subjectAccountStatusPanel.add(titleLabel);
         
         int year = Calendar.getInstance().get(Calendar.YEAR);
@@ -139,7 +142,7 @@ public class SubjectAccountStatus extends JInternalFrame{
         previousBalanceLabel.setBounds(800, 80, 130, 25);
         subjectAccountStatusPanel.add(previousBalanceLabel);
         
-        previousBalanceTextField = new JTextField();
+        previousBalanceTextField = new JTextField("0");
         previousBalanceTextField.setBounds(940, 80, 170, 25);
         previousBalanceTextField.setHorizontalAlignment(JLabel.RIGHT);
         previousBalanceTextField.setEditable(false);
@@ -173,7 +176,7 @@ public class SubjectAccountStatus extends JInternalFrame{
         balanceLabel.setBounds(800, 110, 130, 25);
         subjectAccountStatusPanel.add(balanceLabel);
         
-        balanceTextField = new JTextField();
+        balanceTextField = new JTextField("0");
         balanceTextField.setEditable(false);
         balanceTextField.setHorizontalAlignment(JLabel.RIGHT);
         balanceTextField.setBounds(940, 110, 170, 25);
@@ -192,8 +195,8 @@ public class SubjectAccountStatus extends JInternalFrame{
         subjectAccountStatusPanel.add(searchButton);
         
         //TABLA DE RESULTADOS
-        purchaseInvoicesResultDefaultTableModel = new SubjectAccountStatusDefaultTableModel();
-        purchaseInvoicesResultTable = new JTable(purchaseInvoicesResultDefaultTableModel);
+        subjectAccountMovementsResultDefaultTableModel = new SubjectAccountStatusDefaultTableModel();
+        subjectAccountMovementsResultTable = new JTable(subjectAccountMovementsResultDefaultTableModel);
         
         //Alineacion a la derecha para numeros
         DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
@@ -203,70 +206,78 @@ public class SubjectAccountStatus extends JInternalFrame{
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
                 
-        subjectController.setSubejctAccountStatusResultsTable(purchaseInvoicesResultDefaultTableModel, false, initDateTextField.getText(), endDateTextField.getText(), subjectMap.get("code").toString(), balanceTextField, previousBalanceTextField);
-        purchaseInvoicesResultTable.setRowHeight(24);
+        subjectController.setSubejctAccountStatusResultsTable(subjectAccountMovementsResultDefaultTableModel, false, initDateTextField.getText(), endDateTextField.getText(), subjectMap.get("code").toString(), balanceTextField, previousBalanceTextField);
+        subjectAccountMovementsResultTable.setRowHeight(24);
+        
+        TableCellRenderer rendererFromHeader = subjectAccountMovementsResultTable.getTableHeader().getDefaultRenderer();
+        JLabel headerLabel = (JLabel) rendererFromHeader;
+        headerLabel.setHorizontalAlignment(JLabel.CENTER);
+        
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(CREDIT_COLUMN).setHeaderRenderer(new CreditHeaderRenderer());
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DEBIT_COLUMN).setHeaderRenderer(new DebitHeaderRenderer());
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(BALANCE_COLUMN).setHeaderRenderer(new BalanceHeaderRenderer());
             
         //ID
-        purchaseInvoicesResultTable.getColumnModel().getColumn(ID_COLUMN).setMaxWidth(0);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(ID_COLUMN).setMinWidth(0);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(ID_COLUMN).setPreferredWidth(0);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(ID_COLUMN).setResizable(false);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(ID_COLUMN).setMaxWidth(0);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(ID_COLUMN).setMinWidth(0);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(ID_COLUMN).setPreferredWidth(0);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(ID_COLUMN).setResizable(false);
         
         //Fecha
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DATE_COLUMN).setMaxWidth(210);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DATE_COLUMN).setMinWidth(150);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DATE_COLUMN).setPreferredWidth(200);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DATE_COLUMN).setCellRenderer(centerRenderer);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DATE_COLUMN).setMaxWidth(210);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DATE_COLUMN).setMinWidth(150);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DATE_COLUMN).setPreferredWidth(200);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DATE_COLUMN).setCellRenderer(centerRenderer);
          
         //Tipo de documento
         
         //Tipo de documento
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_COLUMN).setMaxWidth(0);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_COLUMN).setMinWidth(0);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_COLUMN).setPreferredWidth(0);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_COLUMN).setMaxWidth(0);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_COLUMN).setMinWidth(0);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_COLUMN).setPreferredWidth(0);
         
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_DESCRIPTION_COLUMN).setMaxWidth(300);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_DESCRIPTION_COLUMN).setMinWidth(100);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_DESCRIPTION_COLUMN).setPreferredWidth(290);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_DESCRIPTION_COLUMN).setMaxWidth(300);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_DESCRIPTION_COLUMN).setMinWidth(100);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_DESCRIPTION_COLUMN).setPreferredWidth(290);
         
         //Numero de documento
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_NUMBER_COLUMN).setMaxWidth(230);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_NUMBER_COLUMN).setMinWidth(100);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_NUMBER_COLUMN).setPreferredWidth(220);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DOCUMENT_NUMBER_COLUMN).setCellRenderer(centerRenderer);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_NUMBER_COLUMN).setMaxWidth(230);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_NUMBER_COLUMN).setMinWidth(100);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_NUMBER_COLUMN).setPreferredWidth(220);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DOCUMENT_NUMBER_COLUMN).setCellRenderer(centerRenderer);
         
         //Concepto
-        purchaseInvoicesResultTable.getColumnModel().getColumn(CONCEPT_COLUMN).setMaxWidth(320);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(CONCEPT_COLUMN).setMinWidth(280);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(CONCEPT_COLUMN).setPreferredWidth(300);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(CONCEPT_COLUMN).setMaxWidth(320);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(CONCEPT_COLUMN).setMinWidth(280);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(CONCEPT_COLUMN).setPreferredWidth(300);
         
         //DEBE
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DEBIT_COLUMN).setMaxWidth(130);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DEBIT_COLUMN).setMinWidth(100);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DEBIT_COLUMN).setPreferredWidth(110);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(DEBIT_COLUMN).setCellRenderer(rightRenderer);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DEBIT_COLUMN).setMaxWidth(130);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DEBIT_COLUMN).setMinWidth(100);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DEBIT_COLUMN).setPreferredWidth(110);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(DEBIT_COLUMN).setCellRenderer(new DebitCellRenderer());
         
         //HABER
-        purchaseInvoicesResultTable.getColumnModel().getColumn(CREDIT_COLUMN).setMaxWidth(130);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(CREDIT_COLUMN).setMinWidth(100);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(CREDIT_COLUMN).setPreferredWidth(110);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(CREDIT_COLUMN).setCellRenderer(rightRenderer);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(CREDIT_COLUMN).setMaxWidth(130);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(CREDIT_COLUMN).setMinWidth(100);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(CREDIT_COLUMN).setPreferredWidth(110);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(CREDIT_COLUMN).setCellRenderer(new CreditCellRenderer());
         
         //SALDO
-        purchaseInvoicesResultTable.getColumnModel().getColumn(BALANCE_COLUMN).setMaxWidth(130);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(BALANCE_COLUMN).setMinWidth(100);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(BALANCE_COLUMN).setPreferredWidth(110);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(BALANCE_COLUMN).setCellRenderer(rightRenderer);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(BALANCE_COLUMN).setMaxWidth(130);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(BALANCE_COLUMN).setMinWidth(100);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(BALANCE_COLUMN).setPreferredWidth(110);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(BALANCE_COLUMN).setCellRenderer(new BalanceCellRenderer());
         
         //SALDO ANTERIOR
-        purchaseInvoicesResultTable.getColumnModel().getColumn(PREVIOUS_BALANCE_COLUMN).setMaxWidth(0);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(PREVIOUS_BALANCE_COLUMN).setMinWidth(0);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(PREVIOUS_BALANCE_COLUMN).setPreferredWidth(0);
-        purchaseInvoicesResultTable.getColumnModel().getColumn(PREVIOUS_BALANCE_COLUMN).setCellRenderer(rightRenderer);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(PREVIOUS_BALANCE_COLUMN).setMaxWidth(0);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(PREVIOUS_BALANCE_COLUMN).setMinWidth(0);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(PREVIOUS_BALANCE_COLUMN).setPreferredWidth(0);
+        subjectAccountMovementsResultTable.getColumnModel().getColumn(PREVIOUS_BALANCE_COLUMN).setCellRenderer(rightRenderer);
         
-        purchaseInvoicesResultTableJScrollPane = new JScrollPane();
-        purchaseInvoicesResultTableJScrollPane.setBounds(30, 240, 1120, 300);
-        purchaseInvoicesResultTableJScrollPane.setViewportView(purchaseInvoicesResultTable);
+        subjectAccountMovementsResultTableJScrollPane = new JScrollPane();
+        subjectAccountMovementsResultTableJScrollPane.setBounds(30, 240, 1120, 300);
+        subjectAccountMovementsResultTableJScrollPane.setViewportView(subjectAccountMovementsResultTable);
         
         ImageIcon cancelImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         closeButton = new JButton();
@@ -282,7 +293,7 @@ public class SubjectAccountStatus extends JInternalFrame{
         closeButton.setBounds(940, 600, 170, 32);
         subjectAccountStatusPanel.add(closeButton);
         
-        add(purchaseInvoicesResultTableJScrollPane);
+        add(subjectAccountMovementsResultTableJScrollPane);
         
         add(subjectAccountStatusPanel);
         setIconifiable(false);
@@ -306,7 +317,7 @@ public class SubjectAccountStatus extends JInternalFrame{
         
         String initDate = initDateTextField.getText();
         String endDate = endDateTextField.getText();
-       subjectController.setSubejctAccountStatusResultsTable(purchaseInvoicesResultDefaultTableModel, true, initDate, endDate, subjectMap.get("code").toString(), balanceTextField, previousBalanceTextField);
+       subjectController.setSubejctAccountStatusResultsTable(subjectAccountMovementsResultDefaultTableModel, true, initDate, endDate, subjectMap.get("code").toString(), balanceTextField, previousBalanceTextField);
     }
     
     private void setInitDateValue(){
@@ -359,5 +370,109 @@ public class SubjectAccountStatus extends JInternalFrame{
            
     }
     
+    private class CreditHeaderRenderer extends JLabel implements TableCellRenderer {
+ 
+        public CreditHeaderRenderer() {
+            setOpaque(true);
+            setHorizontalAlignment(JLabel.CENTER);
+            setBackground(new Color(80, 175, 145));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            setText(value.toString());
+            return this;
+        }
+
+    }
+    
+    private class DebitHeaderRenderer extends JLabel implements TableCellRenderer {
+ 
+        public DebitHeaderRenderer() {
+            setOpaque(true);
+            setHorizontalAlignment(JLabel.CENTER);
+            setBackground(new Color(141, 170, 201));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            setText(value.toString());
+            return this;
+        }
+
+    }
+    
+    private class BalanceHeaderRenderer extends JLabel implements TableCellRenderer {
+ 
+        public BalanceHeaderRenderer() {
+            setOpaque(true);
+            setHorizontalAlignment(JLabel.CENTER);
+            setBackground(new Color(239, 221, 119));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            setText(value.toString());
+            return this;
+        }
+
+    }
+    
+    private class CreditCellRenderer extends JTextField implements TableCellRenderer {
+
+        public CreditCellRenderer() {
+            setOpaque(true);
+            setBackground(new Color(237, 247, 243));
+            setHorizontalAlignment(JLabel.RIGHT);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+            setToolTipText("Haber");
+            setHorizontalAlignment(JLabel.RIGHT);
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
+    
+    private class DebitCellRenderer extends JTextField implements TableCellRenderer {
+
+        public DebitCellRenderer() {
+            setOpaque(true);
+            setBackground(new Color(227, 231, 249));
+            setHorizontalAlignment(JLabel.RIGHT);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+            setToolTipText("Debe");
+            setHorizontalAlignment(JLabel.RIGHT);
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
+    
+    private class BalanceCellRenderer extends JTextField implements TableCellRenderer {
+
+        public BalanceCellRenderer() {
+            setOpaque(true);
+            setBackground(new Color(244, 249, 199));
+            setHorizontalAlignment(JLabel.RIGHT);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+          boolean isSelected, boolean hasFocus, int row, int column) {
+            setToolTipText("Saldo");
+            setHorizontalAlignment(JLabel.RIGHT);
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
     
 }

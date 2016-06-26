@@ -151,6 +151,7 @@ public class PurchaseInvoiceCreate extends JInternalFrame{
     private HashMap taxableRatioMap = new HashMap();//Cocientes para Gravadas
     
     private final JScrollPane invoiceDetailTableJScrollPane;
+    
    public PurchaseInvoiceCreate(PurchaseInvoiceController purchaseInvoiceController){
        this.purchaseInvoiceController = purchaseInvoiceController;
        searchController = new SearchController();
@@ -1422,6 +1423,11 @@ public class PurchaseInvoiceCreate extends JInternalFrame{
 
 //            String eventDetailIdString = invoiceDetailDefaultTableModel.getValueAt(row, EVENT_DETAIL_ID_COLUMN).toString();
             //eventDetailsAdded.remove(eventDetailIdString);
+            
+            if(invoiceDetailDefaultTableModel.getValueAt(row, CODE_COLUMN) != null){
+                String furnitureCode = invoiceDetailDefaultTableModel.getValueAt(row, CODE_COLUMN).toString();
+                furnitureCodesAdded.remove(furnitureCode);
+            }
             invoiceDetailDefaultTableModel.removeRow(row);
             
             //updateDetailTableRowItem();

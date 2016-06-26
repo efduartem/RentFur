@@ -1002,7 +1002,7 @@ public class FurnitureController {
                 System.err.println(sqle);
             }
         }
-        System.out.println("furnitureStockExist:" + valueToReturn);
+        
         return valueToReturn;
     }
     

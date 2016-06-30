@@ -46,6 +46,7 @@ import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
 import rentfur.subject.SubjectShowAndEdit;
+import rentfur.user.ChangePasswordInternalFrame;
 import rentfur.user.UserController;
 import rentfur.user.UserCreate;
 import rentfur.user.UserIndex;
@@ -60,12 +61,16 @@ public class MainWindow extends JFrame{
     JDesktopPane desktop;
     private Container container;/*declaramos el contenedor*/
     private final JMenuBar menuBar = new JMenuBar();
+    private final JMenu systemMenu = new JMenu("Sistema");
     private final JMenu furnitureMenu = new JMenu("Mobiliarios");
     private final JMenu subjectMenu = new JMenu("Clientes");
     private final JMenu providerMenu = new JMenu("Proveedores");
     private final JMenu organizationMenu = new JMenu("Organización");
     private final JMenu eventsMenu = new JMenu(" Eventos");
 
+    private static final JMenuItem exitItem = new JMenuItem("Salir");
+    private static final JMenuItem changePasswordItem = new JMenuItem("Cambiar Contraseña");
+    
     private static final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
     
     private final JMenu furnitureInventoryItem = new JMenu("Inventario");
@@ -104,6 +109,7 @@ public class MainWindow extends JFrame{
     UserShowAndEdit userShowAndEdit;
     UserIndex userIndex;
     UserCreate userCreate;
+    ChangePasswordInternalFrame changePasswordInternalFrame;
     
     //POSITION
     PositionController positionController = new PositionController();
@@ -146,6 +152,35 @@ public class MainWindow extends JFrame{
     
     public void initComponents(){
         
+        ImageIcon systemIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/system_icon.png"));
+        systemMenu.setIcon(systemIconImage);
+        
+        ImageIcon changePasswordIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/change_password_icon.png"));
+        changePasswordItem.setIcon(changePasswordIconImage);
+        
+        ImageIcon exitIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/exit_icon.png"));
+        exitItem.setIcon(exitIconImage);
+        
+        menuBar.add(systemMenu);
+            systemMenu.add(changePasswordItem);
+            systemMenu.add(exitItem);
+        
+        changePasswordItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleUserChangePasswordInternalFrame();
+            }
+        });
+            
+        exitItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+        
         //Furniture
         ImageIcon furnitureIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/furniture_24x24.png"));
         furnitureMenu.setIcon(furnitureIconImage);
@@ -164,7 +199,7 @@ public class MainWindow extends JFrame{
         
         ImageIcon outputMovementIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/exit_movement_20x20.png"));
         outputMovementItem.setIcon(outputMovementIconImage);
-                
+            
         menuBar.add(furnitureMenu);
             furnitureMenu.add(manageFurnitureItem);
             furnitureMenu.add(furnitureInventoryItem);
@@ -410,6 +445,11 @@ public class MainWindow extends JFrame{
     public void setVisibleUserIndexInternalFrame(){
         userIndex = userController.getUserIndex(this.mainWindowController, userRoles);
         desktop.add(userIndex);
+    }
+    
+    public void setVisibleUserChangePasswordInternalFrame(){
+        changePasswordInternalFrame = userController.getUserChangePassword();
+        desktop.add(changePasswordInternalFrame);
     }
     
     //Muestra InternalFrame de Creacion de Mobiliario

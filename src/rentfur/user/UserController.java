@@ -30,6 +30,7 @@ public class UserController {
     private UserCreate userCreate;
     private UserShowAndEdit userShowAndEdit;
     private UserIndex userIndex;
+    private ChangePasswordInternalFrame changePasswordInternalFrame;
     public final int SUCCESFULLY_SAVED = 0;
     public final int ERROR_IN_SAVED = 1;
     public final String TABLE_NAME = "users";
@@ -55,6 +56,17 @@ public class UserController {
         }
         this.mainWindowController = mainWindowController;
         return userIndex;
+    }
+    
+    public ChangePasswordInternalFrame getUserChangePassword(){
+        if(changePasswordInternalFrame == null){
+            changePasswordInternalFrame = new ChangePasswordInternalFrame(this);
+        }
+        return changePasswordInternalFrame;
+    }
+    
+    public void changeUserPasswordViewClosed(){
+        changePasswordInternalFrame = null;
     }
     
     public void indexViewClosed(){
@@ -254,6 +266,45 @@ public class UserController {
         }
         return mapToReturn;
     }
+    
+    public HashMap changePassword(int userId, String currentPassword, String newPassword,  String confirmPassword){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+         try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+
+            connRentFur = DbConnectUtil.getConnection();
+            
+            StringBuilder passwordUpdateSb = new StringBuilder();
+            passwordUpdateSb.append("UPDATE users SET password = ? WHERE id = ?");
+
+            ps = connRentFur.prepareStatement(passwordUpdateSb.toString());
+            ps.setString(1, newPassword);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+            ps.close();
+            mapToReturn.put("status", SUCCESFULLY_SAVED);
+            mapToReturn.put("message", "Contraseña actualizada correctamente");
+            
+        }catch(SQLException th){
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            mapToReturn.put("message", th.getMessage());
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
+    }
+    
     public void createViewClosed(){
         userCreate = null;
     }

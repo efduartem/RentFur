@@ -17,17 +17,19 @@ public class User {
     String fullName;
     Boolean active;
     String position;
-    
+    String passWord;
+
     public User() {
     }
 
-    public User(int id, String code, String userName, String fullName, Boolean active, String position) {
+    public User(int id, String code, String userName, String fullName, Boolean active, String position, String passWord) {
         this.id = id;
         this.code = code;
         this.userName = userName;
         this.fullName = fullName;
         this.active = active;
         this.position = position;
+        this.passWord = passWord;
     }
 
     public int getId() {
@@ -77,4 +79,13 @@ public class User {
     public void setPosition(String position) {
         this.position = position;
     }
+    
+    public String getPassWord() {
+        return passWord;
+    }
+
+    public void setPassWord(String passWord) {
+        this.passWord = passWord;
+    }
+    
 }

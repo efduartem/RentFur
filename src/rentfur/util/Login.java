@@ -274,12 +274,13 @@ public class Login extends JFrame {
             String username = "";
             String fullname = "";
             String position = "";
+            
             boolean active = true;
             int positionId = 0;
             try{
                 String password = new String(passwordPasswordField.getPassword());
                 usuariosConnection=DbConnectUtil.getConnection();
-                String validacionUsuario = "SELECT id, code, username, fullname, active, (SELECT description FROM position p WHERE p.id = position_id) as position, position_id FROM users WHERE username = ? AND password = ?";
+                String validacionUsuario = "SELECT id, code, username, fullname, active, (SELECT description FROM position p WHERE p.id = position_id) as position, position_id, password FROM users WHERE username = ? AND password = ?";
                 ps = usuariosConnection.prepareStatement(validacionUsuario);
                 ps.setString(1, usernameTextField.getText());
                 ps.setString(2, password);
@@ -292,9 +293,10 @@ public class Login extends JFrame {
                     active = rs.getBoolean("active");
                     position = rs.getString("position");
                     positionId = rs.getInt("position_id");
+                    password = rs.getString("password");
                 }
                 
-                User user = new User(userId, userCode, username, fullname, active, position);
+                User user = new User(userId, userCode, username, fullname, active, position, password);
                 
                 if(!userCode.equals("") && active){
                     String query="SELECT (SELECT code FROM role WHERE id = pr.role_id) as code, pr.only_query FROM position_role pr WHERE pr.position_id = ?";

@@ -81,7 +81,7 @@ public class PositionIndex extends JInternalFrame{
         
         ComboBoxItem[] rolesComboBox = positionController.getRoleForComboBox(true);
         roleComboBox = new JComboBox(rolesComboBox);
-        roleComboBox.setBounds(170, 110, 160, 25);
+        roleComboBox.setBounds(170, 110, 180, 25);
         positionIndexParamsPanel.add(roleComboBox);
         
         //BOTON DE BUSQUEDA

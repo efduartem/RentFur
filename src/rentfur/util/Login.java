@@ -274,7 +274,7 @@ public class Login extends JFrame {
             String username = "";
             String fullname = "";
             String position = "";
-            boolean active = false;
+            boolean active = true;
             int positionId = 0;
             try{
                 String password = new String(passwordPasswordField.getPassword());

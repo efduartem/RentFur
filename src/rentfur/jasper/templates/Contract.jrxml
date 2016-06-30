@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Contract" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="832bf169-77da-4c02-a450-0fd3235505c3">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="eventId" class="java.lang.Integer"/>
+	<queryString>
+		<![CDATA[SELECT
+      e.contract_number,
+      to_char(e.delivery_date, 'YYYY-MM-DD') as delivery_date,
+      e.net_total,
+      e.subject_name,
+      (SELECT value FROM system_configuration WHERE key = 'event.contract.text.1') as text1,
+      (SELECT value FROM system_configuration WHERE key = 'event.contract.text.2') as text2,
+      (SELECT value FROM system_configuration WHERE key = 'event.contract.text.3') as text3,
+      (SELECT value FROM system_configuration WHERE key = 'event.contract.text.4') as text4,
+	ed.furniture_code,
+	ed.furniture_description,
+	ed.unit_price,
+	ed.fine_amount_per_unit,
+	ed.quantity,
+	ed.total_amount,
+	ed.annexed,
+	ed.penalty
+FROM
+	event e,
+	event_detail ed
+WHERE
+	ed.event_id = e.id
+	AND e.id = $P{eventId}]]>
+	</queryString>
+	<field name="contract_number" class="java.lang.Long"/>
+	<field name="delivery_date" class="java.lang.String"/>
+	<field name="net_total" class="java.lang.Double"/>
+	<field name="subject_name" class="java.lang.String"/>
+	<field name="text1" class="java.lang.String"/>
+	<field name="text2" class="java.lang.String"/>
+	<field name="text3" class="java.lang.String"/>
+	<field name="text4" class="java.lang.String"/>
+	<field name="furniture_code" class="java.lang.String"/>
+	<field name="furniture_description" class="java.lang.String"/>
+	<field name="unit_price" class="java.lang.Double"/>
+	<field name="fine_amount_per_unit" class="java.lang.Double"/>
+	<field name="quantity" class="java.lang.Integer"/>
+	<field name="total_amount" class="java.lang.Double"/>
+	<field name="annexed" class="java.lang.Boolean"/>
+	<field name="penalty" class="java.lang.Boolean"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="589" splitType="Stretch">
+			<staticText>
+				<reportElement x="90" y="0" width="366" height="20" uuid="a15cdded-e57a-40b4-af88-0d9dcd01fd5f"/>
+				<textElement>
+					<font size="12" isBold="true" isItalic="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[CONTRATO DE ARRENDAMIENTO DE MOBILIARIOS]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="2" y="32" width="553" height="557" uuid="a6ef650b-3efc-4512-ab14-74ed40b43339"/>
+				<textFieldExpression><![CDATA[$F{text1}+" "+$F{subject_name}+$F{text2}+$F{delivery_date}+$F{text3}+
+(new DecimalFormat("###,###")).format($F{net_total})+","+$F{text4}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="211" y="0" width="100" height="20" uuid="f2f82156-e16d-47f1-bc15-462e812114d1"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true" isItalic="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[CARGOS]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="19" width="553" height="1" uuid="5e8908c4-e6d7-4dbd-8cf0-5e8b54a817a3"/>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="22" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="30" height="20" uuid="eda7051d-259c-40e7-8ea1-5cf896259398"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Cod.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="0" width="183" height="20" uuid="0f76ec26-ab2b-4cd5-a2c3-bfc69f553f01"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Mobiliario]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="223" y="0" width="72" height="20" uuid="b34b2085-6842-48b4-8290-d3a2786b658e"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Precio Unitario]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="305" y="0" width="70" height="20" uuid="ba5433cc-c671-4df5-88e2-dc576bf18ae4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Multa (Unidad)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="375" y="0" width="68" height="20" uuid="de018527-5a80-492a-97fa-c1c747204fd3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Cantidad]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="455" y="0" width="97" height="20" uuid="b26f0257-ea83-4673-a1fa-cf5efcaf265e"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Importe]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="20" width="553" height="1" uuid="8090d811-10f4-4c98-8578-a12f0b7077f3"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="2" y="0" width="28" height="20" uuid="3f5bbb17-f365-4c17-972d-4ba1f707ab1e"/>
+				<textFieldExpression><![CDATA[$F{furniture_code}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="40" y="0" width="183" height="20" uuid="6de8ec51-73d2-45cd-abd3-922c4d1ef855"/>
+				<textFieldExpression><![CDATA[$F{furniture_description}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="375" y="0" width="68" height="20" uuid="59d811cd-c285-4d7b-a864-bbda3b466368"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="455" y="0" width="97" height="20" uuid="3fee9e4c-d868-49f2-b8dc-7ebab1077e90"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{total_amount}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="305" y="0" width="70" height="20" uuid="775bf069-c800-4ebd-bc9f-8065524a55ae"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{fine_amount_per_unit}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="223" y="0" width="72" height="20" uuid="d1317542-90f7-4442-b567-4e61ff49a890"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{unit_price}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="228" splitType="Stretch">
+			<line>
+				<reportElement x="12" y="180" width="151" height="1" uuid="65c873fb-0c31-4dde-837c-7617c7c7581c"/>
+				<graphicElement>
+					<pen lineStyle="Dotted"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="12" y="182" width="100" height="14" uuid="053eeb71-b2f7-4d00-a2d7-8456efbd8858"/>
+				<text><![CDATA[El Prestador]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="12" y="196" width="114" height="20" uuid="d56b2e46-5699-470e-8da1-8986fe941021"/>
+				<text><![CDATA[Tacuaral Brindis S.R.L]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="375" y="182" width="100" height="14" uuid="3c5cb7db-903d-4a60-b27f-9a277c47e599"/>
+				<text><![CDATA[El Prestatario]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="375" y="196" width="100" height="20" uuid="ef738a35-c3c8-412f-ab63-35c92bffe6a9"/>
+				<textFieldExpression><![CDATA[$F{subject_name}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="375" y="179" width="145" height="1" uuid="49d5a6a1-a129-4c25-ba4c-7115b4ba232c"/>
+				<graphicElement>
+					<pen lineStyle="Dotted"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="2" y="25" width="550" height="42" uuid="b663360f-3ecf-4328-a3ee-8453d81276fa"/>
+				<textFieldExpression><![CDATA["En prueba de conformidad, se firma el acuerdo entre las partes, en la Ciudad de Ypacarai - Paraguay, "+(new SimpleDateFormat("'a los ' dd 'dias del mes de ' MMMM 'del año ' yyyy", new Locale("es"))).format(new Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

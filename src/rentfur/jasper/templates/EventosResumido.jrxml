@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EventosResumido" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="a9b5ef0a-219a-4444-8537-1b4a2d8b98fe">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="fecha_ini" class="java.util.Date">
+		<parameterDescription><![CDATA[Fecha de inicio]]></parameterDescription>
+		<defaultValueExpression><![CDATA[Calendar.getInstance().getTime()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="fecha_fin" class="java.util.Date">
+		<parameterDescription><![CDATA[Fecha de fin]]></parameterDescription>
+		<defaultValueExpression><![CDATA[Calendar.getInstance().getTime()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="fecha_ini_str" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[DateFormat.getDateInstance(DateFormat.DEFAULT, new Locale("es","PY")).format($P{fecha_ini})]]></defaultValueExpression>
+	</parameter>
+	<parameter name="fecha_fin_str" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[DateFormat.getDateInstance(DateFormat.DEFAULT, new Locale("es","PY")).format($P{fecha_fin})]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+	e.delivery_date,
+	e.id,
+	--e.number,
+	e.contract_number,
+	e.subject_code,
+	e.subject_name,
+	e.net_total
+FROM
+	event e
+WHERE
+	e.delivery_date >= to_timestamp( '$P!{fecha_ini_str} 00:00:00', 'DD/MM/YYYY HH24:MI:SS')
+	and e.delivery_date <= to_timestamp( '$P!{fecha_fin_str} 23:59:59', 'DD/MM/YYYY HH24:MI:SS')
+	and e.status = 1
+order by
+	e.delivery_date;]]>
+	</queryString>
+	<field name="delivery_date" class="java.sql.Timestamp"/>
+	<field name="id" class="java.lang.Long"/>
+	<field name="contract_number" class="java.lang.Long"/>
+	<field name="subject_code" class="java.lang.String"/>
+	<field name="subject_name" class="java.lang.String"/>
+	<field name="net_total" class="java.lang.Double"/>
+	<variable name="total_anulado" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="total_facturado" class="java.lang.Double" resetType="Group" resetGroup="fecha" calculation="Sum">
+		<variableExpression><![CDATA[$F{net_total}]]></variableExpression>
+	</variable>
+	<variable name="total_facturado_fecha" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{net_total}]]></variableExpression>
+	</variable>
+	<variable name="montoTotalFacturado" class="java.lang.Double" resetType="Group" resetGroup="vendedor" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="cantidadDeFacturas" class="java.lang.Integer" resetType="Group" resetGroup="fecha" calculation="Count">
+		<variableExpression><![CDATA[$F{contract_number}]]></variableExpression>
+	</variable>
+	<variable name="cantidadTotalDeFacturas" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$F{contract_number}]]></variableExpression>
+	</variable>
+	<group name="fecha">
+		<groupExpression><![CDATA[$F{delivery_date}]]></groupExpression>
+		<groupHeader>
+			<band height="14" splitType="Stretch">
+				<rectangle radius="0">
+					<reportElement key="rectangle-1" mode="Opaque" x="0" y="0" width="535" height="13" forecolor="#1B0B0B" backcolor="#9B9CA0" uuid="9c8b7808-0bd7-4b86-821a-e3278b926d7a"/>
+				</rectangle>
+				<staticText>
+					<reportElement key="staticText" x="0" y="-1" width="87" height="15" forecolor="#000000" backcolor="#FFFFFF" uuid="f53600e1-0593-4986-ba3e-c60e0872386b"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Fecha]]></text>
+				</staticText>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="false">
+					<reportElement key="textField" x="100" y="-1" width="98" height="15" forecolor="#000000" backcolor="#FFFFFF" uuid="1311b9b6-6dc7-4525-80d0-a815cbf92b7c"/>
+					<box>
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{delivery_date}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="41" splitType="Stretch">
+				<staticText>
+					<reportElement key="staticText-5" mode="Opaque" x="10" y="22" width="165" height="12" forecolor="#0C0202" backcolor="#FFFFFF" uuid="5c31b531-fbe3-478b-a5e7-3017a592c0b2"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Monto total de eventos en fecha:    ]]></text>
+				</staticText>
+				<textField pattern="#,##0" isBlankWhenNull="false">
+					<reportElement key="textField-1" mode="Opaque" x="182" y="22" width="76" height="12" forecolor="#0C0202" backcolor="#FFFFFF" uuid="9a292540-dae1-484e-9d52-f43fa3485693"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{total_facturado}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-11" mode="Opaque" x="10" y="10" width="163" height="12" forecolor="#0C0202" backcolor="#FFFFFF" uuid="93f80e74-71e5-4e8f-b57a-56f84c661e78"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Cantidad de eventos en fecha:    ]]></text>
+				</staticText>
+				<textField pattern="#,##0" isBlankWhenNull="false">
+					<reportElement key="textField-5" mode="Opaque" x="182" y="10" width="76" height="12" forecolor="#0C0202" backcolor="#FFFFFF" uuid="33e61297-3b0a-4383-9613-90469ed72696"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{cantidadDeFacturas}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement key="line" mode="Opaque" x="1" y="5" width="535" height="1" forecolor="#000000" backcolor="#FFFFFF" uuid="05b65f83-d902-4fba-9962-9b9ef6639bc3"/>
+					<graphicElement>
+						<pen lineWidth="2.0" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="vendedor">
+		<groupHeader>
+			<band height="14" splitType="Stretch">
+				<rectangle radius="0">
+					<reportElement key="rectangle" mode="Opaque" x="0" y="0" width="535" height="14" forecolor="#1B0B0B" backcolor="#CACBCF" uuid="64b84fe3-bc0b-4cb6-a70a-5f387e34c348"/>
+					<graphicElement>
+						<pen lineWidth="1.0" lineStyle="Solid"/>
+					</graphicElement>
+				</rectangle>
+				<staticText>
+					<reportElement key="staticText" x="6" y="0" width="76" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="01e473ff-8b0a-4ce3-a72e-d95915e41876"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Nro. Contrato]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText" x="94" y="0" width="228" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="c7deda90-5557-4a06-9961-2a8b0bb5e5ed"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Cliente]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText" x="468" y="0" width="65" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="152879dc-40d0-4713-8734-2e118c4a322c"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Monto]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch"/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="72" splitType="Stretch">
+			<staticText>
+				<reportElement key="staticText-8" x="9" y="36" width="447" height="24" uuid="4ca30a64-c23d-4cd1-a28e-4dd16695b889"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="18" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[por fecha]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-7" mode="Opaque" x="17" y="13" width="446" height="24" uuid="fe586111-bbf6-48a5-8f54-cdb8baf83132"/>
+				<textElement textAlignment="Center">
+					<font fontName="SansSerif" size="18" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Informe Resumido de Eventos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-9" x="425" y="13" width="56" height="12" uuid="dcd0e248-edc2-435f-a0fc-a8d20755a97e"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<text><![CDATA[Fecha Inicio: ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" x="425" y="26" width="57" height="12" uuid="881d0abf-19a9-4984-9326-58de7b93ecbc"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<text><![CDATA[Fecha fin: ]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="false">
+				<reportElement key="textField" x="480" y="13" width="54" height="12" uuid="f7cf0f4e-2778-46f3-9220-a669dbb8cf99"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{fecha_ini_str}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="false">
+				<reportElement key="textField" x="480" y="25" width="54" height="13" uuid="9c4e1880-e125-4e5a-a28f-da039371dc46"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{fecha_fin_str}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement key="line" mode="Opaque" x="0" y="2" width="534" height="1" forecolor="#808080" backcolor="#FFFFFF" uuid="7e2c2c30-82f5-4437-bb71-7dc820d92bc6"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="1" y="36" width="81" height="35" uuid="9e544170-eea8-4b35-96f0-c3eee5ec0e99"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Tacuaral Brindis S.R.L.]]></text>
+			</staticText>
+			<image>
+				<reportElement x="20" y="6" width="33" height="39" uuid="5e51d336-1946-4100-aefc-d867a8e90c25"/>
+				<imageExpression><![CDATA["C:\\Users\\FDuarte\\Documents\\NetBeansProjects\\RentFur\\src\\rentfur\\util\\image\\loginImageLogoLabel.png"]]></imageExpression>
+			</image>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="21" splitType="Stretch">
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" mode="Transparent" x="7" y="5" width="76" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="81da6d05-5877-4705-9b06-e8f422fd20f2"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{contract_number}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" mode="Transparent" x="100" y="5" width="357" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="d77ba2db-a9e0-4f96-8f3f-705ef599990d"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{subject_code} +" - "+ $F{subject_name}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="false">
+				<reportElement key="textField" mode="Transparent" x="469" y="4" width="64" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="a58ed641-d8b7-4b01-91e7-d71bcb52c08b"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{net_total}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="36">
+			<line>
+				<reportElement key="line" mode="Opaque" x="3" y="5" width="535" height="1" forecolor="#000000" backcolor="#FFFFFF" uuid="9662d9bd-a148-4643-a8cf-716ef7617bb2"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement key="staticText-6" x="9" y="22" width="199" height="12" uuid="748830c6-f84f-4106-813d-79b404b3ff3a"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Monto total eventos:  ]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="false">
+				<reportElement key="textField" x="211" y="23" width="76" height="11" uuid="2ce19096-3b48-4a63-859b-83222b466e35"/>
+				<textElement textAlignment="Left">
+					<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{total_facturado_fecha}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-12" x="9" y="10" width="197" height="12" uuid="969af923-3b35-47db-88cd-418bc09e1b5e"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Cantidad total de eventos:   ]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="false">
+				<reportElement key="textField-6" x="210" y="10" width="76" height="11" uuid="125ab389-2a41-4a5d-a599-e976923bc17d"/>
+				<textElement textAlignment="Left">
+					<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{cantidadTotalDeFacturas}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="21" splitType="Stretch">
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="322" y="1" width="170" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="40f7f030-b025-4d04-ac15-0a22a6349819"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Pagina " + $V{PAGE_NUMBER} + " de "]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="493" y="1" width="36" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="316a79e9-3de2-4e50-b994-b1984969253d"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["" + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

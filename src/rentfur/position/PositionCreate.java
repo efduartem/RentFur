@@ -46,6 +46,15 @@ public class PositionCreate extends JInternalFrame{
     private final JCheckBox subjectReadOnlyCheckBox;
     private final JCheckBox furnitureReadOnlyCheckBox;
     private final JCheckBox usersReadOnlyCheckBox;
+    private final JCheckBox receiptCheckBox;
+    private final JCheckBox receiptReadOnlyCheckBox;
+    private final JCheckBox invoiceCheckBox;
+    private final JCheckBox invoiceReadOnlyCheckBox;
+    private final JCheckBox eventsCheckBox;
+    private final JCheckBox eventsReadOnlyCheckBox;
+    private final JCheckBox creditNoteCheckBox;
+    private final JCheckBox creditNoteReadOnlyCheckBox;
+    private final JCheckBox reportCheckBox;
     
     private final ImageIcon createIconImage;
     private final ImageIcon cancelIconImage;
@@ -149,6 +158,83 @@ public class PositionCreate extends JInternalFrame{
             }
         });
         
+        eventsCheckBox = new JCheckBox("Eventos");
+        eventsCheckBox.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               eventsCheckBoxActionPerformed(e);
+            }
+
+            private void eventsCheckBoxActionPerformed(ActionEvent e) {
+                if(((JCheckBox) e.getSource()).isSelected()){
+                    eventsReadOnlyCheckBox.setEnabled(true);
+                }else{
+                    eventsReadOnlyCheckBox.setEnabled(false);
+                    eventsReadOnlyCheckBox.setSelected(false);
+                }
+            }
+        });
+        
+        
+        receiptCheckBox = new JCheckBox("Recibos");
+        receiptCheckBox.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               receiptsCheckBoxActionPerformed(e);
+            }
+
+            private void receiptsCheckBoxActionPerformed(ActionEvent e) {
+                if(((JCheckBox) e.getSource()).isSelected()){
+                    receiptReadOnlyCheckBox.setEnabled(true);
+                }else{
+                    receiptReadOnlyCheckBox.setEnabled(false);
+                    receiptReadOnlyCheckBox.setSelected(false);
+                }
+            }
+        });
+        
+        invoiceCheckBox = new JCheckBox("Facturas");
+        invoiceCheckBox.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               invoicesCheckBoxActionPerformed(e);
+            }
+
+            private void invoicesCheckBoxActionPerformed(ActionEvent e) {
+                if(((JCheckBox) e.getSource()).isSelected()){
+                    invoiceReadOnlyCheckBox.setEnabled(true);
+                }else{
+                    invoiceReadOnlyCheckBox.setEnabled(false);
+                    invoiceReadOnlyCheckBox.setSelected(false);
+                }
+            }
+        });
+        
+        
+        creditNoteCheckBox = new JCheckBox("Notas de Credito");
+        creditNoteCheckBox.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               creditNotesCheckBoxActionPerformed(e);
+            }
+
+            private void creditNotesCheckBoxActionPerformed(ActionEvent e) {
+                if(((JCheckBox) e.getSource()).isSelected()){
+                    creditNoteReadOnlyCheckBox.setEnabled(true);
+                }else{
+                    creditNoteReadOnlyCheckBox.setEnabled(false);
+                    creditNoteReadOnlyCheckBox.setSelected(false);
+                }
+            }
+        });
+        
+        reportCheckBox = new JCheckBox("Informes");
+
+        
         providerReadOnlyCheckBox = new JCheckBox("[Solo Consulta]");
         providerReadOnlyCheckBox.setEnabled(false);
         subjectReadOnlyCheckBox = new JCheckBox("[Solo Consulta]");
@@ -157,87 +243,91 @@ public class PositionCreate extends JInternalFrame{
         furnitureReadOnlyCheckBox.setEnabled(false);
         usersReadOnlyCheckBox = new JCheckBox("[Solo Consulta]");
         usersReadOnlyCheckBox.setEnabled(false);
+        eventsReadOnlyCheckBox = new JCheckBox("[Solo Consulta]");
+        eventsReadOnlyCheckBox.setEnabled(false);
+        receiptReadOnlyCheckBox = new JCheckBox("[Solo Consulta]");
+        receiptReadOnlyCheckBox.setEnabled(false);
+        invoiceReadOnlyCheckBox = new JCheckBox("[Solo Consulta]");
+        invoiceReadOnlyCheckBox.setEnabled(false);
+        creditNoteReadOnlyCheckBox = new JCheckBox("[Solo Consulta]");
+        creditNoteReadOnlyCheckBox.setEnabled(false);
         
-        GroupLayout rolesPanelLayout = new GroupLayout(rolesPanel);
-        rolesPanel.setLayout(rolesPanelLayout);
-        
-        GroupLayout.Group horizontalGroupRolesPanelLayout = rolesPanelLayout.createSequentialGroup();
-        rolesPanelLayout.setHorizontalGroup(horizontalGroupRolesPanelLayout);
-        
-        horizontalGroupRolesPanelLayout.addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(rolesPanelLayout.createSequentialGroup()
-                    .addGap(18,18,18)
-                    .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(providerCheckBox)
-                        .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                              .addComponent(providerReadOnlyCheckBox))
-                        .addComponent(subjectCheckBox)
-                        .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                              .addComponent(subjectReadOnlyCheckBox))
-                        .addComponent(furnitureCheckBox)
-                        .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                              .addComponent(furnitureReadOnlyCheckBox)))
-                    .addGap(50,50,50)
-                    .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(usersCheckBox)
-                        .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                              .addComponent(usersReadOnlyCheckBox)))
-                    .addGap(18,18,18)
-                ));
-        
-        /*
-        RolesPanelLayout.setHorizontalGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout RolesPanelLayout = new javax.swing.GroupLayout(rolesPanel);
+        rolesPanel.setLayout(RolesPanelLayout);
+        RolesPanelLayout.setHorizontalGroup(
+            RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(RolesPanelLayout.createSequentialGroup()
+                .addGap(18, 18, 18)
                 .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(providerCheckBox)
                     .addGroup(RolesPanelLayout.createSequentialGroup()
-                        .addGap(18, 18, 18)
+                        .addGap(12, 12, 12)
+                        .addComponent(providerReadOnlyCheckBox))
+                    .addComponent(subjectCheckBox)
+                    .addGroup(RolesPanelLayout.createSequentialGroup()
+                        .addGap(24, 24, 24)
+                        .addComponent(subjectReadOnlyCheckBox))
+                    .addComponent(furnitureCheckBox)
+                    .addGroup(RolesPanelLayout.createSequentialGroup()
+                        .addGap(16, 16, 16)
+                        .addComponent(furnitureReadOnlyCheckBox)))
+                .addGap(58, 58, 58)
+                .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(usersCheckBox)
+                    .addGroup(RolesPanelLayout.createSequentialGroup()
+                        .addGap(24, 24, 24)
                         .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(RolesPanelLayout.createSequentialGroup()
-                                .addComponent(furnitureCheckbox)
-                                .addGap(101, 101, 101)
-                                .addComponent(providerCheckBox))
-                            .addComponent(subjectCheckBox)
-                            .addGroup(RolesPanelLayout.createSequentialGroup()
-                                .addGap(24, 24, 24)
-                                .addComponent(subjectReadOnlyCheckBox))))
+                            .addComponent(receiptReadOnlyCheckBox)
+                            .addComponent(eventsReadOnlyCheckBox)
+                            .addComponent(usersReadOnlyCheckBox)))
+                    .addComponent(eventsCheckBox)
+                    .addComponent(receiptCheckBox))
+                .addGap(69, 69, 69)
+                .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(reportCheckBox)
+                    .addComponent(creditNoteCheckBox)
+                    .addComponent(invoiceCheckBox)
                     .addGroup(RolesPanelLayout.createSequentialGroup()
-                        .addGap(32, 32, 32)
-                        .addComponent(furnitureReadOnlyCheckbox)
-                        .addGap(75, 75, 75)
-                        .addComponent(providerReadOnlyCheckBox)))
-                .addContainerGap(238, Short.MAX_VALUE))
+                        .addGap(24, 24, 24)
+                        .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(creditNoteReadOnlyCheckBox)
+                            .addComponent(invoiceReadOnlyCheckBox))))
+                .addContainerGap(130, Short.MAX_VALUE))
         );
-        */
-        GroupLayout.Group verticalGroupRolesPanelLayout = rolesPanelLayout.createSequentialGroup();
-        rolesPanelLayout.setVerticalGroup(verticalGroupRolesPanelLayout);
-        
-        verticalGroupRolesPanelLayout.addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-        .addGroup(rolesPanelLayout.createSequentialGroup()
-            .addGap(18,18,18)
-            .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                .addComponent(providerCheckBox)
-                .addComponent(usersCheckBox))
-            .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                .addComponent(providerReadOnlyCheckBox)
-                .addComponent(usersReadOnlyCheckBox))
-                
-            .addGap(18,18,18)
-            .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                .addComponent(subjectCheckBox))
-                
-            .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                .addGap(18,18,18)
-                .addComponent(subjectReadOnlyCheckBox))
-                
-            .addGap(18,18,18)
-            .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                .addComponent(furnitureCheckBox))
-            .addGroup(rolesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                .addGap(18,18,18)
-                .addComponent(furnitureReadOnlyCheckBox))
-                
-            .addGap(18,18,18)
-            ));
+        RolesPanelLayout.setVerticalGroup(
+            RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(RolesPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(providerCheckBox, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(usersCheckBox)
+                    .addComponent(invoiceCheckBox))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(providerReadOnlyCheckBox)
+                    .addComponent(usersReadOnlyCheckBox)
+                    .addComponent(invoiceReadOnlyCheckBox))
+                .addGap(15, 15, 15)
+                .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(subjectCheckBox)
+                    .addComponent(eventsCheckBox)
+                    .addComponent(creditNoteCheckBox))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(subjectReadOnlyCheckBox)
+                    .addComponent(eventsReadOnlyCheckBox)
+                    .addComponent(creditNoteReadOnlyCheckBox))
+                .addGap(18, 18, 18)
+                .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(furnitureCheckBox)
+                    .addComponent(receiptCheckBox)
+                    .addComponent(reportCheckBox))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(RolesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(furnitureReadOnlyCheckBox)
+                    .addComponent(receiptReadOnlyCheckBox))
+                .addContainerGap(21, Short.MAX_VALUE))
+        );
         
         //verticalGroupRolesPanelLayout
 
@@ -268,7 +358,7 @@ public class PositionCreate extends JInternalFrame{
         setClosable(true);
         
         setTitle("Crear Cargo");
-        setBounds(360,200,600,420);
+        setBounds(380,200,700,430);
         setVisible(true);
         
     }
@@ -315,20 +405,41 @@ public class PositionCreate extends JInternalFrame{
         boolean subject = subjectCheckBox.isSelected();
         boolean furniture = furnitureCheckBox.isSelected();
         boolean users = usersCheckBox.isSelected();
+        
+        boolean event = eventsCheckBox.isSelected();
+        boolean receipt = receiptCheckBox.isSelected();
+        boolean invoice = invoiceCheckBox.isSelected();
+        boolean creditNote = creditNoteCheckBox.isSelected();
+        boolean report = reportCheckBox.isSelected();
+        
         boolean providerReadOnly = providerReadOnlyCheckBox.isSelected();
         boolean subjectReadOnly = subjectReadOnlyCheckBox.isSelected();
         boolean furnitureReadOnly = furnitureReadOnlyCheckBox.isSelected();
         boolean usersReadOnly = usersReadOnlyCheckBox.isSelected();
+        
+        boolean eventReadOnly = eventsReadOnlyCheckBox.isSelected();
+        boolean receiptReadOnly = receiptReadOnlyCheckBox.isSelected();
+        boolean invoiceReadOnly = invoiceReadOnlyCheckBox.isSelected();
+        boolean creditNoteReadOnly = creditNoteReadOnlyCheckBox.isSelected();
         
         HashMap rolesMap = new HashMap();
         rolesMap.put("provider", provider);
         rolesMap.put("subject", subject);
         rolesMap.put("furniture", furniture);
         rolesMap.put("users", users);
+        rolesMap.put("event", event);
+        rolesMap.put("receipt", receipt);
+        rolesMap.put("invoice", invoice);
+        rolesMap.put("creditNote", creditNote);
+        rolesMap.put("report", report);
         rolesMap.put("providerReadOnly", providerReadOnly);
         rolesMap.put("subjectReadOnly", subjectReadOnly);
         rolesMap.put("furnitureReadOnly", furnitureReadOnly);
         rolesMap.put("usersReadOnly", usersReadOnly);
+        rolesMap.put("eventReadOnly", eventReadOnly);
+        rolesMap.put("receiptReadOnly", receiptReadOnly);
+        rolesMap.put("invoiceReadOnly", invoiceReadOnly);
+        rolesMap.put("creditNoteReadOnly", creditNoteReadOnly);
         
         HashMap mapReturn = positionController.savePosition(description, rolesMap);
         if((Integer) mapReturn.get("status") == positionController.SUCCESFULLY_SAVED){

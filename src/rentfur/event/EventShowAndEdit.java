@@ -61,12 +61,14 @@ import rentfur.furniture.FurnitureController;
 import rentfur.invoice.InvoiceController;
 import rentfur.invoice.InvoiceCreate;
 import rentfur.invoice.InvoiceShow;
+import rentfur.position.PositionController;
 import rentfur.receipt.ReceiptController;
 import rentfur.receipt.ReceiptCreate;
 import rentfur.receipt.ReceiptShow;
 import rentfur.subject.SubjectController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
+import rentfur.util.UserRoles;
 import rentfur.util.searches.FurniturePenaltySearch;
 import rentfur.util.searches.FurnitureSearch;
 import rentfur.util.searches.SearchController;
@@ -271,8 +273,36 @@ public class EventShowAndEdit extends JInternalFrame{
     
     private static final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
     
+    private boolean eventOnlyQuery = false;
+    private boolean receiptOnlyQuery = false;
+    private boolean invoiceOnlyQuery = false;
+    private boolean creditNoteOnlyQuery = false;
+    private final UserRoles userRoles;
+    
     public EventShowAndEdit(EventController eventController, int eventId){
         this.eventController = eventController;
+        
+        userRoles = new UserRoles();
+        
+        if(userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_EVENTS) 
+                && (Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_EVENTS)){
+            eventOnlyQuery = true;
+        }
+        
+        if(userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_RECEIPTS)
+                && (Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_RECEIPTS)){
+            receiptOnlyQuery = true;
+        }
+        
+        if(userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_INVOICES)
+                &&(Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_INVOICES)){
+            invoiceOnlyQuery = true;
+        }
+        
+        if(userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_CREDIT_NOTES)
+                && (Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_CREDIT_NOTES)){
+            creditNoteOnlyQuery = true;
+        }
         
         searchController = new SearchController();
         receiptController = new ReceiptController();
@@ -523,6 +553,11 @@ public class EventShowAndEdit extends JInternalFrame{
         });
         add(paymentRecordButton);
         
+        if(receiptOnlyQuery){
+            paymentRecordButton.setEnabled(false);
+            paymentRecordButton.setToolTipText("Su usuario solo cuenta con permiso de consultas de Recibos");
+        }
+        
         ImageIcon invoicedImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/invoice_20x20.png"));
         invoicedButton = new JButton("  Facturar");
         invoicedButton.setIcon(invoicedImageIcon);
@@ -536,6 +571,11 @@ public class EventShowAndEdit extends JInternalFrame{
             }
         });
         add(invoicedButton);
+        
+        if(invoiceOnlyQuery){
+            invoicedButton.setEnabled(false);
+            invoicedButton.setToolTipText("Su usuario solo cuenta con permiso de consultas de Facturas");
+        }
         
         ImageIcon creditNoteImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/invoice_20x20.png"));
         createCreditNoteButton = new JButton("  Nota de Credito");
@@ -551,6 +591,10 @@ public class EventShowAndEdit extends JInternalFrame{
         });
         add(createCreditNoteButton);
         
+        if(creditNoteOnlyQuery){
+            createCreditNoteButton.setEnabled(false);
+            createCreditNoteButton.setToolTipText("Su usuario solo cuenta con permiso de consultas de Notas de Credito");
+        }
         
         //Editar Presupuesto
         ImageIcon editEventImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
@@ -591,6 +635,18 @@ public class EventShowAndEdit extends JInternalFrame{
             }
         });
         add(addPenaltyButton);
+        
+        if(eventOnlyQuery){
+            saveChangesButton.setEnabled(false);
+            saveChangesButton.setToolTipText("Su usuario solo cuenta con permiso de consultas de Eventos");
+            
+            addFurnitureButton.setEnabled(false);
+            addFurnitureButton.setToolTipText("Su usuario solo cuenta con permiso de consultas de Eventos");
+            
+            addPenaltyButton.setEnabled(false);
+            addPenaltyButton.setToolTipText("Su usuario solo cuenta con permiso de consultas de Eventos");
+        }
+        
         
         ImageIcon closeIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         closeButton = new JButton("   Cerrar              ");
@@ -677,6 +733,21 @@ public class EventShowAndEdit extends JInternalFrame{
           }
         };
         tabs.addChangeListener(changeListener);
+        
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_RECEIPTS)){
+            tabs.setEnabledAt(1, false);
+            tabs.setToolTipTextAt(1, "Su usuario no cuenta con permisos para acceder a la administración de Recibos");
+        }
+        
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_INVOICES)){
+            tabs.setEnabledAt(2, false);
+            tabs.setToolTipTextAt(1, "Su usuario no cuenta con permisos para acceder a la administración de Facturas");
+        }
+        
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_CREDIT_NOTES)){
+            tabs.setEnabledAt(3, false);
+            tabs.setToolTipTextAt(1, "Su usuario no cuenta con permisos para acceder a la administración de Notas de Credito");
+        }
         
         //AGREGAMOS AL INTERNAL FRAME EL "PANEL DE PESTAÑAS" (?)
         add(tabs);

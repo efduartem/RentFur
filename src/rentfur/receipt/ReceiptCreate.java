@@ -520,7 +520,6 @@ public class ReceiptCreate extends JInternalFrame{
         ComboBoxItem paymentMethod;
         for (int row = 0; row < receiptDetailTable.getRowCount(); row++){
             dataVector = (Vector) receiptDetailDefaultTableModel.getDataVector().get(row);
-            System.out.println("dataVector: "+dataVector);
             paymentMethod = (ComboBoxItem) receiptDetailDefaultTableModel.getValueAt(row, PAYMENT_METHOD_COLUMN);
             if(Integer.valueOf(paymentMethod.getKey())==ReceiptController.PAY_CHECK){
                 if(dataVector.get(DOC_DUE_DATE_COLUMN).equals("") || dataVector.get(DOC_EMITION_DATE_COLUMN).equals("") || dataVector.get(DOC_NUMBER_COLUMN).equals("") || dataVector.get(BANK_COLUMN).equals("")){

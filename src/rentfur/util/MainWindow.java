@@ -66,22 +66,22 @@ public class MainWindow extends JFrame{
     private final JMenu organizationMenu = new JMenu("Organización");
     private final JMenu eventsMenu = new JMenu(" Eventos");
 
-    private final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
+    private static final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
     
     private final JMenu furnitureInventoryItem = new JMenu("Inventario");
     private final JMenuItem manageFurnitureMovementItem = new JMenuItem("Movimientos de Stock");
     private final JMenuItem inputMovementItem = new JMenuItem("Registrar Entradas");
     private final JMenuItem outputMovementItem = new JMenuItem("Registrar Salidas");
     
-    private final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
-    private final JMenuItem manageProviderItem = new JMenuItem("Administrar Proveedores");
-    private final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
+    private static final JMenuItem manageSubjectItem = new JMenuItem("Administrar Clientes");
+    private static final JMenuItem manageProviderItem = new JMenuItem("Administrar Proveedores");
+    private static final JMenuItem manageUserItem = new JMenuItem("Administrar Usuarios");
     private final JMenuItem managePositionItem = new JMenuItem("Administrar Cargos");
     private final JMenuItem managePurchaseItem = new JMenuItem("Gestionar Compras");
     
-    private final JMenuItem manageEvents = new JMenuItem("Administrar Eventos");
+    private static final JMenuItem manageEvents = new JMenuItem("Administrar Eventos");
     
-    UserRoles userRoles = new UserRoles();
+    private static final UserRoles userRoles = new UserRoles();
     //FURNITURE 
     FurnitureController furnitureController = new FurnitureController();
     FurnitureIndex furnitureIndex;
@@ -222,6 +222,17 @@ public class MainWindow extends JFrame{
             manageProviderItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Proveedores");
         }
             
+        //Events
+        ImageIcon eventsIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/events_calendar_24x24.png"));
+        eventsMenu.setIcon(eventsIconImage);
+        menuBar.add(eventsMenu);
+                eventsMenu.add(manageEvents);
+                
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_EVENTS)){
+            manageEvents.setEnabled(false);
+            manageEvents.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Clientes");
+        }
+                
         //Organization
         ImageIcon organizationIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/organization_24x24.png"));
         organizationMenu.setIcon(organizationIconImage);
@@ -247,11 +258,6 @@ public class MainWindow extends JFrame{
             managePositionItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Cargos");
         }*/
         
-        //Events
-        ImageIcon eventsIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/events_calendar_24x24.png"));
-        eventsMenu.setIcon(eventsIconImage);
-        menuBar.add(eventsMenu);
-                eventsMenu.add(manageEvents);
         add(menuBar, BorderLayout.NORTH);
         makeDesktop(); 
         
@@ -461,6 +467,43 @@ public class MainWindow extends JFrame{
         purchaseInvoiceIndex = purchaseInvoiceController.getPurchaseInvoiceIndex(this.mainWindowController, userRoles);
         desktop.add(purchaseInvoiceIndex);
         getContentPane().add(desktop);
+    }
+    
+    public static void updateItemAccess(){
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_FURNITURE)){
+            manageFurnitureItem.setEnabled(false);
+            manageFurnitureItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Mobiliarios");
+        }else{
+            manageFurnitureItem.setEnabled(true);
+        }
+        
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_SUBJECT)){
+            manageSubjectItem.setEnabled(false);
+            manageSubjectItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Clientes");
+        }else{
+            manageSubjectItem.setEnabled(true);
+        }
+        
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_PROVIDER)){
+            manageProviderItem.setEnabled(false);
+            manageProviderItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Proveedores");
+        }else{
+            manageProviderItem.setEnabled(true);
+        }
+        
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_USER)){
+            manageUserItem.setEnabled(false);
+            manageUserItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Usuarios");
+        }else{
+            manageUserItem.setEnabled(true);
+        }
+        
+        if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_EVENTS)){
+            manageEvents.setEnabled(false);
+            manageEvents.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Eventos");
+        }else{
+            manageEvents.setEnabled(true);
+        }
     }
     
 }

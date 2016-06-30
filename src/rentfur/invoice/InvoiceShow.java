@@ -6,20 +6,14 @@
 
 package rentfur.invoice;
 
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
@@ -38,6 +32,7 @@ import org.jdatepicker.impl.UtilDateModel;
 import rentfur.event.EventController;
 import rentfur.subject.SubjectController;
 import rentfur.util.DateLabelFormatter;
+import rentfur.util.NumberToLetterConverter;
 
 /**
  *
@@ -112,9 +107,6 @@ public class InvoiceShow extends JInternalFrame{
     private final HashMap eventMap;
     private final HashMap subjectMap;
     private final HashMap invoiceMap;
-    
-    private static final double TAX5 = 21;
-    private static final double TAX10 = 11;
     
     public InvoiceShow(InvoiceController invoiceController, int eventId, int invoiceId){
         this.invoiceController = invoiceController;
@@ -461,7 +453,7 @@ public class InvoiceShow extends JInternalFrame{
         totalLabel = new JLabel("Total Gs.: ");
         totalLabel.setBounds(30, 720, 80, 25);
         invoiceCreatePanel.add(totalLabel);
-        
+
         totalTextField = new JTextField(amountFormat.format(Double.valueOf(invoiceMap.get("net_total").toString())));
         totalTextField.setEditable(false);
         totalTextField.setHorizontalAlignment(JLabel.RIGHT);
@@ -519,129 +511,12 @@ public class InvoiceShow extends JInternalFrame{
         
     }
     
-    private void addItemsToDetailTable(HashMap furnitureCodes){
-        try {
-            HashMap furnitureMap;
-            HashMap itemValuesMap;
-            ArrayList<Object> furnitureCodesList = new ArrayList<>(furnitureCodes.keySet());
-            ArrayList furnitureList = null;//FurnitureController.getFurnitureListByCodeList(furnitureCodesList);
-            int rowNum = invoiceDetailDefaultTableModel.getRowCount()+1;
-            double price, quantity, subTotal;
-            
-            double subTotal5 = amountFormat.parse(total5TextField.getText()).doubleValue();
-            double subTotal10 = amountFormat.parse(total10TextField.getText()).doubleValue();
-            double subTotalExempt = amountFormat.parse(exemptTotalTextField.getText()).doubleValue();
-            
-            double totalTax5 = amountFormat.parse(tax5TextField.getText()).doubleValue();
-            double totalTax10 = amountFormat.parse(tax10TextField.getText()).doubleValue();
-            double totalTax = amountFormat.parse(totalTaxTextField.getText()).doubleValue();
-            
-            double total = amountFormat.parse(totalTextField.getText()).doubleValue();
-            
-            Object[] row = new Object[invoiceDetailTable.getColumnCount()];
-            for(int i = 0; i < furnitureList.size(); i++){
-                furnitureMap = (HashMap) furnitureList.get(i);
-                itemValuesMap = (HashMap) furnitureCodes.get(furnitureMap.get("code").toString());
-                //furnitureCodes.add(furnitureMap.get("code"));
-                price = Double.valueOf(itemValuesMap.get("price").toString());
-                quantity = Double.valueOf(itemValuesMap.get("quantity").toString());
-                
-                row[ITEM_COLUMN] = rowNum++;
-                row[CODE_COLUMN] = furnitureMap.get("code");
-                row[DESCRIPTION_COLUMN] = furnitureMap.get("description");
-                row[TAX_RATE_COLUMN] = amountFormat.format(Double.valueOf(itemValuesMap.get("taxRate").toString()));
-                row[QUANTITY_COLUMN] = amountFormat.format(Double.valueOf(itemValuesMap.get("quantity").toString()));
-                row[UNIT_PRICE_COLUMN] = amountFormat.format(Double.valueOf(itemValuesMap.get("price").toString()));
-                
-                subTotal = price * quantity;
-                total = total + subTotal;
-                if(amountFormat.format(Double.valueOf(itemValuesMap.get("taxRate").toString())).equals("0")){
-                    row[EXEMPT_COLUMN] = amountFormat.format(subTotal);
-                    subTotalExempt = subTotalExempt + subTotal;
-                    exemptTotalTextField.setText(amountFormat.format(subTotalExempt));
-                }else{
-                    row[EXEMPT_COLUMN] = 0;
-                }
-                
-                if(amountFormat.format(Double.valueOf(itemValuesMap.get("taxRate").toString())).equals("5")){
-                    row[TAX_5_COLUMN] = amountFormat.format(subTotal);
-                    subTotal5 = subTotal5 + subTotal;
-                    totalTax5 = totalTax5 + (new BigDecimal(subTotal / TAX5).setScale(0, RoundingMode.HALF_UP).doubleValue());
-                    totalTax = totalTax + (new BigDecimal(subTotal / TAX5).setScale(0, RoundingMode.HALF_UP).doubleValue());
-                    total5TextField.setText(amountFormat.format(subTotal5));
-                    tax5TextField.setText(amountFormat.format(totalTax5));
-                    
-                    row[TAX_AMOUNT_COLUMN] = new BigDecimal(subTotal / TAX5).setScale(0, RoundingMode.HALF_UP).doubleValue();
-                }else{
-                    row[TAX_5_COLUMN] = 0;
-                }
-                
-                if(amountFormat.format(Double.valueOf(itemValuesMap.get("taxRate").toString())).equals("10")){
-                    row[TAX_10_COLUMN] = amountFormat.format(subTotal);
-                    subTotal10 = subTotal10 + subTotal;
-                    totalTax10 = totalTax10 + (new BigDecimal(subTotal / TAX10).setScale(0, RoundingMode.HALF_UP).doubleValue());
-                    totalTax = totalTax + (new BigDecimal(subTotal / TAX10).setScale(0, RoundingMode.HALF_UP).doubleValue());
-                    total10TextField.setText(amountFormat.format(subTotal10));
-                    tax10TextField.setText(amountFormat.format(totalTax10));
-                    
-                    row[TAX_AMOUNT_COLUMN] = new BigDecimal(subTotal / TAX10).setScale(0, RoundingMode.HALF_UP).doubleValue();
-                }else{
-                    row[TAX_10_COLUMN] = 0;
-                }
-                
-                if(amountFormat.format(Double.valueOf(itemValuesMap.get("taxRate").toString())).equals("0")){
-                    row[TAX_AMOUNT_COLUMN] = 0;
-                }
-                
-                row[SUB_TOTAL_COLUMN] = amountFormat.format(subTotal);
-                row[EVENT_DETAIL_ID_COLUMN] = Integer.valueOf(itemValuesMap.get("eventDetailId").toString());
-                invoiceDetailDefaultTableModel.addRow(row);
-            }
-            
-            totalTaxTextField.setText(amountFormat.format(totalTax));
-            totalTextField.setText(amountFormat.format(total));
-            
-        } catch (ParseException ex) {
-            Logger.getLogger(InvoiceCreate.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    private void updateDetailTableRowItem(){
-        
-        for(int i = 1; i <= invoiceDetailDefaultTableModel.getRowCount(); i++){
-            invoiceDetailDefaultTableModel.setValueAt(i, (i-1), ITEM_COLUMN);
-        }
-        
-    }
-    
     @Override
     public void doDefaultCloseAction() {
         this.dispose();
         invoiceController.invoiceShowClosed();
         //furnitureController.setEnabledIndexView();
         //furnitureController.searchFurnitureButtonAction();
-    }
-    
-    private void showSearchDialog(Object dialogView){
-        eventPane = this.getDesktopPane();
-        eventPane.add((JInternalFrame) dialogView, new Integer(1000));
-        eventPane.setVisible(true);
-    }
-    
-    private void inactivateElements(){
-        setClosable(false);
-        setIconifiable(false);
-//        saveButton.setEnabled(false);
-//        cancelButton.setEnabled(false);
-        getContentPane().getComponents()[0].setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    }
-    
-    private void activateElements(){
-        getContentPane().getComponents()[0].setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        setClosable(true);
-        setIconifiable(true);
-//        saveButton.setEnabled(true);
-//        cancelButton.setEnabled(true);
     }
     
     private class InvoiceDetailDefaultTableModel extends DefaultTableModel{

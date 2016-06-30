@@ -13,10 +13,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.table.DefaultTableModel;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
+import rentfur.util.MainWindow;
 import rentfur.util.MainWindowController;
 import rentfur.util.RoleEntry;
 import rentfur.util.User;
@@ -39,6 +42,11 @@ public class PositionController {
     public static final String ROLE_RF_SUBJECT = "ROLE_RF_SUBJECT";
     public static final String ROLE_RF_POSITION = "ROLE_RF_POSITION";
     public static final String ROLE_RF_USER = "ROLE_RF_USER";
+    public static final String ROLE_RF_EVENTS = "ROLE_RF_EVENTS";
+    public static final String ROLE_RF_RECEIPTS = "ROLE_RF_RECEIPTS";
+    public static final String ROLE_RF_INVOICES = "ROLE_RF_INVOICES";
+    public static final String ROLE_RF_CREDIT_NOTES = "ROLE_RF_CREDIT_NOTES";
+    public static final String ROLE_RF_REPORTS = "ROLE_RF_REPORTS";
     public final String ALL_VALUES = "Todos";
     
     
@@ -183,7 +191,6 @@ public class PositionController {
 
             //PROVIDER
             if((Boolean) rolesMap.get("provider")){
-                boolean provider = (Boolean) rolesMap.get("provider");
                 boolean providerReadOnly = (Boolean) rolesMap.get("providerReadOnly");
                 roleId = getRoleIdByCode(ROLE_RF_PROVIDER);
                 ps.setInt(1, positionId);
@@ -204,12 +211,60 @@ public class PositionController {
 
             //USERS
             if((Boolean) rolesMap.get("users")){
-                boolean users = (Boolean) rolesMap.get("users");
                 boolean usersReadOnly = (Boolean) rolesMap.get("usersReadOnly");
                 roleId = getRoleIdByCode(ROLE_RF_USER);
                 ps.setInt(1, positionId);
                 ps.setInt(2, roleId);
                 ps.setBoolean(3, usersReadOnly);
+                ps.addBatch();
+            }
+            
+            //EVENTS
+            if((Boolean) rolesMap.get("event")){
+                boolean eventReadOnly = (Boolean) rolesMap.get("eventReadOnly");
+                roleId = getRoleIdByCode(ROLE_RF_EVENTS);
+                ps.setInt(1, positionId);
+                ps.setInt(2, roleId);
+                ps.setBoolean(3, eventReadOnly);
+                ps.addBatch();
+            }
+            
+            //RECEIPTS
+            if((Boolean) rolesMap.get("receipt")){
+                boolean receiptReadOnly = (Boolean) rolesMap.get("receiptReadOnly");
+                roleId = getRoleIdByCode(ROLE_RF_RECEIPTS);
+                ps.setInt(1, positionId);
+                ps.setInt(2, roleId);
+                ps.setBoolean(3, receiptReadOnly);
+                ps.addBatch();
+            }
+            
+            //INVOICES
+            if((Boolean) rolesMap.get("invoice")){
+                boolean invoiceReadOnly = (Boolean) rolesMap.get("invoiceReadOnly");
+                roleId = getRoleIdByCode(ROLE_RF_INVOICES);
+                ps.setInt(1, positionId);
+                ps.setInt(2, roleId);
+                ps.setBoolean(3, invoiceReadOnly);
+                ps.addBatch();
+            }
+            
+            //CREDIT NOTE
+            if((Boolean) rolesMap.get("creditNote")){
+                boolean creditNoteReadOnly = (Boolean) rolesMap.get("creditNoteReadOnly");
+                roleId = getRoleIdByCode(ROLE_RF_CREDIT_NOTES);
+                ps.setInt(1, positionId);
+                ps.setInt(2, roleId);
+                ps.setBoolean(3, creditNoteReadOnly);
+                ps.addBatch();
+            }
+            
+            //REPORTS
+            if((Boolean) rolesMap.get("report")){
+                roleId = getRoleIdByCode(ROLE_RF_REPORTS);
+                ps.setInt(1, positionId);
+                ps.setInt(2, roleId);
+                ps.setBoolean(3, Boolean.FALSE);
                 ps.addBatch();
             }
            
@@ -506,7 +561,7 @@ public class PositionController {
     
     public HashMap updatePosition(int positionId, HashMap positionMap, String description, boolean provider, boolean providerOnlyQuery,
                                     boolean subject, boolean subjectOnlyQuery, boolean furniture, boolean furnitureOnlyQuery,
-                                    boolean users, boolean usersOnlyQuery){
+                                    boolean users, boolean usersOnlyQuery, boolean event, boolean eventOnlyQuery, boolean receipt, boolean receiptOnlyQuery, boolean invoice, boolean invoiceOnlyQuery, boolean creditNote, boolean creditNoteOnlyQuery, boolean report){
         HashMap mapToReturn = new HashMap();
         Connection connRentFur = null;
         PreparedStatement ps;
@@ -584,6 +639,77 @@ public class PositionController {
                     }
                 }
                 
+                boolean currentEventsValue = positionMap.containsKey(ROLE_RF_EVENTS);
+                if(event){
+                    if(currentEventsValue){
+                        if(eventOnlyQuery!=Boolean.valueOf(positionMap.get(ROLE_RF_EVENTS).toString())){
+                            updatePositionOnlyQuery(positionId, ROLE_RF_EVENTS, eventOnlyQuery);
+                        }
+                    }else{
+                        insertNewPositionRole(positionId, ROLE_RF_EVENTS, eventOnlyQuery);
+                    }
+                }else{
+                    if(currentEventsValue){
+                        deletePositionRoleValue(positionId, ROLE_RF_EVENTS);
+                    }
+                }
+                
+                boolean currentReceiptsValue = positionMap.containsKey(ROLE_RF_RECEIPTS);
+                if(receipt){
+                    if(currentReceiptsValue){
+                        if(receiptOnlyQuery!=Boolean.valueOf(positionMap.get(ROLE_RF_RECEIPTS).toString())){
+                            updatePositionOnlyQuery(positionId, ROLE_RF_RECEIPTS, receiptOnlyQuery);
+                        }
+                    }else{
+                        insertNewPositionRole(positionId, ROLE_RF_RECEIPTS, receiptOnlyQuery);
+                    }
+                }else{
+                    if(currentReceiptsValue){
+                        deletePositionRoleValue(positionId, ROLE_RF_RECEIPTS);
+                    }
+                }
+                
+                boolean currentInvoicesValue = positionMap.containsKey(ROLE_RF_INVOICES);
+                if(invoice){
+                    if(currentInvoicesValue){
+                        if(invoiceOnlyQuery!=Boolean.valueOf(positionMap.get(ROLE_RF_INVOICES).toString())){
+                            updatePositionOnlyQuery(positionId, ROLE_RF_INVOICES, invoiceOnlyQuery);
+                        }
+                    }else{
+                        insertNewPositionRole(positionId, ROLE_RF_INVOICES, invoiceOnlyQuery);
+                    }
+                }else{
+                    if(currentInvoicesValue){
+                        deletePositionRoleValue(positionId, ROLE_RF_INVOICES);
+                    }
+                }
+                
+                boolean currentCreditNotesValue = positionMap.containsKey(ROLE_RF_CREDIT_NOTES);
+                if(creditNote){
+                    if(currentCreditNotesValue){
+                        if(creditNoteOnlyQuery!=Boolean.valueOf(positionMap.get(ROLE_RF_CREDIT_NOTES).toString())){
+                            updatePositionOnlyQuery(positionId, ROLE_RF_CREDIT_NOTES, creditNoteOnlyQuery);
+                        }
+                    }else{
+                        insertNewPositionRole(positionId, ROLE_RF_CREDIT_NOTES, creditNoteOnlyQuery);
+                    }
+                }else{
+                    if(currentCreditNotesValue){
+                        deletePositionRoleValue(positionId, ROLE_RF_CREDIT_NOTES);
+                    }
+                }
+                
+                boolean currentReportsValue = positionMap.containsKey(ROLE_RF_REPORTS);
+                if(report){
+                    if(!currentReportsValue){
+                        insertNewPositionRole(positionId, ROLE_RF_REPORTS, false);
+                    }
+                }else{
+                    if(currentReportsValue){
+                        deletePositionRoleValue(positionId, ROLE_RF_REPORTS);
+                    }
+                }
+                
                 connRentFur = DbConnectUtil.getConnection();
                 
                 StringBuilder positionUpdateSb = new StringBuilder();
@@ -596,7 +722,8 @@ public class PositionController {
                 ps.close();
                 mapToReturn.put("status", SUCCESFULLY_SAVED);
                 mapToReturn.put("message", "Cargo actualizado correctamente");
-                
+                updateSessionRoles();
+                MainWindow.updateItemAccess();
             }
             
         }catch(Throwable th){
@@ -706,4 +833,49 @@ public class PositionController {
             }
         }
     }
+    
+    public void updateSessionRoles(){
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        HashMap rolesMap = new HashMap();
+        int positionId = 0;
+        try{
+            
+            userRoles = new UserRoles();
+            User loggerUser = userRoles.getUser();
+            
+            connection=DbConnectUtil.getConnection();
+            String validacionUsuario = "SELECT id, code, username, fullname, active, (SELECT description FROM position p WHERE p.id = position_id) as position, position_id FROM users WHERE id = ?";
+            ps = connection.prepareStatement(validacionUsuario);
+            ps.setInt(1, loggerUser.getId());
+            rs = ps.executeQuery();
+            if(rs.next()){
+                positionId = rs.getInt("position_id");
+            }
+            
+            String query="SELECT (SELECT code FROM role WHERE id = pr.role_id) as code, pr.only_query FROM position_role pr WHERE pr.position_id = ?";
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, positionId);
+            rs = ps.executeQuery();
+            while(rs.next()){
+                rolesMap.put(rs.getString("code"), rs.getBoolean("only_query"));
+            }
+            userRoles.setRolesMap(rolesMap);
+
+        }catch(SQLException e){
+            Logger.getLogger(PositionController.class.getName()).log(Level.SEVERE, e.getMessage(), e);
+        }finally{
+            if(connection!=null){
+                try{ connection.close(); }catch(Throwable e){ System.out.println(e.getMessage()); }
+            }
+            if(ps!=null){
+                try{ ps.close(); }catch(Throwable e){ System.out.println(e.getMessage()); }
+            }
+            if(rs!=null){
+                try{ rs.close(); }catch(Throwable e){ System.out.println(e.getMessage()); }
+            }
+        }
+    }
+    
 }

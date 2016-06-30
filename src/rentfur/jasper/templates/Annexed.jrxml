@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Annexed" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="832bf169-77da-4c02-a450-0fd3235505c3">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="1"/>
+	<parameter name="eventId" class="java.lang.Integer"/>
+	<queryString>
+		<![CDATA[SELECT
+      e.contract_number,
+      to_char(e.delivery_date, 'YYYY-MM-DD') as delivery_date,
+      e.net_total,
+      e.subject_name,
+      (SELECT value FROM system_configuration WHERE key = 'event.contract.text.1') as text1,
+      (SELECT value FROM system_configuration WHERE key = 'event.contract.text.2') as text2,
+      (SELECT value FROM system_configuration WHERE key = 'event.contract.text.3') as text3,
+      (SELECT value FROM system_configuration WHERE key = 'event.contract.text.4') as text4,
+	ed.furniture_code,
+	CASE
+		WHEN ed.penalty = true THEN ed.furniture_description || ' (MULTA)'
+		ELSE ed.furniture_description
+	END as furniture_description,
+	ed.furniture_description,
+	ed.unit_price,
+	ed.fine_amount_per_unit,
+	ed.quantity,
+	ed.total_amount
+FROM
+	event e,
+	event_detail ed
+WHERE
+	ed.event_id = e.id
+	AND (ed.annexed = true OR ed.penalty = true)
+	AND e.id = $P{eventId}]]>
+	</queryString>
+	<field name="contract_number" class="java.lang.Long"/>
+	<field name="delivery_date" class="java.lang.String"/>
+	<field name="net_total" class="java.lang.Double"/>
+	<field name="subject_name" class="java.lang.String"/>
+	<field name="text1" class="java.lang.String"/>
+	<field name="text2" class="java.lang.String"/>
+	<field name="text3" class="java.lang.String"/>
+	<field name="text4" class="java.lang.String"/>
+	<field name="furniture_code" class="java.lang.String"/>
+	<field name="furniture_description" class="java.lang.String"/>
+	<field name="unit_price" class="java.lang.Double"/>
+	<field name="fine_amount_per_unit" class="java.lang.Double"/>
+	<field name="quantity" class="java.lang.Integer"/>
+	<field name="total_amount" class="java.lang.Double"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="80" splitType="Stretch">
+			<staticText>
+				<reportElement x="90" y="0" width="263" height="20" uuid="a15cdded-e57a-40b4-af88-0d9dcd01fd5f"/>
+				<textElement>
+					<font size="12" isBold="true" isItalic="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[SON CARGOS ANEXOS AL CONTRATO NRO.]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="364" y="0" width="65" height="20" uuid="aff9da76-aee6-4d65-bcbf-c942e7030d8e"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{contract_number}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="12" y="37" width="540" height="43" uuid="1aba8074-2d8b-4dee-b33d-9edac8f9c1cc"/>
+				<text><![CDATA[Se dispone que los cargos indicados en este documento van anexos al numero de contraro impreso en el titulo, y corresponden a cargos contraidos posterior a la firma del contrato principal o a multas aplicadas en virtud del mismo contrato]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="211" y="0" width="100" height="20" uuid="f2f82156-e16d-47f1-bc15-462e812114d1"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true" isItalic="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[DETALLES]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="19" width="553" height="1" uuid="5e8908c4-e6d7-4dbd-8cf0-5e8b54a817a3"/>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="22" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="30" height="20" uuid="eda7051d-259c-40e7-8ea1-5cf896259398"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Cod.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="30" y="0" width="241" height="20" uuid="0f76ec26-ab2b-4cd5-a2c3-bfc69f553f01"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Mobiliario]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="271" y="2" width="72" height="20" uuid="b34b2085-6842-48b4-8290-d3a2786b658e"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Precio Unitario]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="343" y="2" width="70" height="20" uuid="ba5433cc-c671-4df5-88e2-dc576bf18ae4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Multa (Unidad)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="413" y="0" width="68" height="20" uuid="de018527-5a80-492a-97fa-c1c747204fd3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Cantidad]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="481" y="0" width="71" height="20" uuid="b26f0257-ea83-4673-a1fa-cf5efcaf265e"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Importe]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="20" width="553" height="1" uuid="8090d811-10f4-4c98-8578-a12f0b7077f3"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="2" y="0" width="28" height="20" uuid="3f5bbb17-f365-4c17-972d-4ba1f707ab1e"/>
+				<textFieldExpression><![CDATA[$F{furniture_code}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="30" y="0" width="241" height="20" uuid="6de8ec51-73d2-45cd-abd3-922c4d1ef855"/>
+				<textFieldExpression><![CDATA[$F{furniture_description}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="481" y="0" width="71" height="20" uuid="3fee9e4c-d868-49f2-b8dc-7ebab1077e90"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{total_amount}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="343" y="0" width="70" height="20" uuid="775bf069-c800-4ebd-bc9f-8065524a55ae"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{fine_amount_per_unit}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="271" y="0" width="72" height="20" uuid="d1317542-90f7-4442-b567-4e61ff49a890"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{unit_price}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="413" y="0" width="68" height="20" uuid="59d811cd-c285-4d7b-a864-bbda3b466368"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

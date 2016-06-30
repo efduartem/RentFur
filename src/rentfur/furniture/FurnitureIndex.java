@@ -9,6 +9,8 @@ package rentfur.furniture;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Vector;
@@ -27,8 +29,10 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
+import rentfur.util.HechaukaReport;
 import rentfur.util.UserRoles;
 
 /**
@@ -58,6 +62,9 @@ public class FurnitureIndex extends JInternalFrame{
     private final DefaultTableModel furnituresResultDefaultTableModel;
     private final JScrollPane furnituresResultTableJScrollPane;
     private boolean onlyQuery = false;
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip myBalloonTip;
     
     public FurnitureIndex(FurnitureController furnitureController, UserRoles userRoles){
         this.furnitureController = furnitureController;
@@ -68,15 +75,64 @@ public class FurnitureIndex extends JInternalFrame{
         
         furnitureIndexParamsPanel = new JPanel();
         furnitureIndexParamsPanel.setLayout(null);
+        
+//        final Rectangle customOffset = new Rectangle(30, 50, 300, 200);
+//                        final JComponent customComponent = new JComponent() {
+//                                protected void paintComponent(Graphics g) {
+//                                        Rectangle clip = g.getClipBounds();
+//                                        g.setColor(Color.WHITE);
+//                                        g.fillRect(clip.x, clip.y, clip.width, clip.height);
+//                                        g.setColor(Color.BLUE);
+//                                        g.fillRect(customOffset.x, customOffset.y, customOffset.width, customOffset.height);
+//                                }
+//                        };
+//                        customComponent.setPreferredSize(new Dimension(1280, 640));
+//
+//                        // Now create the CustomBalloonTip, such that it attaches itself to the blue rectangle
+//                        CustomBalloonTip customBalloon = new CustomBalloonTip(customComponent, 
+//                                new JLabel("<HTML><U>Datos del Cliente</U><br><B>Datos del Cliente</B><br><ul><li>Uno</li><li>Dos</li></ul></HTML>"),
+//                                customOffset,
+//                                new EdgedBalloonStyle(Color.WHITE, Color.BLACK), 
+//                                BalloonTip.Orientation.LEFT_ABOVE, 
+//                                BalloonTip.AttachLocation.ALIGNED, 
+//                                20, 20, 
+//                                false);
+//        customComponent.setBounds(500, 50, 80, 25);
+//        customComponent.setVisible(true);
+//        furnitureIndexParamsPanel.add(customComponent);
+        
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+//                        System.out.println("MOSTRAR GLOBO");
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(400, 50, 80, 25);
+        furnitureIndexParamsPanel.add(helpLabel);
+        
+        //getHechaukaReport
+        HechaukaReport.getHechaukaReport();
+        
+        String imgsrc = getClass().getResource("/rentfur/button/image/util/search_24x24.png").toString();
+        myBalloonTip = new BalloonTip(helpLabel, "<HTML><U>Datos del Cliente</U><br><B>Datos del Cliente</B><br>"
+                + "<img src='"+imgsrc+"'><br><li>Uno</li><li>Dos</li></HTML>");
+        myBalloonTip.setVisible(false);
+        myBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
         //furnitureIndexResultPanel = new JPanel(new BorderLayout());
         //furnitureIndexParamsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 1, true), "Busqueda de Mobiliarios", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Arial", 3, 14), new java.awt.Color(0, 0, 0))); // NOI18N
+        
+        
         
         codeLabel = new JLabel("Codigo:");
         codeLabel.setBounds(30, 50, 80, 25);
         furnitureIndexParamsPanel.add(codeLabel);
         
         codeTextField = new JTextField();
-        codeTextField.setBounds(120, 50, 160, 25);
+        codeTextField.setBounds(150, 50, 160, 25);
         furnitureIndexParamsPanel.add(codeTextField);
 
         descriptionLabel = new JLabel("Descripcion:");
@@ -84,7 +140,7 @@ public class FurnitureIndex extends JInternalFrame{
         furnitureIndexParamsPanel.add(descriptionLabel);
         
         descriptionTextField = new JTextField();
-        descriptionTextField.setBounds(120, 80, 160, 25);
+        descriptionTextField.setBounds(150, 80, 160, 25);
         furnitureIndexParamsPanel.add(descriptionTextField);
         
         furnitureFamilyLabel = new JLabel("Familia:");
@@ -93,16 +149,16 @@ public class FurnitureIndex extends JInternalFrame{
         
         ComboBoxItem[] furnitureFamilies = furnitureController.getFurnitureFamiliesForComboBox(true);
         furnitureFamilyComboBox = new JComboBox(furnitureFamilies);
-        furnitureFamilyComboBox.setBounds(120, 110, 160, 25);
+        furnitureFamilyComboBox.setBounds(150, 110, 160, 25);
         furnitureIndexParamsPanel.add(furnitureFamilyComboBox);
         
         taxRateLabel = new JLabel("Tasa de impuesto:");
-        taxRateLabel.setBounds(30, 140, 90, 25);
+        taxRateLabel.setBounds(30, 140, 130, 25);
         furnitureIndexParamsPanel.add(taxRateLabel);
         
         ComboBoxItem[] taxRate = FurnitureController.getFurnitureTaxRatesForComboBox(true);
         taxRateComboBox = new JComboBox(taxRate);
-        taxRateComboBox.setBounds(120, 140, 160, 25);
+        taxRateComboBox.setBounds(150, 140, 160, 25);
         furnitureIndexParamsPanel.add(taxRateComboBox);
         
         statusLabel = new JLabel("Estado:");
@@ -111,7 +167,7 @@ public class FurnitureIndex extends JInternalFrame{
         
         ComboBoxItem[] furnitureStatus = furnitureController.getFurnitureStatusForComboBox();
         furnitureStatusComboBox = new JComboBox(furnitureStatus);
-        furnitureStatusComboBox.setBounds(120, 170, 160, 25);
+        furnitureStatusComboBox.setBounds(150, 170, 160, 25);
         furnitureIndexParamsPanel.add(furnitureStatusComboBox);
         
         //BOTON DE BUSQUEDA
@@ -248,7 +304,7 @@ public class FurnitureIndex extends JInternalFrame{
         furnituresResultTable.getColumnModel().getColumn(12).setPreferredWidth(0);
         
         furnituresResultTableJScrollPane = new JScrollPane();
-        furnituresResultTableJScrollPane.setBounds(30, 260, 1300, 300);
+        furnituresResultTableJScrollPane.setBounds(30, 280, 1300, 300);
         furnituresResultTableJScrollPane.setViewportView(furnituresResultTable);
         
         add(furnituresResultTableJScrollPane);
@@ -271,6 +327,12 @@ public class FurnitureIndex extends JInternalFrame{
         furnitureFamilyComboBox.removeAllItems();
         for (ComboBoxItem furnitureFamilie : furnitureFamilies) {
             furnitureFamilyComboBox.addItem(furnitureFamilie);
+        }
+    }
+    
+    public void showHelp(){
+        if(!myBalloonTip.isVisible()){
+            myBalloonTip.setVisible(true);
         }
     }
     

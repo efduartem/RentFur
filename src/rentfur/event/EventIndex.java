@@ -1,5 +1,6 @@
 package rentfur.event;
 
+import com.lowagie.text.pdf.PdfName;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -44,7 +45,9 @@ import javax.swing.table.TableRowSorter;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
+import rentfur.position.PositionController;
 import rentfur.util.DateLabelFormatter;
+import rentfur.util.UserRoles;
 
 /**
  *
@@ -90,11 +93,19 @@ public class EventIndex extends JInternalFrame{
     private double budgetedDayQuantity = 0;
     private double budgetedDayTotal = 0;
     
+    private boolean onlyQuery = false;
+    private final UserRoles userRoles;
     private final JButton createEventButton;
     public static final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
      
     public EventIndex(EventController eventController){
         this.eventController = eventController;
+        
+        userRoles = new UserRoles();
+        
+        if((Boolean)userRoles.getRolesMap().get(PositionController.ROLE_RF_EVENTS)){
+            onlyQuery = true;
+        }
         
         amountFormat.setGroupingUsed(true);
         amountFormat.setGroupingSize(3);
@@ -254,6 +265,11 @@ public class EventIndex extends JInternalFrame{
                 createEventAction();
             }
         });
+        
+        if(onlyQuery){
+            createEventButton.setEnabled(false);
+            createEventButton.setToolTipText("Su usuario solo cuenta con permiso de consultas");
+        }
         
         eventsDayLabel = new JLabel("Eventos del dia: ");
         eventsDayLabel.setBounds(1350, 460, 100, 25);

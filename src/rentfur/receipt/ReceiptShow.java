@@ -418,7 +418,7 @@ public class ReceiptShow extends JInternalFrame{
         setMaximizable(false);
         setResizable(false);
         setClosable(true);
-        setTitle("Registrar Pago");
+        setTitle("Recibo");
         setBounds(250,100,1250,700);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);

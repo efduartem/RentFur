@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rentfur.book.BookController;
+import rentfur.report.ReportController;
 import rentfur.subjectMovement.SubjectMovementController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DbConnectUtil;
@@ -53,6 +54,7 @@ public class ReceiptController {
         if(receiptShow == null){
             receiptShow = new ReceiptShow(this, eventId, receiptId);
         }
+        //ReportController.getReceipt(receiptId);
         return receiptShow;
     }
     
@@ -275,7 +277,7 @@ public class ReceiptController {
             
             String movement = "Pago - Recibo Nro. "+receiptNumberString;
             SubjectMovementController.updateEventBalance(SubjectMovementController.CREDIT_MOVEMENT_TYPE, SubjectMovementController.RECEIPT_MOVEMENT_TYPE, receiptNumberString, netTotal, subjectMap.get("code").toString(), movement);
-            
+            ReportController.getReceipt(receiptId);
             
             //Actualizar saldo del evento
             updateEventBalance(balance, eventId);

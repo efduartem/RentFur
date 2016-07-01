@@ -277,7 +277,6 @@ public class ReceiptController {
             
             String movement = "Pago - Recibo Nro. "+receiptNumberString;
             SubjectMovementController.updateEventBalance(SubjectMovementController.CREDIT_MOVEMENT_TYPE, SubjectMovementController.RECEIPT_MOVEMENT_TYPE, receiptNumberString, netTotal, subjectMap.get("code").toString(), movement);
-            ReportController.getReceipt(receiptId);
             
             //Actualizar saldo del evento
             updateEventBalance(balance, eventId);
@@ -301,6 +300,7 @@ public class ReceiptController {
             }
             
             mapToReturn.put("id", eventId);
+            mapToReturn.put("receiptId", receiptId);
             mapToReturn.put("status", SUCCESFULLY_SAVED);
             mapToReturn.put("message", "Recibo registrado correctamente");
             

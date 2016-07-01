@@ -739,6 +739,8 @@ public class SubjectController {
                 subjectsQuery.append(" AND CAST(movement_date as date) <= '").append(endDate).append("'");
             }
             
+            subjectsQuery.append(" ORDER BY movement_date");
+            
             ps = connRentFur.prepareStatement(subjectsQuery.toString());
             ps.setString(1, subjectCode);
 //            ps.setString(2, "%"+name+"%");

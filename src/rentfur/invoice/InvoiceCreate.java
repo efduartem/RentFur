@@ -58,6 +58,7 @@ import org.jdatepicker.impl.UtilDateModel;
 import rentfur.book.BookController;
 import rentfur.event.EventController;
 import rentfur.furniture.FurnitureController;
+import rentfur.report.ReportController;
 import rentfur.subject.SubjectController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DateLabelFormatter;
@@ -720,6 +721,7 @@ public class InvoiceCreate extends JInternalFrame{
                 if(((Integer)returnMap.get("status"))==InvoiceController.SUCCESFULLY_SAVED){
                     JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
                     doDefaultCloseAction();
+                    ReportController.getInvoiceReport((Integer) returnMap.get("invoiceId"), netTotal);
                 }else if((Integer)returnMap.get("status") == InvoiceController.ERROR_IN_SAVED){
                     JOptionPane.showMessageDialog(null, returnMap.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
                 }

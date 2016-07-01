@@ -42,6 +42,10 @@ import rentfur.provider.ProviderShowAndEdit;
 import rentfur.purchaseInvoice.PurchaseInvoiceController;
 import rentfur.purchaseInvoice.PurchaseInvoiceCreate;
 import rentfur.purchaseInvoice.PurchaseInvoiceIndex;
+import rentfur.report.EventsTotalByDate;
+import rentfur.report.PendingEventsByDate;
+import rentfur.report.ReportController;
+import rentfur.report.SubjectAccountStatusReport;
 import rentfur.subject.SubjectController;
 import rentfur.subject.SubjectCreate;
 import rentfur.subject.SubjectIndex;
@@ -67,6 +71,7 @@ public class MainWindow extends JFrame{
     private final JMenu providerMenu = new JMenu("Proveedores");
     private final JMenu organizationMenu = new JMenu("Organización");
     private final JMenu eventsMenu = new JMenu(" Eventos");
+    private final JMenu reportsMenu = new JMenu(" Informes");
 
     private static final JMenuItem exitItem = new JMenuItem("Salir");
     private static final JMenuItem changePasswordItem = new JMenuItem("Cambiar Contraseña");
@@ -84,7 +89,13 @@ public class MainWindow extends JFrame{
     private final JMenuItem managePositionItem = new JMenuItem("Administrar Cargos");
     private final JMenuItem managePurchaseItem = new JMenuItem("Gestionar Compras");
     
-    private static final JMenuItem manageEvents = new JMenuItem("Administrar Eventos");
+    private static final JMenuItem manageEvents = new JMenuItem("Calendario de Eventos");
+    
+    private final JMenu eventReportsItem = new JMenu("Eventos");
+    private final JMenu subjectReportsItem = new JMenu("Clientes");
+    private static final JMenuItem eventsTotalByDateItem = new JMenuItem("Resumen de Eventos por Fecha");
+    private static final JMenuItem pendingEventsByDateItem = new JMenuItem("Resumen Eventos Pendientes por Fecha");
+    private static final JMenuItem subjectAccountStatusReportItem = new JMenuItem("Estado de Cuenta");
     
     private static final UserRoles userRoles = new UserRoles();
     //FURNITURE 
@@ -133,6 +144,13 @@ public class MainWindow extends JFrame{
     PurchaseInvoiceController purchaseInvoiceController = new PurchaseInvoiceController();
     PurchaseInvoiceCreate purchaseInvoiceCreate;
     PurchaseInvoiceIndex purchaseInvoiceIndex;
+    
+    //REPORTS
+    ReportController reportController = new ReportController();
+    EventsTotalByDate eventsTotalByDate;
+    PendingEventsByDate pendingEventsByDate;
+    SubjectAccountStatusReport subjectAccountStatusReport;
+    
     public MainWindow(MainWindowController mainWindowController){
         
         this.mainWindowController = mainWindowController;
@@ -244,6 +262,14 @@ public class MainWindow extends JFrame{
             manageSubjectItem.setEnabled(false);
             manageSubjectItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Clientes");
         }
+        
+        manageSubjectItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleSubjectIndexInternalFrame();
+            }
+        });
             
         //Provider
         ImageIcon providerIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/provider_32x32.png"));
@@ -256,10 +282,29 @@ public class MainWindow extends JFrame{
             manageProviderItem.setEnabled(false);
             manageProviderItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Proveedores");
         }
+        
+        manageProviderItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleProviderIndexInternalFrame();
+            }
+        });
+        
+        managePurchaseItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisiblePurchaseInvoiceIndexInternalFrame();
+            }
+        });
             
         //Events
         ImageIcon eventsIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/events_calendar_24x24.png"));
         eventsMenu.setIcon(eventsIconImage);
+        
+        ImageIcon manageEventsIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/calendar_icon.png"));
+        manageEvents.setIcon(manageEventsIconImage);
+        
         menuBar.add(eventsMenu);
                 eventsMenu.add(manageEvents);
                 
@@ -267,6 +312,13 @@ public class MainWindow extends JFrame{
             manageEvents.setEnabled(false);
             manageEvents.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Clientes");
         }
+        
+        manageEvents.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleEventsIndexInternalFrame();
+            }
+        });
                 
         //Organization
         ImageIcon organizationIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/organization_24x24.png"));
@@ -283,35 +335,6 @@ public class MainWindow extends JFrame{
             manageUserItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Usuarios");
         }
         
-        //Position
-        ImageIcon positionIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/position_24x24.png"));
-        managePositionItem.setIcon(positionIconImage);
-        organizationMenu.add(managePositionItem);
-        
-        /*if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_POSITION)){
-            managePositionItem.setEnabled(false);
-            managePositionItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Cargos");
-        }*/
-        
-        add(menuBar, BorderLayout.NORTH);
-        makeDesktop(); 
-        
-        manageSubjectItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setVisibleSubjectIndexInternalFrame();
-            }
-        });
-        
-        manageProviderItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setVisibleProviderIndexInternalFrame();
-            }
-        });
-        
         manageUserItem.addActionListener(new ActionListener() {
 
             @Override
@@ -320,6 +343,11 @@ public class MainWindow extends JFrame{
             }
         });
         
+        //Position
+        ImageIcon positionIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/position_24x24.png"));
+        managePositionItem.setIcon(positionIconImage);
+        organizationMenu.add(managePositionItem);
+        
         managePositionItem.addActionListener(new ActionListener() {
 
             @Override
@@ -327,20 +355,47 @@ public class MainWindow extends JFrame{
                 setVisiblePositionIndexInternalFrame();
             }
         });
+        /*if(!userRoles.getRolesMap().containsKey(positionController.ROLE_RF_POSITION)){
+            managePositionItem.setEnabled(false);
+            managePositionItem.setToolTipText("Su usuario no cuenta con permisos para acceder a la administración de Cargos");
+        }*/
         
-        manageEvents.addActionListener(new ActionListener() {
+        //Reports
+        ImageIcon reportsIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/report_menu_icon.png"));
+        reportsMenu.setIcon(reportsIconImage);
+        menuBar.add(reportsMenu);
+            reportsMenu.add(eventReportsItem);
+                eventReportsItem.add(eventsTotalByDateItem);
+                eventReportsItem.add(pendingEventsByDateItem);
+            reportsMenu.add(subjectReportsItem);
+                subjectReportsItem.add(subjectAccountStatusReportItem);
+                
+        eventsTotalByDateItem.addActionListener(new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
-                setVisibleEventsIndexInternalFrame();
+                setVisibleEventsTotalByDateInternalFrame();
             }
         });
         
-        managePurchaseItem.addActionListener(new ActionListener() {
+        pendingEventsByDateItem.addActionListener(new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
-                setVisiblePurchaseInvoiceIndexInternalFrame();
+                setVisiblePendingEventsByDateInternalFrame();
             }
         });
+        
+        subjectAccountStatusReportItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleSubjectAccountStatusReportInternalFrame();
+            }
+        });
+                
+        add(menuBar, BorderLayout.NORTH);
+        makeDesktop(); 
         
         container=getContentPane();/*instanciamos el contenedor*/
         /*con esto definmos nosotros mismos los tamaños y posicion
@@ -507,6 +562,22 @@ public class MainWindow extends JFrame{
         purchaseInvoiceIndex = purchaseInvoiceController.getPurchaseInvoiceIndex(this.mainWindowController, userRoles);
         desktop.add(purchaseInvoiceIndex);
         getContentPane().add(desktop);
+    }
+    
+    //REPORTS
+    public void setVisibleEventsTotalByDateInternalFrame(){
+        eventsTotalByDate = reportController.getEventsTotalByDateView();
+        desktop.add(eventsTotalByDate);
+    }
+    
+    public void setVisiblePendingEventsByDateInternalFrame(){
+        pendingEventsByDate = reportController.getPendingEventsByDateView();
+        desktop.add(pendingEventsByDate);
+    }
+    
+    public void setVisibleSubjectAccountStatusReportInternalFrame(){
+        subjectAccountStatusReport = reportController.getSubjectAccountStatusReportView();
+        desktop.add(subjectAccountStatusReport);
     }
     
     public static void updateItemAccess(){

@@ -374,6 +374,20 @@ order by
 				</textElement>
 				<textFieldExpression><![CDATA["" + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
+			<staticText>
+				<reportElement key="staticText-19" x="9" y="8" width="150" height="12" uuid="66ffa03e-377f-4cf6-b1c7-5f11091b962c"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Fecha de ejecucion del reporte:]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy HH:mm:ss " isBlankWhenNull="false">
+				<reportElement key="textField" x="159" y="8" width="121" height="12" uuid="bfd937cd-0ec6-4a39-8e22-572675d73ba6"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new Date()]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageFooter>
 	<summary>

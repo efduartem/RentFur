@@ -48,7 +48,8 @@ public class FurnitureMovementController {
     public static final int MOVEMENT_CONCEPT_INITIAL_INVENTORY = 2;
     public static final int MOVEMENT_CONCEPT_DAMAGED_PENALTY = 3;
     
-    public static final int MOVEMENT_DOCUMENT_TYPE_PURCHASE = 0;
+    public static final int MOVEMENT_DOCUMENT_TYPE_PURCHASE = 1;
+    public static final int MOVEMENT_DOCUMENT_TYPE_CONTRACT = 2;
     
     public static final String ALL_VALUES = "Todos";
     
@@ -191,6 +192,7 @@ public class FurnitureMovementController {
             if(!searchPressed){
                 furnitureMovementResultDefaultTableModel.addColumn("Id");
                 furnitureMovementResultDefaultTableModel.addColumn("Numero");
+                furnitureMovementResultDefaultTableModel.addColumn("Fecha");
                 furnitureMovementResultDefaultTableModel.addColumn("Tipo");
                 furnitureMovementResultDefaultTableModel.addColumn("Concepto");
                 furnitureMovementResultDefaultTableModel.addColumn("Tipo Documento");
@@ -214,35 +216,12 @@ public class FurnitureMovementController {
 
                     row[0] = resultValueMap.get("id");
                     row[1] = resultValueMap.get("movementNumber");
-                    row[2] = getFurnitureMovementType(Integer.valueOf(resultValueMap.get("movementType").toString()));
-                    row[3] = resultValueMap.get("concept").toString();
-                    row[4] = resultValueMap.get("documentType");
-                    row[5] = resultValueMap.get("documentNumber");
-                    
-//                    if(resultValueMap.get("fiscalNumber").toString().contains("-")){
-//                        fiscalNumberResult = resultValueMap.get("fiscalNumber").toString().split("-")[0];
-//                        verificationDigitFiscalNumber = "-"+resultValueMap.get("fiscalNumber").toString().split("-")[1];
-//                    }else{
-//                        fiscalNumberResult = resultValueMap.get("fiscalNumber").toString();
-//                    }
-//                    
-//                    fiscalNumberResult = amountFormat.format(Double.valueOf(fiscalNumberResult));
-//                    
-//                    row[7] = fiscalNumberResult+verificationDigitFiscalNumber;
-//                    
-//                    if((Boolean)resultValueMap.get("isActive")){
-//                        row[8] = "Si";
-//                    }else{
-//                        row[8] = "No";
-//                    }
-//                    
-//                    if((Boolean)resultValueMap.get("isActive")){
-//                        row[9] = "Inactivar";
-//                    }else{
-//                        row[9] = "Activar";
-//                    }
-                    
-                    row[6] = "Ver";
+                    row[2] = resultValueMap.get("movement_date");
+                    row[3] = getFurnitureMovementType(Integer.valueOf(resultValueMap.get("movementType").toString()));
+                    row[4] = resultValueMap.get("concept").toString();
+                    row[5] = resultValueMap.get("documentType");
+                    row[6] = resultValueMap.get("documentNumber");
+                    row[7] = "Ver";
 //                    row[11] = resultValueMap.get("isActive");
 
                     furnitureMovementResultDefaultTableModel.addRow(row);
@@ -272,7 +251,7 @@ public class FurnitureMovementController {
             }
             
             StringBuilder furnitureMovementsQuery = new StringBuilder();
-            furnitureMovementsQuery.append("SELECT id, movement_type, concept, document_number, document_date, movement_date, movement_number, document_type, concept_code FROM movement");   
+            furnitureMovementsQuery.append("SELECT id, movement_type, concept, document_number, document_date, movement_date, movement_number, document_type, concept_code, to_char(movement_date, 'YYYY-MM-DD HH24:MI:SS') as movementDate FROM movement");   
             furnitureMovementsQuery.append(" WHERE movement_number ilike ?");
             
             if(movementType!= null && !movementType.equals(ALL_VALUES)){
@@ -301,8 +280,9 @@ public class FurnitureMovementController {
                 resultValuesMap.put("documentDate", rs.getTimestamp("document_date"));
                 resultValuesMap.put("movementDate", rs.getTimestamp("movement_date"));
                 resultValuesMap.put("movementNumber", rs.getString("movement_number"));
-                resultValuesMap.put("documentType", rs.getInt("document_type"));
+                resultValuesMap.put("documentType", getFurnitureMovementDocumentType(rs.getInt("document_type")));
                 resultValuesMap.put("conceptCode", rs.getInt("concept_code"));
+                resultValuesMap.put("movement_date", rs.getString("movementDate"));
                 listToReturn.add(resultValuesMap);
             }
             rs.close();
@@ -437,7 +417,7 @@ public class FurnitureMovementController {
         return mapToReturn;
     }
     
-    public static HashMap outputMovementRecord(ArrayList movementDetailList, int conceptCode, Date movementDate){
+    public static HashMap outputMovementRecord(ArrayList movementDetailList, int conceptCode, Date movementDate, int contractNumber){
         HashMap mapToReturn = new HashMap();
         Connection connRentFur = null;
         PreparedStatement ps;
@@ -454,14 +434,16 @@ public class FurnitureMovementController {
             mapToReturn.put("message", "");
 
             StringBuilder movementInsertSb = new StringBuilder();
-            movementInsertSb.append("INSERT INTO movement(id, movement_type, concept, movement_date, movement_number, concept_code, creation_date, creator_user_id) VALUES (nextval('movement_seq'), ?, ?, ?, LPAD(nextval('movement_number_seq')::text, 6, '0'), ?, current_timestamp, ?)");
+            movementInsertSb.append("INSERT INTO movement(id, movement_type, concept, movement_date, movement_number, concept_code, creation_date, creator_user_id, document_type, document_number) VALUES (nextval('movement_seq'), ?, ?, ?, LPAD(nextval('movement_number_seq')::text, 6, '0'), ?, current_timestamp, ?, ?, ?)");
 
             ps = connRentFur.prepareStatement(movementInsertSb.toString(), Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, MOVEMENT_TYPE_OUTPUT); 
             ps.setString(2, getFurnitureMovementConcept(conceptCode));
-            ps.setDate(3, new java.sql.Date(movementDate.getTime()));
+            ps.setTimestamp(3, new java.sql.Timestamp(movementDate.getTime()));
             ps.setInt(4, conceptCode);
             ps.setInt(5, loggedUser.getId());
+            ps.setInt(6, MOVEMENT_DOCUMENT_TYPE_CONTRACT);
+            ps.setString(7, String.valueOf(contractNumber));
             ps.executeUpdate();
             
             rs = ps.getGeneratedKeys();
@@ -775,6 +757,13 @@ public class FurnitureMovementController {
             case MOVEMENT_DOCUMENT_TYPE_PURCHASE: 
                 documentTypeString = "FACTURA DE COMPRA";
                 break;
+            case MOVEMENT_DOCUMENT_TYPE_CONTRACT:
+                documentTypeString = "CONTRATO";
+                break;
+            default:
+                documentTypeString = "";
+                break;
+                
         }
         
         return documentTypeString;

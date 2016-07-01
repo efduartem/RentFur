@@ -63,7 +63,7 @@ public class HechaukaReport {
             Date initDate = initCalendar.getTime();
             Date endDate = endCalendar.getTime();
             
-            String invoicesQuery = "SELECT subject_fiscal_number, subject_name, fiscal_stamp_number, invoice_branch || '-' || invoice_printer || '-' || invoice_number as invoiceNumber, net_total, tax05total, tax10total, tax_total, taxted05total, taxted10total, exempt_total, to_char(invoicing_date, 'DD/MM/YYYY') as invoicing_date FROM invoice WHERE invoicing_date >= ? AND invoicing_date <= ?";
+            String invoicesQuery = "SELECT subject_fiscal_number, subject_name, fiscal_stamp_number, invoice_branch || '-' || invoice_printer || '-' || invoice_number as invoiceNumber, net_total, tax05total, tax10total, tax_total, taxted05total, taxted10total, exempt_total, to_char(invoicing_date, 'DD/MM/YYYY') as invoicing_date FROM invoice WHERE invoicing_date >= ? AND invoicing_date <= ? AND cancelled = false";
             ps = connRentFur.prepareStatement(invoicesQuery);
             ps.setTimestamp(1, new java.sql.Timestamp(initDate.getTime()));
             ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));

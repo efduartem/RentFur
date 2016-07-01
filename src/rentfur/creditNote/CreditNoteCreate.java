@@ -675,7 +675,9 @@ public class CreditNoteCreate extends JInternalFrame{
         try {
             JOptionPane optionPane;
             JDialog dialog;
-
+            if (creditNoteDetailTable.isEditing()){
+                creditNoteDetailTable.getCellEditor().stopCellEditing();
+            }
             if(creditNoteDetailTable.getRowCount()==0){
                 optionPane = new JOptionPane("No ha seleccionado ninguna factura", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
                 dialog = optionPane.createDialog(this, "Atencion!");

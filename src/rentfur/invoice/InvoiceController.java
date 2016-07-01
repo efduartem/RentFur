@@ -393,6 +393,7 @@ public class InvoiceController {
             }
             
             mapToReturn.put("id", eventId);
+            mapToReturn.put("invoiceId", invoiceId);
             mapToReturn.put("status", SUCCESFULLY_SAVED);
             mapToReturn.put("message", "Factura registrada correctamente");
             
@@ -460,6 +461,89 @@ public class InvoiceController {
                 System.err.println(sqle);
             }
         }
+    }
+    
+    public HashMap cancelInvoice(int invoiceId, String cancelledReason){
+        HashMap mapToReturn = new HashMap();
+        Connection connRentFur = null;
+        PreparedStatement ps;
+        ResultSet rs;
+        double totalInvoice = 0;
+        int eventId = 0;
+        try{
+            mapToReturn.put("status", ERROR_IN_SAVED);
+            mapToReturn.put("message", "");
+            
+            connRentFur = DbConnectUtil.getConnection();
+            connRentFur.setAutoCommit(false);
+            String receiptSelect = "SELECT net_total, event_id FROM invoice WHERE id = ?";
+            ps = connRentFur.prepareStatement(receiptSelect);
+            ps.setInt(1, invoiceId);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                totalInvoice = rs.getDouble("net_total");
+                eventId = rs.getInt("event_id");
+            }
+            
+            String receiptUpdate = "UPDATE invoice SET cancelled = ?, cancelled_reason = ?, cancelled_date = current_timestamp WHERE id = ?";
+            ps = connRentFur.prepareStatement(receiptUpdate);
+            ps.setBoolean(1, Boolean.TRUE);
+            ps.setString(2, cancelledReason);
+            ps.setInt(3, invoiceId);
+            ps.executeUpdate();
+            
+            String eventUpdate = "UPDATE event SET billable_balance = (billable_balance + ?) WHERE id = ?";
+            ps = connRentFur.prepareStatement(eventUpdate);
+            ps.setDouble(1, totalInvoice);
+            ps.setInt(2, eventId);
+            ps.executeUpdate();
+            
+            StringBuilder invoiceDetailBillableUpdateSb = new StringBuilder();
+            invoiceDetailBillableUpdateSb.append("UPDATE event_detail SET billable = true WHERE id = ?");
+            ps = connRentFur.prepareStatement(invoiceDetailBillableUpdateSb.toString());
+            HashMap evenMap = EventController.getEventById(eventId);
+            if((Boolean) evenMap.get("detailedInvoice")){
+                HashMap detailMap;
+                HashMap invoiceMap = InvoiceController.getInvoiceById(invoiceId);
+                ArrayList invoiceDetailList = (ArrayList) invoiceMap.get("invoiceDetail");
+                for(int i = 0 ; i < invoiceDetailList.size(); i++){
+                    detailMap = (HashMap) invoiceDetailList.get(i);
+                    //furnitureMap = deepMerge(furnitureMap, FurnitureController.getFurnitureByCode(furnitureMap.get("code").toString()));      
+                    if(Integer.valueOf(detailMap.get("event_detail_id").toString()) != 0){
+                        ps.setInt(1, Integer.valueOf(detailMap.get("event_detail_id").toString()));
+                        ps.executeUpdate();
+                    }
+
+                }
+            }
+            
+            ps.close();
+            
+            connRentFur.commit();
+            
+            mapToReturn.put("status", SUCCESFULLY_SAVED);
+            mapToReturn.put("message", "Factura Anulada correctamente");
+        }catch(SQLException th){
+            try {
+                connRentFur.rollback();
+            } catch (SQLException ex) {
+                Logger.getLogger(InvoiceController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            mapToReturn.put("message", th.getMessage());
+            System.err.println(th.getMessage());
+            System.err.println(th);
+            th.printStackTrace();
+        }finally{
+            try{
+                if(connRentFur != null){
+                    connRentFur.close();
+                }
+            }catch(SQLException sqle){
+                System.err.println(sqle.getMessage());
+                System.err.println(sqle);
+            }
+        }
+        return mapToReturn;
     }
     
 }

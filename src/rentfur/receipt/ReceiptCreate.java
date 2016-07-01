@@ -52,6 +52,7 @@ import rentfur.util.DateLabelFormatter;
 import org.jdesktop.swingx.table.DatePickerCellEditor;
 import rentfur.book.BookController;
 import rentfur.event.EventCreate;
+import rentfur.report.ReportController;
 import rentfur.util.NumericTextField;
 
 /**
@@ -492,6 +493,7 @@ public class ReceiptCreate extends JInternalFrame{
             HashMap returnMap = receiptController.createReceipt(subjectMap, paymentList, netTotal, balance, observation, receiptDate, eventId, receiptNumMap);
             
             if(((Integer)returnMap.get("status"))==ReceiptController.SUCCESFULLY_SAVED){
+                ReportController.getReceiptReport((Integer)returnMap.get("receiptId"));
                 JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
                 doDefaultCloseAction();
             }else if((Integer)returnMap.get("status") == ReceiptController.ERROR_IN_SAVED){

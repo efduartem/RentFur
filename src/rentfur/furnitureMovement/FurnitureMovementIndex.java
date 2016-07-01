@@ -266,35 +266,40 @@ public class FurnitureMovementIndex extends JInternalFrame{
         furnitureMovementResultTable.getColumnModel().getColumn(1).setMinWidth(90);
         furnitureMovementResultTable.getColumnModel().getColumn(1).setPreferredWidth(100);
         
-        //TIPO
+        //FECHA
         furnitureMovementResultTable.getColumnModel().getColumn(2).setMaxWidth(180);
         furnitureMovementResultTable.getColumnModel().getColumn(2).setMinWidth(90);
         furnitureMovementResultTable.getColumnModel().getColumn(2).setPreferredWidth(130);
         
+        //TIPO
+        furnitureMovementResultTable.getColumnModel().getColumn(3).setMaxWidth(180);
+        furnitureMovementResultTable.getColumnModel().getColumn(3).setMinWidth(90);
+        furnitureMovementResultTable.getColumnModel().getColumn(3).setPreferredWidth(130);
+        
         //CONCEPTO
-        furnitureMovementResultTable.getColumnModel().getColumn(3).setMaxWidth(280);
-        furnitureMovementResultTable.getColumnModel().getColumn(3).setMinWidth(150);
-        furnitureMovementResultTable.getColumnModel().getColumn(3).setPreferredWidth(270);
+        furnitureMovementResultTable.getColumnModel().getColumn(4).setMaxWidth(280);
+        furnitureMovementResultTable.getColumnModel().getColumn(4).setMinWidth(150);
+        furnitureMovementResultTable.getColumnModel().getColumn(4).setPreferredWidth(270);
         
         //TIPO DOC
-        furnitureMovementResultTable.getColumnModel().getColumn(4).setMaxWidth(200);
-        furnitureMovementResultTable.getColumnModel().getColumn(4).setMinWidth(130);
-        furnitureMovementResultTable.getColumnModel().getColumn(4).setPreferredWidth(190);
+        furnitureMovementResultTable.getColumnModel().getColumn(5).setMaxWidth(200);
+        furnitureMovementResultTable.getColumnModel().getColumn(5).setMinWidth(130);
+        furnitureMovementResultTable.getColumnModel().getColumn(5).setPreferredWidth(190);
         
         //DOC
-        furnitureMovementResultTable.getColumnModel().getColumn(5).setMaxWidth(250);
-        furnitureMovementResultTable.getColumnModel().getColumn(5).setMinWidth(150);
-        furnitureMovementResultTable.getColumnModel().getColumn(5).setPreferredWidth(220);
+        furnitureMovementResultTable.getColumnModel().getColumn(6).setMaxWidth(250);
+        furnitureMovementResultTable.getColumnModel().getColumn(6).setMinWidth(150);
+        furnitureMovementResultTable.getColumnModel().getColumn(6).setPreferredWidth(220);
         
         //VER
-        furnitureMovementResultTable.getColumnModel().getColumn(6).setMaxWidth(110);
-        furnitureMovementResultTable.getColumnModel().getColumn(6).setMinWidth(110);
-        furnitureMovementResultTable.getColumnModel().getColumn(6).setPreferredWidth(110);
-        furnitureMovementResultTable.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
-        furnitureMovementResultTable.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JTextField()));
+        furnitureMovementResultTable.getColumnModel().getColumn(7).setMaxWidth(110);
+        furnitureMovementResultTable.getColumnModel().getColumn(7).setMinWidth(110);
+        furnitureMovementResultTable.getColumnModel().getColumn(7).setPreferredWidth(110);
+        furnitureMovementResultTable.getColumnModel().getColumn(7).setCellRenderer(new ButtonRenderer());
+        furnitureMovementResultTable.getColumnModel().getColumn(7).setCellEditor(new ButtonEditor(new JTextField()));
         
         furnitureMovementResultTableJScrollPane = new JScrollPane();
-        furnitureMovementResultTableJScrollPane.setBounds(30, 240, 1000, 300);
+        furnitureMovementResultTableJScrollPane.setBounds(30, 240, 1130, 300);
         furnitureMovementResultTableJScrollPane.setViewportView(furnitureMovementResultTable);
         
         add(furnitureMovementResultTableJScrollPane);
@@ -306,7 +311,7 @@ public class FurnitureMovementIndex extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Movimientos de Mobiliario");
-        setBounds(350,100,1100,650);
+        setBounds(350,100,1230,650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
@@ -422,7 +427,7 @@ public class FurnitureMovementIndex extends JInternalFrame{
         @Override
         public boolean isCellEditable(int row, int column) {
                                                     switch(column){
-                                                        case 6:     return true;
+                                                        case 7:     return true;
                                                         default:    return false;
                                                     }
                                                 }
@@ -505,7 +510,7 @@ public class FurnitureMovementIndex extends JInternalFrame{
 //                        label = updateFurnitureStatus(row, label);
 //                    }
 //                }else 
-                if(column==6){
+                if(column==7){
                     showMovementShowView(row);
                 }
           }

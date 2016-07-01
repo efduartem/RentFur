@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Annexed" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="832bf169-77da-4c02-a450-0fd3235505c3">
 	<property name="ireport.zoom" value="2.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="1"/>
+	<property name="ireport.y" value="0"/>
 	<parameter name="eventId" class="java.lang.Integer"/>
 	<queryString>
 		<![CDATA[SELECT
@@ -99,16 +99,16 @@ WHERE
 			</staticText>
 			<staticText>
 				<reportElement x="271" y="2" width="72" height="20" uuid="b34b2085-6842-48b4-8290-d3a2786b658e"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
 				<text><![CDATA[Precio Unitario]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="343" y="2" width="70" height="20" uuid="ba5433cc-c671-4df5-88e2-dc576bf18ae4"/>
+				<reportElement x="353" y="2" width="70" height="20" uuid="ba5433cc-c671-4df5-88e2-dc576bf18ae4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Multa (Unidad)]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="413" y="0" width="68" height="20" uuid="de018527-5a80-492a-97fa-c1c747204fd3"/>
+				<reportElement x="429" y="0" width="52" height="20" uuid="de018527-5a80-492a-97fa-c1c747204fd3"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Cantidad]]></text>
 			</staticText>
@@ -143,7 +143,7 @@ WHERE
 				<textFieldExpression><![CDATA[$F{fine_amount_per_unit}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0">
-				<reportElement x="271" y="0" width="72" height="20" uuid="d1317542-90f7-4442-b567-4e61ff49a890"/>
+				<reportElement x="270" y="0" width="72" height="20" uuid="d1317542-90f7-4442-b567-4e61ff49a890"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$F{unit_price}]]></textFieldExpression>
 			</textField>

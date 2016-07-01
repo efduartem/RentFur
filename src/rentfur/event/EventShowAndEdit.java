@@ -65,6 +65,7 @@ import rentfur.position.PositionController;
 import rentfur.receipt.ReceiptController;
 import rentfur.receipt.ReceiptCreate;
 import rentfur.receipt.ReceiptShow;
+import rentfur.report.ReportController;
 import rentfur.subject.SubjectController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
@@ -741,12 +742,12 @@ public class EventShowAndEdit extends JInternalFrame{
         
         if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_INVOICES)){
             tabs.setEnabledAt(2, false);
-            tabs.setToolTipTextAt(1, "Su usuario no cuenta con permisos para acceder a la administración de Facturas");
+            tabs.setToolTipTextAt(2, "Su usuario no cuenta con permisos para acceder a la administración de Facturas");
         }
         
         if(!userRoles.getRolesMap().containsKey(PositionController.ROLE_RF_CREDIT_NOTES)){
             tabs.setEnabledAt(3, false);
-            tabs.setToolTipTextAt(1, "Su usuario no cuenta con permisos para acceder a la administración de Notas de Credito");
+            tabs.setToolTipTextAt(3, "Su usuario no cuenta con permisos para acceder a la administración de Notas de Credito");
         }
         
         //AGREGAMOS AL INTERNAL FRAME EL "PANEL DE PESTAÑAS" (?)
@@ -1078,11 +1079,11 @@ public class EventShowAndEdit extends JInternalFrame{
             invoicesTable.getColumnModel().getColumn(INVOICE_WITH_CREDIT_NOTE_COLUMN).setPreferredWidth(100);
 
             //CANCELLED BUTTON
-            invoicesTable.getColumnModel().getColumn(INVOICE_CANCELLED_BUTTON_COLUMN).setMaxWidth(60);
-            invoicesTable.getColumnModel().getColumn(INVOICE_CANCELLED_BUTTON_COLUMN).setMinWidth(60);
-            invoicesTable.getColumnModel().getColumn(INVOICE_CANCELLED_BUTTON_COLUMN).setPreferredWidth(60);
-//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setCellRenderer(new ReceiptButtonRenderer());
-//            invoicesTable.getColumnModel().getColumn(RECEIPT_CANCELLED_BUTTON_COLUMN).setCellEditor(new ReceiptButtonEditor(new JTextField()));
+            invoicesTable.getColumnModel().getColumn(INVOICE_CANCELLED_BUTTON_COLUMN).setMaxWidth(130);
+            invoicesTable.getColumnModel().getColumn(INVOICE_CANCELLED_BUTTON_COLUMN).setMinWidth(130);
+            invoicesTable.getColumnModel().getColumn(INVOICE_CANCELLED_BUTTON_COLUMN).setPreferredWidth(130);
+            invoicesTable.getColumnModel().getColumn(INVOICE_CANCELLED_BUTTON_COLUMN).setCellRenderer(new InvoiceButtonRenderer());
+            invoicesTable.getColumnModel().getColumn(INVOICE_CANCELLED_BUTTON_COLUMN).setCellEditor(new InvoiceButtonEditor(new JTextField()));
 
             //SHOW BUTTON
             invoicesTable.getColumnModel().getColumn(INVOICE_SHOW_BUTTON_COLUMN).setMaxWidth(90);
@@ -1963,6 +1964,7 @@ public class EventShowAndEdit extends JInternalFrame{
             if(((Integer)returnMap.get("status"))==EventController.SUCCESFULLY_SAVED){
                 JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
                 doDefaultCloseAction();
+                ReportController.getContractAnnexedReport(eventId);
             }else if((Integer)returnMap.get("status") == EventController.ERROR_IN_SAVED){
                 JOptionPane.showMessageDialog(null, returnMap.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
             }
@@ -2455,7 +2457,7 @@ public class EventShowAndEdit extends JInternalFrame{
         textArea.setEditable(true);
         
         JLabel messagge = new JLabel("Confirma que desea anular el recibo "+receiptNumber+"?");
-        JLabel reasonLabel = new JLabel("Favor ingresar un motivo para la anulcación");
+        JLabel reasonLabel = new JLabel("Favor ingresar un motivo para la anulación");
         JPanel confirmPanel = new JPanel();
         confirmPanel.setPreferredSize(new Dimension(400,150));
 
@@ -2476,6 +2478,43 @@ public class EventShowAndEdit extends JInternalFrame{
                     JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
                 }
                 updateReceiptsTable();
+            }
+        }
+        
+    }
+     
+     public void updateInvoiceStatus(int row){
+        Vector dataVector = (Vector) invoicesDefaultTableModel.getDataVector().get(row);
+        int invoiceId = ((Long) dataVector.get(INVOICE_ID_COLUMN)).intValue();
+        String invoiceNumber = (String) dataVector.get(INVOICE_NUMBER_COLUMN);
+
+        int respuesta;
+        HashMap mapReturn;
+        JTextArea textArea = new JTextArea(6, 50);
+        textArea.setEditable(true);
+        
+        JLabel messagge = new JLabel("Confirma que desea anular la factura "+invoiceNumber+"?");
+        JLabel reasonLabel = new JLabel("Favor ingresar un motivo para la anulación");
+        JPanel confirmPanel = new JPanel();
+        confirmPanel.setPreferredSize(new Dimension(400,150));
+
+        confirmPanel.add(messagge);
+        confirmPanel.add(reasonLabel);
+        confirmPanel.add(textArea);
+        // display them in a message dialog
+        respuesta = JOptionPane.showConfirmDialog(this, confirmPanel,"Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if(respuesta == JOptionPane.YES_OPTION){
+            if(textArea.getText().trim().equals("")){
+                JOptionPane.showMessageDialog(null, "Debe ingresar un motivo para confirmar la anulación", "Atencion", JOptionPane.WARNING_MESSAGE);
+                updateReceiptStatus(row);
+            }else{
+                mapReturn = invoiceController.cancelInvoice(invoiceId, textArea.getText().trim());
+                if((Integer) mapReturn.get("status") == ReceiptController.SUCCESFULLY_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Actualizado", JOptionPane.INFORMATION_MESSAGE);
+                }else if((Integer)mapReturn.get("status") == ReceiptController.ERROR_IN_SAVED){
+                    JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+                }
+                updateInvoicesTable();
             }
         }
         
@@ -2864,6 +2903,12 @@ public class EventShowAndEdit extends JInternalFrame{
         eventDetailpenaltyTable.setEnabled(false);
         receiptTable.setEnabled(false);
         paymentMethodTable.setEnabled(false);
+        if(invoicesTable != null && invoiceDetailTable != null){
+            invoicesTable.setEnabled(false);
+            invoiceDetailTable.setEnabled(false);
+        }
+        creditNotesTable.setEnabled(false);
+        creditNoteDetailTable.setEnabled(false);
         statusComboBox.setEnabled(false);
         placeOfDeliveryTextArea.setEnabled(false);
         observationTextArea.setEnabled(false);
@@ -2877,20 +2922,42 @@ public class EventShowAndEdit extends JInternalFrame{
         setClosable(true);
         setIconifiable(true);
         tabs.setEnabled(true);
-        paymentRecordButton.setEnabled(true);
-        addFurnitureButton.setEnabled(true);
-        addPenaltyButton.setEnabled(true);
-        saveChangesButton.setEnabled(true);
+        
+        if(!receiptOnlyQuery){
+            paymentRecordButton.setEnabled(true);
+        }
+        
+        if(!eventOnlyQuery){
+            addFurnitureButton.setEnabled(true);
+            addPenaltyButton.setEnabled(true);
+            saveChangesButton.setEnabled(true);
+        }
+        
+        if(!invoiceOnlyQuery){
+            invoicedButton.setEnabled(true);
+        }
+        
+        if(!creditNoteOnlyQuery){
+            createCreditNoteButton.setEnabled(true);
+        }
+
         closeButton.setEnabled(true);
         eventDetailTable.setEnabled(true);
         eventDetailpenaltyTable.setEnabled(true);
         receiptTable.setEnabled(true);
         paymentMethodTable.setEnabled(true);
+        
+        if(invoicesTable != null && invoiceDetailTable != null){
+            invoicesTable.setEnabled(true);
+            invoiceDetailTable.setEnabled(true);
+        }
+        
+        creditNotesTable.setEnabled(true);
+        creditNoteDetailTable.setEnabled(true);
         statusComboBox.setEnabled(true);
         placeOfDeliveryTextArea.setEnabled(true);
         observationTextArea.setEnabled(true);
-        invoicedButton.setEnabled(true);
-        createCreditNoteButton.setEnabled(true);
+        
     }
     
     private class eventDetailDefaultTableModel extends DefaultTableModel{
@@ -2957,7 +3024,8 @@ public class EventShowAndEdit extends JInternalFrame{
             switch(column){
                 case INVOICE_CANCELLED_BUTTON_COLUMN:
                     boolean cancelled = false;
-                    if(invoicesDefaultTableModel.getValueAt(row, INVOICE_CANCELLED_COLUMN).toString().equals("SI")){
+                    if(invoicesDefaultTableModel.getValueAt(row, INVOICE_CANCELLED_COLUMN).toString().equals("SI")
+                            || invoicesDefaultTableModel.getValueAt(row, INVOICE_WITH_CREDIT_NOTE_COLUMN).toString().equals("SI")){
                         cancelled = Boolean.TRUE;
                     }
                     return !cancelled;
@@ -3173,11 +3241,11 @@ public class EventShowAndEdit extends JInternalFrame{
           if(column==RECEIPT_CANCELLED_BUTTON_COLUMN){
               ImageIcon deleteIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/erase_16x16.png"));
               setIcon(deleteIconImage);
-              //if(onlyQuery){
-//                    String message = "Su usuario solo cuenta con permiso de consultas";
-//                    setEnabled(false);
-//                    setToolTipText(message);
-              //  }
+              if(receiptOnlyQuery){
+                    String message = "Su usuario solo cuenta con permiso de consultas de Recibos";
+                    setEnabled(false);
+                    setToolTipText(message);
+                }
           }
           setText((value == null) ? "" : value.toString());
           return this;
@@ -3228,12 +3296,10 @@ public class EventShowAndEdit extends JInternalFrame{
         public Object getCellEditorValue() {
           if (isPushed) {
                 if(column==RECEIPT_CANCELLED_BUTTON_COLUMN){
-//                    if(!onlyQuery){
-                       //label = updateFurnitureStatus(row, label);
-//                    }
-                    updateReceiptStatus(row);
+                    if(!receiptOnlyQuery){
+                        updateReceiptStatus(row);
+                    }
                 }else if(column==RECEIPT_SHOW_BUTTON_COLUMN){
-                    //showFurnitureShowAndEditView(row);
                     showReceiptView(row);
                 }
           }
@@ -3272,11 +3338,11 @@ public class EventShowAndEdit extends JInternalFrame{
           if(column==INVOICE_CANCELLED_BUTTON_COLUMN){
               ImageIcon deleteIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/erase_16x16.png"));
               setIcon(deleteIconImage);
-              //if(onlyQuery){
-//                    String message = "Su usuario solo cuenta con permiso de consultas";
-//                    setEnabled(false);
-//                    setToolTipText(message);
-              //  }
+              if(invoiceOnlyQuery){
+                    String message = "Su usuario solo cuenta con permiso de consultas de Facturas";
+                    setEnabled(false);
+                    setToolTipText(message);
+                }
           }
           setText((value == null) ? "" : value.toString());
           return this;
@@ -3327,12 +3393,10 @@ public class EventShowAndEdit extends JInternalFrame{
         public Object getCellEditorValue() {
           if (isPushed) {
                 if(column==INVOICE_CANCELLED_BUTTON_COLUMN){
-//                    if(!onlyQuery){
-                       //label = updateFurnitureStatus(row, label);
-//                    }
-                    //updateReceiptStatus(row);
+                    if(!invoiceOnlyQuery){
+                       updateInvoiceStatus(row);
+                    }
                 }else if(column==INVOICE_SHOW_BUTTON_COLUMN){
-                    //showFurnitureShowAndEditView(row);
                     showInvoiceView(row);
                 }
           }
@@ -3371,11 +3435,11 @@ public class EventShowAndEdit extends JInternalFrame{
           if(column==CREDIT_NOTE_CANCELLED_BUTTON_COLUMN){
               ImageIcon deleteIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/erase_16x16.png"));
               setIcon(deleteIconImage);
-              //if(onlyQuery){
-//                    String message = "Su usuario solo cuenta con permiso de consultas";
-//                    setEnabled(false);
-//                    setToolTipText(message);
-              //  }
+              if(creditNoteOnlyQuery){
+                    String message = "Su usuario solo cuenta con permiso de consultas de Notas de Credito";
+                    setEnabled(false);
+                    setToolTipText(message);
+                }
           }
           setText((value == null) ? "" : value.toString());
           return this;
@@ -3426,12 +3490,10 @@ public class EventShowAndEdit extends JInternalFrame{
         public Object getCellEditorValue() {
           if (isPushed) {
                 if(column==CREDIT_NOTE_CANCELLED_BUTTON_COLUMN){
-//                    if(!onlyQuery){
-                       //label = updateFurnitureStatus(row, label);
-//                    }
-                    updateCreditNoteStatus(row);
+                    if(!creditNoteOnlyQuery){
+                       updateCreditNoteStatus(row);
+                    }
                 }else if(column==CREDIT_NOTE_SHOW_BUTTON_COLUMN){
-                    //showFurnitureShowAndEditView(row);
                     showCreditNoteView(row);
                 }
           }

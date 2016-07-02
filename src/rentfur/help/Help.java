@@ -37,7 +37,7 @@ public class Help extends javax.swing.JFrame {
         jEditorPane1.setEditable(false);        
         jEditorPane1.setContentType( "text/html" );
         jEditorPane1.getDocument().putProperty("IgnoreCharsetDirective", Boolean.TRUE);
-        jEditorPane1.setText( readFile("archivo1") );//lee el primer archivo
+        jEditorPane1.setText( readFile("main_menu") );//lee el primer archivo
         jEditorPane1.setCaretPosition(0);
         
         //jtree                
@@ -194,7 +194,7 @@ public class Help extends javax.swing.JFrame {
         jTree1 = new javax.swing.JTree();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(994, 624));
+        setPreferredSize(new java.awt.Dimension(1194, 624));
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
 
         jEditorPane1.setPreferredSize(new java.awt.Dimension(106, 50));

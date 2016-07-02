@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyVetoException;
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -54,6 +56,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import rentfur.creditNote.CreditNoteController;
 import rentfur.creditNote.CreditNoteCreate;
 import rentfur.creditNote.CreditNoteShow;
@@ -114,7 +117,7 @@ public class EventShowAndEdit extends JInternalFrame{
     private final JLabel payedTotalLabel;
     private final JLabel billableBalanceLabel;
     private final JTextField subjectCodeTextField;
-    private final JTextField subjectAddressTextField;
+    private final JTextArea subjectAddressTextArea;
     private final JTextField subjectNameTextField;
     private final JTextField subjectTelephoneTextField;
     private final JTextField subjectTradenameTextField;
@@ -280,6 +283,10 @@ public class EventShowAndEdit extends JInternalFrame{
     private boolean creditNoteOnlyQuery = false;
     private final UserRoles userRoles;
     
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
+    
     public EventShowAndEdit(EventController eventController, int eventId){
         this.eventController = eventController;
         
@@ -421,14 +428,14 @@ public class EventShowAndEdit extends JInternalFrame{
         subjectCodeTextField.setBounds(160, 150, 170, 25);
         eventHeaderPanel.add(subjectCodeTextField);
         
-        subjectAddressLabel = new JLabel("Dirección:");
-        subjectAddressLabel.setBounds(370, 150, 160, 25);
-        eventHeaderPanel.add(subjectAddressLabel);
+        subjectCityLabel = new JLabel("Ciudad:");
+        subjectCityLabel.setBounds(370, 150, 80, 25);
+        eventHeaderPanel.add(subjectCityLabel);
         
-        subjectAddressTextField = new JTextField(subjectMap.get("address").toString());
-        subjectAddressTextField.setEditable(false);
-        subjectAddressTextField.setBounds(490, 150, 170, 25);
-        eventHeaderPanel.add(subjectAddressTextField);
+        subjectCityTextField = new JTextField(subjectMap.get("city").toString());
+        subjectCityTextField.setEditable(false);
+        subjectCityTextField.setBounds(490, 150, 170, 25);
+        eventHeaderPanel.add(subjectCityTextField);
         
         //Total Evento
         totalLabel = new JLabel("Total Gs.: ");
@@ -509,14 +516,20 @@ public class EventShowAndEdit extends JInternalFrame{
         eventHeaderPanel.add(balanceTotalTextField);
         
         //FILA 4
-        subjectCityLabel = new JLabel("Ciudad:");
-        subjectCityLabel.setBounds(30, 240, 80, 25);
-        eventHeaderPanel.add(subjectCityLabel);
+        subjectAddressLabel = new JLabel("Dirección:");
+        subjectAddressLabel.setBounds(30, 240, 160, 25);
+        eventHeaderPanel.add(subjectAddressLabel);
         
-        subjectCityTextField = new JTextField(subjectMap.get("city").toString());
-        subjectCityTextField.setEditable(false);
-        subjectCityTextField.setBounds(160, 240, 170, 25);
-        eventHeaderPanel.add(subjectCityTextField);
+        subjectAddressTextArea = new JTextArea(0,0);
+        subjectAddressTextArea.setLineWrap(true);
+        subjectAddressTextArea.setText(subjectMap.get("address").toString());
+        subjectAddressTextArea.setWrapStyleWord(true);
+        subjectAddressTextArea.setEnabled(false);
+        JScrollPane subjectAddressScrollPane = new JScrollPane();
+        subjectAddressScrollPane.setBounds(160, 240, 170, 60);
+        subjectAddressScrollPane.setViewportView(subjectAddressTextArea);
+        eventHeaderPanel.add(subjectAddressScrollPane);
+        
         
         //FACTURADO
         invoicedTotalLabel = new JLabel("Facturado Gs.: ");
@@ -543,7 +556,7 @@ public class EventShowAndEdit extends JInternalFrame{
         ImageIcon paymentRecordImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/money_24x24.png"));
         paymentRecordButton = new JButton(" Registrar Pago");
         paymentRecordButton.setIcon(paymentRecordImageIcon);
-        paymentRecordButton.setBounds(1250, 330, 180, 35);
+        paymentRecordButton.setBounds(1250, 380, 180, 35);
         paymentRecordButton.setVisible(false);
         paymentRecordButton.addActionListener(new ActionListener() {
 
@@ -562,7 +575,7 @@ public class EventShowAndEdit extends JInternalFrame{
         ImageIcon invoicedImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/invoice_20x20.png"));
         invoicedButton = new JButton("  Facturar");
         invoicedButton.setIcon(invoicedImageIcon);
-        invoicedButton.setBounds(1250, 330, 180, 35);
+        invoicedButton.setBounds(1250, 380, 180, 35);
         invoicedButton.setVisible(false);
         invoicedButton.addActionListener(new ActionListener() {
 
@@ -581,7 +594,7 @@ public class EventShowAndEdit extends JInternalFrame{
         ImageIcon creditNoteImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/invoice_20x20.png"));
         createCreditNoteButton = new JButton("  Nota de Credito");
         createCreditNoteButton.setIcon(creditNoteImageIcon);
-        createCreditNoteButton.setBounds(1250, 330, 180, 35);
+        createCreditNoteButton.setBounds(1250, 380, 180, 35);
         createCreditNoteButton.setVisible(false);
         createCreditNoteButton.addActionListener(new ActionListener() {
 
@@ -601,7 +614,7 @@ public class EventShowAndEdit extends JInternalFrame{
         ImageIcon editEventImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
         saveChangesButton = new JButton("   Guardar Cambios");
         saveChangesButton.setIcon(editEventImageIcon);
-        saveChangesButton.setBounds(1250, 430, 180, 35);
+        saveChangesButton.setBounds(1250, 480, 180, 35);
         saveChangesButton.addActionListener(new ActionListener() {
 
             @Override
@@ -615,7 +628,7 @@ public class EventShowAndEdit extends JInternalFrame{
         ImageIcon addFurnitureImageIcon = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
         addFurnitureButton = new JButton(" Agregar Anexos");
         addFurnitureButton.setIcon(addFurnitureImageIcon);
-        addFurnitureButton.setBounds(1250, 330, 180, 35);
+        addFurnitureButton.setBounds(1250, 380, 180, 35);
         addFurnitureButton.addActionListener(new ActionListener() {
 
             @Override
@@ -627,7 +640,7 @@ public class EventShowAndEdit extends JInternalFrame{
         
         addPenaltyButton = new JButton("  Agregar Multa");
         addPenaltyButton.setIcon(addFurnitureImageIcon);
-        addPenaltyButton.setBounds(1250, 380, 180, 35);
+        addPenaltyButton.setBounds(1250, 430, 180, 35);
         addPenaltyButton.addActionListener(new ActionListener() {
 
             @Override
@@ -652,7 +665,7 @@ public class EventShowAndEdit extends JInternalFrame{
         ImageIcon closeIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         closeButton = new JButton("   Cerrar              ");
         closeButton.setIcon(closeIconImage);
-        closeButton.setBounds(1250, 480, 180, 35);
+        closeButton.setBounds(1250, 530, 180, 35);
         closeButton.addActionListener(new ActionListener() {
 
             @Override
@@ -671,7 +684,7 @@ public class EventShowAndEdit extends JInternalFrame{
         //CREAMOS EL CONJUNTO DE PESTAÑAS
         tabs = new JTabbedPane();
         //DEFINIMOS EL TAMAÑO Y UBICACION DEL "PANEL DE PESTAÑAS" (?)
-        tabs.setBounds(30, 280, 1200, 500);
+        tabs.setBounds(30, 320, 1200, 570);
         
         //Cargamos el Tab de Cargos del Evento
         addChargesTabComponent();
@@ -750,6 +763,24 @@ public class EventShowAndEdit extends JInternalFrame{
             tabs.setToolTipTextAt(3, "Su usuario no cuenta con permisos para acceder a la administración de Notas de Credito");
         }
         
+        
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1380, 880, 80, 25);
+        eventHeaderPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Detalles de Evento</h2>        <p>En esta vista, se cuentan con los datos generales y detallados del evento</p><p>Como cabecera, se muestran los siguientes datos: </p><ol><li>Fecha del evento</li><li>Estado del evento (Confirmado)</li><li>Lugar de Entrega</li><li>Nro. de Contrato</li><li>Datos del Cliente</li><li>Montos Totales en Guaranies (Total de cargos del evento, total abonado, saldo por abonar, total facturado y saldo por facturar)</li></ol><p>En los detalles se cuentan con cuatro pestañas (Cargos, Abonos, Facturas y Notas De Credito), y por cada uno se habilitan los botones correspondientes</p> <p>Abajo se explican los detalles:</p><ol><li>Cargos</li><ul><li>En la primera tabla se muestran los mobiliarios contratados (los mobiliarios anexados posterior a la conirmacion del contrato se muestan en color amarillo)</li><li>En la tabla de abajo se muestran las multas aplicadas sobre alguno de los mobiliarios contratados</li><li><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'><strong> Agregar Anexos:</strong> Permite selecionar los mobiliarios disponibles para la fecha del evento</li><li><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'><strong> Agregar Multa:</strong> Permite selecionar los mobiliarios contratados para aplicar la multa (*Un mobiliario solo puede ser multado una vez)</li><li><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/save_24x24.png'><strong> Guardar Cambios:</strong> Permite Guardar en el evento anexos y multas que hayan sido agregadas.</li></ul>	<li>Abonos</li><ul><li>En la primera tabla se muestran los recibos emitidos por el evento, el boton para anular y el boton ver los detalles del recibo</li><li>En la tabla de abajo se muestran los detalles del recibo que se enuentra seleccionado en la primera tabla</li><li><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/money_24x24.png'><strong> Registrar Pago:</strong> Permite selecionar los mobiliarios disponibles para la fecha del evento</li></ul><li>Facturas(*)</li><ul><li>En la primera tabla se muestran las facturas emitidos por el evento, el boton para anular y el boton ver los detalles de la factura</li><li>En la tabla de abajo se muestran los detalles de la factura que se enuentra seleccionada en la primera tabla</li><li><p>(*) Al ingresar por primera vez a esta pestaña se debe seleccionar el metodo de facturación que se desea utilizar.</p><p>Debe tener en cuenta que una vez seleccionado el método de facturación el mismo ya no podrá ser modificado</p><p>Los metodos de facturación pueden ser:</p><ol><li><strong>Detallada:</strong> Se facturan uno por uno cada mobiliario contratado con su precio y cantidad</li><li><strong>Por Concepto</strong> Se deben ingresar por cada item de la factura, el concepto por el cual se realizara la factura, el precio y la cantidad</li></ol></li><li><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/invoice_20x20.png'><strong> Facturar:</strong> Permite selecionar los mobiliarios disponibles para la fecha del evento</li></ul><li>Notas De Credito</li><ul><li>En la primera tabla se muestran las notas de credito emitidas por las facturas del evento, el boton para anular y el boton ver los detalles de cada una</li><li>En la tabla de abajo se muestran los detalles de la nota de credito que se enuentra seleccionado en la primera tabla</li><li><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/invoice_20x20.png'><strong> Nota de Credito:</strong> Permite selecionar los mobiliarios disponibles para la fecha del evento</li></ul></ol></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
+        
         //AGREGAMOS AL INTERNAL FRAME EL "PANEL DE PESTAÑAS" (?)
         add(tabs);
         
@@ -760,9 +791,15 @@ public class EventShowAndEdit extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Detalles del Evento");
-        setBounds(150,30,1500,900);
+        setBounds(150,5,1500,950);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
+    }
+    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
     }
     
     private void addPaymentsTabComponent(){

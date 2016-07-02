@@ -31,6 +31,7 @@ import rentfur.furnitureFamily.FurnitureFamilyCreate;
 import rentfur.furnitureMovement.FurnitureMovementController;
 import rentfur.furnitureMovement.FurnitureMovementIndex;
 import rentfur.furnitureMovement.FurnitureMovementInputCreate;
+import rentfur.help.Help;
 import rentfur.position.PositionController;
 import rentfur.position.PositionCreate;
 import rentfur.position.PositionIndex;
@@ -43,6 +44,7 @@ import rentfur.purchaseInvoice.PurchaseInvoiceController;
 import rentfur.purchaseInvoice.PurchaseInvoiceCreate;
 import rentfur.purchaseInvoice.PurchaseInvoiceIndex;
 import rentfur.report.EventsTotalByDate;
+import rentfur.report.HechaukaReportView;
 import rentfur.report.PendingEventsByDate;
 import rentfur.report.ReportController;
 import rentfur.report.SubjectAccountStatusReport;
@@ -74,6 +76,7 @@ public class MainWindow extends JFrame{
     private final JMenu reportsMenu = new JMenu(" Informes");
 
     private static final JMenuItem exitItem = new JMenuItem("Salir");
+    private static final JMenuItem helpItem = new JMenuItem("Ayuda");
     private static final JMenuItem changePasswordItem = new JMenuItem("Cambiar Contraseña");
     
     private static final JMenuItem manageFurnitureItem = new JMenuItem("Administrar Mobiliarios");
@@ -93,9 +96,13 @@ public class MainWindow extends JFrame{
     
     private final JMenu eventReportsItem = new JMenu("Eventos");
     private final JMenu subjectReportsItem = new JMenu("Clientes");
+    private static final JMenuItem hechaukaReportsItem = new JMenuItem("Hechauka");
+    
     private static final JMenuItem eventsTotalByDateItem = new JMenuItem("Resumen de Eventos por Fecha");
     private static final JMenuItem pendingEventsByDateItem = new JMenuItem("Resumen Eventos Pendientes por Fecha");
     private static final JMenuItem subjectAccountStatusReportItem = new JMenuItem("Estado de Cuenta");
+    
+    
     
     private static final UserRoles userRoles = new UserRoles();
     //FURNITURE 
@@ -150,6 +157,7 @@ public class MainWindow extends JFrame{
     EventsTotalByDate eventsTotalByDate;
     PendingEventsByDate pendingEventsByDate;
     SubjectAccountStatusReport subjectAccountStatusReport;
+    HechaukaReportView hechaukaReportView;
     
     public MainWindow(MainWindowController mainWindowController){
         
@@ -176,11 +184,15 @@ public class MainWindow extends JFrame{
         ImageIcon changePasswordIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/change_password_icon.png"));
         changePasswordItem.setIcon(changePasswordIconImage);
         
+        ImageIcon helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpItem.setIcon(helpIconImage);
+        
         ImageIcon exitIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/exit_icon.png"));
         exitItem.setIcon(exitIconImage);
         
         menuBar.add(systemMenu);
             systemMenu.add(changePasswordItem);
+            systemMenu.add(helpItem);
             systemMenu.add(exitItem);
         
         changePasswordItem.addActionListener(new ActionListener() {
@@ -188,6 +200,15 @@ public class MainWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 setVisibleUserChangePasswordInternalFrame();
+            }
+        });
+        
+        helpItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Help help = new Help();
+                help.setVisible(true);
             }
         });
             
@@ -369,6 +390,7 @@ public class MainWindow extends JFrame{
                 eventReportsItem.add(pendingEventsByDateItem);
             reportsMenu.add(subjectReportsItem);
                 subjectReportsItem.add(subjectAccountStatusReportItem);
+            reportsMenu.add(hechaukaReportsItem);
                 
         eventsTotalByDateItem.addActionListener(new ActionListener() {
 
@@ -391,6 +413,14 @@ public class MainWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 setVisibleSubjectAccountStatusReportInternalFrame();
+            }
+        });
+        
+        hechaukaReportsItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisibleHechaukaReportInternalFrame();
             }
         });
                 
@@ -578,6 +608,11 @@ public class MainWindow extends JFrame{
     public void setVisibleSubjectAccountStatusReportInternalFrame(){
         subjectAccountStatusReport = reportController.getSubjectAccountStatusReportView();
         desktop.add(subjectAccountStatusReport);
+    }
+    
+    public void setVisibleHechaukaReportInternalFrame(){
+        hechaukaReportView = reportController.getHechaukaReportView();
+        desktop.add(hechaukaReportView);
     }
     
     public static void updateItemAccess(){

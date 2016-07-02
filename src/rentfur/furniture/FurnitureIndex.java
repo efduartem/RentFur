@@ -32,7 +32,7 @@ import javax.swing.table.TableCellRenderer;
 import net.java.balloontip.BalloonTip;
 import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
-import rentfur.util.HechaukaReport;
+import rentfur.report.HechaukaReport;
 import rentfur.util.UserRoles;
 
 /**
@@ -62,9 +62,9 @@ public class FurnitureIndex extends JInternalFrame{
     private final DefaultTableModel furnituresResultDefaultTableModel;
     private final JScrollPane furnituresResultTableJScrollPane;
     private boolean onlyQuery = false;
-//    private final ImageIcon helpIconImage;
-//    private final JLabel helpLabel;
-//    private BalloonTip myBalloonTip;
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip myBalloonTip;
     
     public FurnitureIndex(FurnitureController furnitureController, UserRoles userRoles){
         this.furnitureController = furnitureController;
@@ -101,29 +101,30 @@ public class FurnitureIndex extends JInternalFrame{
 //        customComponent.setVisible(true);
 //        furnitureIndexParamsPanel.add(customComponent);
         
-//        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
-//        helpLabel = new JLabel("AYUDA");
-//        helpLabel.setIcon(helpIconImage);
-//        helpLabel.addMouseListener(new MouseAdapter() {
-//                    @Override
-//                    public void mouseClicked(MouseEvent e) {
-////                        System.out.println("MOSTRAR GLOBO");
-//                        showHelp();
-//                    }
-//        });
-//        helpLabel.setBounds(400, 50, 80, 25);
-//        furnitureIndexParamsPanel.add(helpLabel);
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+//                        System.out.println("MOSTRAR GLOBO");
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(400, 50, 80, 25);
+        furnitureIndexParamsPanel.add(helpLabel);
         
         //getHechaukaReport
         //HechaukaReport.getHechaukaReport();
         
-//        String imgsrc = getClass().getResource("/rentfur/button/image/util/search_24x24.png").toString();
-//        myBalloonTip = new BalloonTip(helpLabel, "<HTML><U>Datos del Cliente</U><br><B>Datos del Cliente</B><br>"
-//                + "<img src='"+imgsrc+"'><br><li>Uno</li><li>Dos</li></HTML>");
-//        myBalloonTip.setVisible(false);
-//        myBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
-        //furnitureIndexResultPanel = new JPanel(new BorderLayout());
-        //furnitureIndexParamsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 1, true), "Busqueda de Mobiliarios", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Arial", 3, 14), new java.awt.Color(0, 0, 0))); // NOI18N
+        String imgsrc = getClass().getResource("/rentfur/button/image/util/search_24x24.png").toString();
+        
+        myBalloonTip = new BalloonTip(helpLabel, "<HTML><U>Datos del Cliente</U><br><B>Datos del Cliente</B><br>"
+                + "<img src='"+imgsrc+"'><br><li>Uno</li><li>Dos</li></HTML>");
+        myBalloonTip.setVisible(false);
+        myBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+//        furnitureIndexResultPanel = new JPanel(new BorderLayout());
+//        furnitureIndexParamsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 1, true), "Busqueda de Mobiliarios", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Arial", 3, 14), new java.awt.Color(0, 0, 0))); // NOI18N
         
         
         
@@ -330,11 +331,11 @@ public class FurnitureIndex extends JInternalFrame{
         }
     }
     
-//    public void showHelp(){
-//        if(!myBalloonTip.isVisible()){
-//            myBalloonTip.setVisible(true);
-//        }
-//    }
+    public void showHelp(){
+        if(!myBalloonTip.isVisible()){
+            myBalloonTip.setVisible(true);
+        }
+    }
     
     public void searchFurnitureButtonAction(ActionEvent e) {
         String code = codeTextField.getText();

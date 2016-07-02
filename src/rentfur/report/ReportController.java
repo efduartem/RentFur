@@ -34,6 +34,7 @@ public class ReportController {
     private EventsTotalByDate eventsTotalByDate;
     private PendingEventsByDate pendingEventsByDate;
     private SubjectAccountStatusReport subjectAccountStatusReport;
+    private HechaukaReportView hechaukaReportView;
     
     
     public EventsTotalByDate getEventsTotalByDateView(){
@@ -57,6 +58,13 @@ public class ReportController {
         return subjectAccountStatusReport;
     }
     
+    public HechaukaReportView getHechaukaReportView(){
+        if(hechaukaReportView == null){
+            hechaukaReportView = new HechaukaReportView(this);
+        }
+        return hechaukaReportView;
+    }
+    
     public void eventsTotalByDateViewClosed(){
         eventsTotalByDate = null;
     }
@@ -67,6 +75,10 @@ public class ReportController {
     
     public void subjectAccountStatusReportViewClosed(){
         subjectAccountStatusReport = null;
+    }
+    
+    public void hechaukaReportViewClosed(){
+        hechaukaReportView = null;
     }
     
     public void executeEventsTotalByDateReport(Date initDate, Date endDate){

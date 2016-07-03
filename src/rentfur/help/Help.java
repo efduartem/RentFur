@@ -194,7 +194,7 @@ public class Help extends javax.swing.JFrame {
         jTree1 = new javax.swing.JTree();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(1194, 624));
+        setPreferredSize(new java.awt.Dimension(1294, 624));
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.LINE_AXIS));
 
         jEditorPane1.setPreferredSize(new java.awt.Dimension(106, 50));

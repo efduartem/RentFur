@@ -8,6 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyVetoException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -42,6 +44,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -97,6 +100,10 @@ public class EventIndex extends JInternalFrame{
     private final UserRoles userRoles;
     private final JButton createEventButton;
     public static final DefaultTableCellRenderer DEFAULT_RENDERER = new DefaultTableCellRenderer();
+    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private final BalloonTip helpBalloonTip;
      
     public EventIndex(EventController eventController){
         this.eventController = eventController;
@@ -413,6 +420,22 @@ public class EventIndex extends JInternalFrame{
         dayEventsTableJScrollPane.setBounds(30, 460, 1268, 350);
         dayEventsTableJScrollPane.setViewportView(dayEventsTable);
         
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1690, 810, 80, 25);
+        eventHeaderPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Calendario de Eventos</h2>        <p>En esta vista, se cuentan con los eventos registrados para cada fecha con su respectiva disponibilidad de mobiliarios.</p><p>En la esquina superior izquierda de la ventana se encuentra el selector de fechas.</p><p>Al seleccionar una fecha son actualizados los datos de eventos y disponibilidad de mobiliarios para el día elegido</p> <ol><li>Tabla de mobiliarios:</li><ul><li>En esta tabla se muestran todos los mobiliarios con su respectiva cantidad: total, comprometida y disponible</li><li>También es posible realizar un filtro dinámico de mobiliarios por su descripción, de modo a encontrarlo con más facilidad</li></ul>	<li>Tabla de Eventos</li><ul><li>En esta tabla se muestran los eventos presupuestados y confirmados del día</li><li>Por cada evento se muestran: el cliente, el total del evento, el saldo y sus referencias de lugar de entrega y observaciones</li><li>Por cada evento es posible ingresar a ver sus detalles con el boton \"Ver\"</li><ul><li><strong>Presupuestados:</strong> Se accede a la vista para modificar algun dato y/o confirmar el evento</li><li><strong>Confirmados:</strong> Se accede a la vista de \"Detalles de Evento\"</li></ul><li>Al costado derecho de la tabla se ve el total en guaraníes de eventos confirmados y presupuestados del día</li></ul><li><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/calendar_24x24.png'>&#160;&#160;<strong>  Botón - Nuevo Evento:</strong> Permite acceder a la ventana para registrar un nuevo evento.</li></ol></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
         add(dayEventsTableJScrollPane);
         
         add(eventHeaderPanel);
@@ -426,6 +449,12 @@ public class EventIndex extends JInternalFrame{
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
      }
+    
+    private void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
+    }
      
      private class FurnituresStockDefaultTableModel extends DefaultTableModel{
         

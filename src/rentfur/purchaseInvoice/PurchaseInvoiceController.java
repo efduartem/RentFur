@@ -88,9 +88,6 @@ public class PurchaseInvoiceController {
         PreparedStatement furnitureStockUpdatePs;
         ResultSet invoiceIdRs;
         
-        java.sql.Date invoicingDate = new java.sql.Date(((Date) purchaseInvoiceMap.get("invoicingDate")).getTime());
-        Timestamp invoicingDateTs = new java.sql.Timestamp(((Date) purchaseInvoiceMap.get("invoicingDate")).getTime());
-        
         StringBuilder invoiceSb = new StringBuilder();
         invoiceSb.append("INSERT INTO purchase_invoice(id, fiscal_stamp_number, invoice_branch, invoice_printer, invoice_number,");
         invoiceSb.append("invoicing_date, provider_code, provider_name, provider_fiscal_number, provider_address, exempt_total, total_tax_5, total_tax_10, ");
@@ -111,6 +108,10 @@ public class PurchaseInvoiceController {
         furnitureStockUpdateSb.append("UPDATE furniture_stock SET stock_total = stock_total + ?, stock_available = stock_available + ? WHERE furniture_id = ? AND day >= ?");
         
         try {
+            
+            java.sql.Date invoicingDate = new java.sql.Date(((Date) purchaseInvoiceMap.get("invoicingDate")).getTime());
+            Timestamp invoicingDateTs = new java.sql.Timestamp(((Date) purchaseInvoiceMap.get("invoicingDate")).getTime());
+            
             userRoles = new UserRoles();
             User loggedUser = userRoles.getUser();
             long userLoggedId = loggedUser.getId();

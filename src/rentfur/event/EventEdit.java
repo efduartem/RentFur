@@ -15,6 +15,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyVetoException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -53,6 +55,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -139,6 +142,10 @@ public class EventEdit extends JInternalFrame{
     private HashMap eventMap;
     private HashMap subjectMap;
     
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private final BalloonTip helpBalloonTip;
+    
     public EventEdit(EventController eventController, int eventId){
         this.eventController = eventController;
         searchController = new SearchController();
@@ -149,6 +156,22 @@ public class EventEdit extends JInternalFrame{
         
         eventCreatePanel = new JPanel();
         eventCreatePanel.setLayout(null);
+        
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1300, 20, 80, 25);
+        eventCreatePanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Editar Presupuesto</h2>        <p>Esta vista permite modificar un presupuesto de evento registrado anteriormente, es posible modificar:</p><ol><li><strong>Fecha del Evento</strong></li><li><strong>Estado (PASAR A CONFIRMADO)</strong></li><li><strong>Cliente</strong></li><li><strong>Lugar de entrega</strong></li><li><strong>Mobiliarios</strong></li></ol><br> <p><strong>Acciones</strong></p><br> <p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/subject_24x24.png'>&#160;&#160;&#160;<strong>Seleccionar Cliente:</strong> muestra una ventana de dialogo que permite buscar clientes y seleccionarlo</p><br> <p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'>&#160;&#160;&#160;<strong>Agregar Mobiliario:</strong> muestra una ventana de dialogo que permite buscar mobiliarios y seleccionar varios de ellos para agregarlos a la tabla de detalles</p><br><p><strong>Tabla de detalles</strong></p><ol><li>Se muestran los datos de los mobiliarios agregados</li><li>La columna \"Disponibilidad\" muestra la cantidad disponible del mobiliario en la fecha seleccionada</li><li>La columna \"Cantidad\" permite ingresar la cantidad a ser contratada de cada mobiliario</li><li>(*) Es obligatorio para finalizar el registro completar las cantidades de todos los mobiliarios agregados</li><li>Con el ingreso de las cantidades respetivas, en la parte superior derecha de la evento es actualizado el total a ser abonado por el evento</li></ol><br><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/save_24x24.png'>&#160;&#160;&#160;<strong> Guardar:</strong> Guarda en la base de datos del sistema los datos del presupuesto</p><p>Si el estado fue actualizado a \"CONFIRMADO\", el mismo compromete el stock de mobiliarios para la fecha del evento.</p><br><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/cancel_24x24.png'>&#160;&#160;&#160;<strong>Cancelar:</strong> son descartados todos los datos y se vuelve al \"Calendario de Eventos\"</p></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
         
         eventMap = EventController.getEventById(eventId);
         subjectMap = SubjectController.getSubjectByCode(eventMap.get("subjectCode").toString());
@@ -511,6 +534,12 @@ public class EventEdit extends JInternalFrame{
         setBounds(150,50,1450,800);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
+    }
+    
+    private void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
     }
     
     private void selectSubjectButtonAction(){

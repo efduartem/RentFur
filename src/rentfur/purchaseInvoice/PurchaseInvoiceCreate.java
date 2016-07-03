@@ -1022,6 +1022,14 @@ public class PurchaseInvoiceCreate extends JInternalFrame{
             optionPane = new JOptionPane("Existen detalles con cantidad 0 (Cero). Favor ingrese correctamente todas las cantidades.", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
             dialog = optionPane.createDialog(this, "Atencion!");
             dialog.setVisible(true);
+        }else if(invoiceFiscalStampNumberTextField.getText().length()!=8){
+            optionPane = new JOptionPane("El timbrado debe contener una longitud de 8 carateceres", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+            dialog = optionPane.createDialog(this, "Atencion!");
+            dialog.setVisible(true);
+        }else if(invoiceBranchTextField.getText().length()!=3 || invoicePrinterTextField.getText().length()!=3 || invoiceNumberTextField.getText().length()>7){
+            optionPane = new JOptionPane("EL numero de factura no es correcto, el mismo debe tener el formato ###-###-#######. Ejemplo: 001-001-0000001", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION);
+            dialog = optionPane.createDialog(this, "Atencion!");
+            dialog.setVisible(true);
         }else{
             HashMap invoiceDetailMap = new HashMap();
 
@@ -1064,7 +1072,6 @@ public class PurchaseInvoiceCreate extends JInternalFrame{
             double exemptTotal = 0;
             double totalTax5 = 0;
             double totalTax10 = 0;
-            double totalTax = 0;
             double totalTaxable5 = 0;
             double totalTaxable10 = 0;
             double totalTaxable = 0;

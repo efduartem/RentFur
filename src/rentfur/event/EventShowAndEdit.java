@@ -285,7 +285,7 @@ public class EventShowAndEdit extends JInternalFrame{
     
     private final ImageIcon helpIconImage;
     private final JLabel helpLabel;
-    private BalloonTip helpBalloonTip;
+    private final BalloonTip helpBalloonTip;
     
     public EventShowAndEdit(EventController eventController, int eventId){
         this.eventController = eventController;
@@ -796,7 +796,7 @@ public class EventShowAndEdit extends JInternalFrame{
         setVisible(true);
     }
     
-    public void showHelp(){
+    private void showHelp(){
         if(!helpBalloonTip.isVisible()){
             helpBalloonTip.setVisible(true);
         }

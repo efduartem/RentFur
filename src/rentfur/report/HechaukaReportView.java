@@ -8,11 +8,13 @@ package rentfur.report;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import rentfur.util.ComboBoxItem;
 
@@ -161,7 +163,7 @@ public class HechaukaReportView extends JInternalFrame{
         typeBookComboBox.setBounds(200,80, 160, 25);
         reportParamPanel.add(typeBookComboBox);
         
-        createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/execute_report_pdf.png"));
+        createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/execute_report_txt.png"));
         executeButton = new JButton(" Ejecutar", createIconImage);
         executeButton.setBounds(50, 130, 150, 50);
         executeButton.addActionListener(new ActionListener() {
@@ -207,13 +209,12 @@ public class HechaukaReportView extends JInternalFrame{
         String year = ((ComboBoxItem) yearComboBox.getSelectedItem()).getKey();
         String month = ((ComboBoxItem) monthComboBox.getSelectedItem()).getKey();
         String typeBook = ((ComboBoxItem) typeBookComboBox.getSelectedItem()).getKey();
-        HechaukaReport.getHechaukaReport(year, month, typeBook);
-//            HashMap mapReturn = userController.changePassword(userRoles.getUser().getId(), currentPassword, newPassword, confirmPassword);
-//            if((Integer) mapReturn.get("status") == userController.SUCCESFULLY_SAVED){
-//                JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
-//                doDefaultCloseAction();
-//            }else if((Integer)mapReturn.get("status") == userController.ERROR_IN_SAVED){
-//                JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
-//            }
+        HashMap mapReturn = HechaukaReport.getHechaukaReport(year, month, typeBook);
+        if((Boolean) mapReturn.get("saved")){
+            JOptionPane.showMessageDialog(null, mapReturn.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
+            doDefaultCloseAction();
+        }else{
+            JOptionPane.showMessageDialog(null, mapReturn.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
+        }
     }
 }

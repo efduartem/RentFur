@@ -118,7 +118,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         furnitureShowAndEditPanel.add(familyComboBox);
         
         taxRateLabel = new JLabel("Tasa de Impuesto:");
-        taxRateLabel.setBounds(50, 110, 90, 25);
+        taxRateLabel.setBounds(50, 110, 120, 25);
         furnitureShowAndEditPanel.add(taxRateLabel);
         
         ComboBoxItem[] taxRatesComboBox = FurnitureController.getFurnitureTaxRatesForComboBox(false);

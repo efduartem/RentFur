@@ -32,8 +32,9 @@ import rentfur.util.DbConnectUtil;
  */
 public class HechaukaReport {
     
-    public static void getHechaukaReport(String year, String month, String typeBook){
-
+    public static HashMap getHechaukaReport(String year, String month, String typeBook){
+        
+        HashMap valurToReturn = new HashMap();
         String reportType = "1";
         //String year = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
         int lastDayOfMonth = 0;
@@ -47,8 +48,19 @@ public class HechaukaReport {
         Connection connRentFur = null;
         PreparedStatement ps;
         ResultSet rs;
-        try
-        {
+        String fileName;
+        try{
+            valurToReturn.put("saved", false);
+            if(typeBook.equals("0")){
+                fileName = System.getProperty("user.home")+"\\Desktop\\LibroVenta_"+year+"_"+month+".txt";
+            }else{
+                fileName = System.getProperty("user.home")+"\\Desktop\\LibroCompra_"+year+"_"+month+".txt";
+            }
+            
+
+//            String fileurl = sys+ "\\Desktop\\new";
+//            System.out.println("fileUrl: "+fileurl);
+            
             
             connRentFur = DbConnectUtil.getConnection();    
             
@@ -113,7 +125,7 @@ public class HechaukaReport {
                 headerList.add(netTotal);
                 headerList.add("2");
 
-                fichero = new FileWriter("prueba1.txt");
+                fichero = new FileWriter(fileName);
                 pw = new PrintWriter(fichero);
                 for (int i = 0 ; i < headerList.size(); i++) {
                         if(i != (headerList.size()-1)){
@@ -233,8 +245,8 @@ public class HechaukaReport {
                 headerList.add(netTotal);
                 headerList.add("NO");
                 headerList.add("2");
-
-                fichero = new FileWriter("prueba1.txt");
+                
+                fichero = new FileWriter(fileName);
                 pw = new PrintWriter(fichero);
                 for (int i = 0 ; i < headerList.size(); i++) {
                         if(i != (headerList.size()-1)){
@@ -272,9 +284,13 @@ public class HechaukaReport {
                     pw.println("");
                 }
             }
+            valurToReturn.put("saved", true);
+            valurToReturn.put("message", "Reporte obtenido correctamente, el archivo correspondiente puede encontrarlo en el escritorio");
         } catch (IOException e) {
+            valurToReturn.put("message", e.getMessage());
             e.printStackTrace();
         } catch (SQLException ex) {
+            valurToReturn.put("message", ex.getMessage());
             Logger.getLogger(HechaukaReport.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
            try {
@@ -286,6 +302,8 @@ public class HechaukaReport {
               e2.printStackTrace();
            }
         }
+        
+        return valurToReturn;
     }
     
 }

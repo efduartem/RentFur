@@ -195,7 +195,7 @@ public class FurnitureCreate extends JInternalFrame{
         furnitureCreatePanel.add(fineAmountPerUnitTextField);
         
         taxRateLabel = new JLabel("Tasa de Impuesto:");
-        taxRateLabel.setBounds(50, 170, 80, 25);
+        taxRateLabel.setBounds(50, 170, 120, 25);
         furnitureCreatePanel.add(taxRateLabel);
         
         ComboBoxItem[] taxRatesComboBox = FurnitureController.getFurnitureTaxRatesForComboBox(false);

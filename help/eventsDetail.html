@@ -1,0 +1,88 @@
+<html>
+    <head>
+    </head>
+    <body style='background:#F4EFEF;'>
+    <div style='margin:24px 34px;'>
+        <h1>Detalles de Evento</h1>        
+        <p>En esta vista, se cuentan con los datos generales y detallados del evento</p>
+        <p>Como cabecera, se muestran los siguientes datos: </p>
+        <ol>
+          <li>Fecha del evento</li>
+          <li>Estado del evento (Confirmado)</li>
+          <li>Lugar de Entrega</li>
+		  <li>Nro. de Contrato</li>
+		  <li>Datos del Cliente</li>
+		  <li>Montos Totales en Guaranies (Total de cargos del evento, total abonado, saldo por abonar, total facturado y saldo por facturar)</li>
+        </ol>
+        <p>En los detalles se cuentan con cuatro pestañas (Cargos, Abonos, Facturas y Notas De Credito), y por cada uno se habilitan los botones correspondientes</p> 
+		<h2>Abajo se explican los detalles:</h2>
+		<ol>
+          <li>Cargos</li>
+			<ul>
+				<li>En la primera tabla se muestran los mobiliarios contratados (los mobiliarios anexados posterior a la conirmacion del contrato se muestan en color amarillo)</li>
+				<li>En la tabla de abajo se muestran las multas aplicadas sobre alguno de los mobiliarios contratados</li>
+				<li>
+					<img src="create_24x24.png">
+					<strong> Agregar Anexos:</strong> Permite selecionar los mobiliarios disponibles para la fecha del evento
+				</li>
+				<li>
+					<img src="create_24x24.png">
+					<strong> Agregar Multa:</strong> Permite selecionar los mobiliarios contratados para aplicar la multa (*Un mobiliario solo puede ser multado una vez)
+				</li>
+				<li>
+					<img src="save_24x24.png">
+					<strong> Guardar Cambios:</strong> Permite Guardar en el evento anexos y multas que hayan sido agregadas.
+				</li>
+			</ul>	
+          <li>Abonos</li>
+			<ul>
+				<li>En la primera tabla se muestran los recibos emitidos por el evento, el boton para anular y el boton ver los detalles del recibo</li>
+				<li>En la tabla de abajo se muestran los detalles del recibo que se enuentra seleccionado en la primera tabla</li>
+				<br>
+				<img src="event_payments.png">
+				<br>
+				<li>
+					<img src="money_24x24.png">
+					<strong> Registrar Pago:</strong> Permite registrar un nuevo recibo.
+				</li>
+			</ul>
+          <li>Facturas(*)</li>
+			<ul>
+				<li>En la primera tabla se muestran las facturas emitidos por el evento, el boton para anular y el boton ver los detalles de la factura</li>
+				<li>En la tabla de abajo se muestran los detalles de la factura que se enuentra seleccionada en la primera tabla</li>
+				<br>
+				<img src="event_invoices.png">
+				<br>
+				<li>
+					<p>(*) Al ingresar por primera vez a esta pestaña se debe seleccionar el metodo de facturación que se desea utilizar.</p>
+					<br>
+					<p><img src="tipo_facturacion.png"></p>
+					<br>
+					<p>Debe tener en cuenta que una vez seleccionado el método de facturación el mismo ya no podrá ser modificado</p>
+					<p>Los metodos de facturación pueden ser:</p>
+					<ol>
+						<li><strong>Detallada:</strong> Se facturan uno por uno cada mobiliario contratado con su precio y cantidad</li>
+						<li><strong>Por Concepto</strong> Se deben ingresar por cada item de la factura, el concepto por el cual se realizara la factura, el precio y la cantidad</li>
+					</ol>
+				</li>
+				<li>
+					<img src="invoice_20x20.png">
+					<strong> Facturar:</strong> Permite crear una Factura
+				</li>
+			</ul>
+		  <li>Notas De Credito</li>
+			<ul>
+				<li>En la primera tabla se muestran las notas de credito emitidas por las facturas del evento, el boton para anular y el boton ver los detalles de cada una</li>
+				<li>En la tabla de abajo se muestran los detalles de la nota de credito que se enuentra seleccionado en la primera tabla</li>
+				<br>
+				<img src="event_credit_notes.png">
+				<br>
+				<li>
+					<img src="invoice_20x20.png">
+					<strong> Nota de Credito:</strong> Permite crear una Nota de Credito
+				</li>
+			</ul>
+        </ol>
+	</div>
+    </body>
+</html>

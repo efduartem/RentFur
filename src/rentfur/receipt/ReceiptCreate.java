@@ -14,6 +14,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -42,6 +44,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -111,6 +114,10 @@ public class ReceiptCreate extends JInternalFrame{
     private final HashMap eventMap;
     private final HashMap subjectMap;
     private final HashMap receiptNumMap;
+    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private final BalloonTip helpBalloonTip;
     
     public ReceiptCreate(ReceiptController receiptController, int eventId){
         this.receiptController = receiptController;
@@ -406,6 +413,25 @@ public class ReceiptCreate extends JInternalFrame{
         receiptDetailTable.getColumnModel().getColumn(DELETE_COLUMN).setCellEditor(new DeleteButtonEditor(new JTextField()));
         receiptDetailTable.getColumnModel().getColumn(DELETE_COLUMN).setCellRenderer(new DeleteButtonRenderer());
         
+        
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+//                        System.out.println("MOSTRAR GLOBO");
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1100, 680, 80, 25);
+        receiptCreatePanel.add(helpLabel);
+        
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Registrar Pago</h2>        <p>Esta vista permite registrar un nuevo recibo de pago completando los siguientes datos principales (obligatorios):</p><ol><li><strong>Medios de Pago</strong></li></ol><br> <p><strong>Acciones</strong></p><br><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'>&#160;&#160;&#160;<strong>Agregar Pago:</strong> agrega una linea a la tabla de detalles de pago</p><br><p><strong>Tabla de Medios de Pago</strong></p><ol><li>Se debe seleccionar primeramente el medio de pago</li><li>Si corresponde al medio de pago seguidamente se deben completar: el numero de documento y sus fechas relacionadas</li><li>Si corresponde al medio de pago, se debe seleccionar tambien el \"Banco\"</li><li>Finalmente se debe ingresar el monto del importe por el medio de pago en cuestion</li><li>Con el ingreso de cada de medio de pago, en la parte superior derecha es actualizado el saldo del evento, el total abonado y el saldo final</li></ol><br><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/save_24x24.png'>&#160;&#160;&#160;<strong> Guardar Recibo:</strong> Guarda en la base de datos del sistema el recibo de pago.</p><br><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/cancel_24x24.png'>&#160;&#160;&#160;<strong>Cancelar:</strong> son descartados todos los datos y se vuelve al \"Detalles de Evento\"</p></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
+        
         add(receiptCreatePanel);
         pack();
         setIconifiable(true);
@@ -413,10 +439,16 @@ public class ReceiptCreate extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Registrar Pago");
-        setBounds(250,100,1250,700);
+        setBounds(250,100,1250,750);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
+    }
+    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
     }
     
     @Override

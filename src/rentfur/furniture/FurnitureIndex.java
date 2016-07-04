@@ -64,7 +64,7 @@ public class FurnitureIndex extends JInternalFrame{
     private boolean onlyQuery = false;
     private final ImageIcon helpIconImage;
     private final JLabel helpLabel;
-    private BalloonTip myBalloonTip;
+    private final BalloonTip myBalloonTip;
     
     public FurnitureIndex(FurnitureController furnitureController, UserRoles userRoles){
         this.furnitureController = furnitureController;

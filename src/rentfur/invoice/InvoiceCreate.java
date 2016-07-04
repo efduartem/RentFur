@@ -15,6 +15,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -52,6 +54,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -151,6 +154,10 @@ public class InvoiceCreate extends JInternalFrame{
     private static final double TAX10 = 11;
     
     private final ArrayList eventDetailsAdded = new ArrayList();
+    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private final BalloonTip helpBalloonTip;
     
     public InvoiceCreate(InvoiceController invoiceController, int eventId){
         this.invoiceController = invoiceController;
@@ -569,6 +576,24 @@ public class InvoiceCreate extends JInternalFrame{
         cancelInvoice.setBounds(1000, 770, 170, 32);
         invoiceCreatePanel.add(cancelInvoice);
         
+        
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+//                        System.out.println("MOSTRAR GLOBO");
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1140, 30, 80, 25);
+        invoiceCreatePanel.add(helpLabel);
+        
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Registrar Factura</h2>        <p>Esta vista permite registrar una nueva factura completando los siguientes datos principales (obligatorios):</p><ol><li><strong>Detalles de Factura (Items)</strong></li></ol><br> <p><strong>Acciones</strong></p><br><p>Dependiendo del tipo de facturación se pueden:</p><ol><li><strong>Detallada:</strong><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'>&#160;&#160;&#160;<strong>Seleccionar Detalles:</strong> Se debe seleccionar uno por uno cada mobiliario contratado (aún no facturado)</p></li><li><strong>Por Concepto:</strong> <p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'>&#160;&#160;&#160;<strong>Agregar Detalles:</strong> agrega una linea a la tabla de detalles de factura</p></li></ol><br><p><strong>Tabla de Detalles</strong></p><ol><li>Si se trata de facturación por concepto, se debe ingresar la descripcion para el item</li><li>Si se trata de facturación por concepto, se debe ingresar la cantidad para el item</li><li>Si se trata de facturación por concepto, se debe ingresar el precio unitario para el item</li></ol><br><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/save_24x24.png'>&#160;&#160;&#160;<strong> Guardar :</strong> Guarda en la base de datos del sistema la factura.</p><br><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/cancel_24x24.png'>&#160;&#160;&#160;<strong>Cancelar:</strong> son descartados todos los datos y se vuelve al \"Detalles de Evento\"</p></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
         add(invoiceCreatePanel);
         pack();
         setIconifiable(true);
@@ -576,9 +601,15 @@ public class InvoiceCreate extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Factura");
-        setBounds(250,30,1250,860);
+        setBounds(250,30,1250,880);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
+    }
+    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
     }
     
     private void addDetailsButtonAction(){

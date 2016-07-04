@@ -123,6 +123,7 @@ public class SubjectAccountStatus extends JInternalFrame{
         subjectAccountStatusPanel.add(initDateLabel);
         
         initDateTextField = new JTextField();
+        initDateTextField.setEditable(false);
         initDateTextField.setBounds(160, 80, 170, 25);
         subjectAccountStatusPanel.add(initDateTextField);
         
@@ -155,6 +156,7 @@ public class SubjectAccountStatus extends JInternalFrame{
         subjectAccountStatusPanel.add(endDateLabel);
         
         endDateTextField = new JTextField();
+        endDateTextField.setEditable(false);
         endDateTextField.setBounds(160, 110, 170, 25);
         subjectAccountStatusPanel.add(endDateTextField);
         

@@ -10,6 +10,8 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -32,6 +34,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -116,6 +119,9 @@ public class PurchaseInvoiceShow extends JInternalFrame{
     private static final double TAX5 = 21;
     private static final double TAX10 = 11;
     
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     public PurchaseInvoiceShow(PurchaseInvoiceController PurchaseInvoiceController, int invoiceId){
         this.purchaseInvoiceController = PurchaseInvoiceController;
         
@@ -188,7 +194,7 @@ public class PurchaseInvoiceShow extends JInternalFrame{
         numberTextField.setBounds(590, 60, 60, 25);
         invoiceCreatePanel.add(numberTextField);
         
-        subjectLabel = new JLabel("<HTML><U>Datos del Cliente</U></HTML>");
+        subjectLabel = new JLabel("<HTML><U>Datos del Proveedor</U></HTML>");
         subjectLabel.setFont(new Font(Font.SERIF, Font.ITALIC, 20));
         subjectLabel.setBounds(80, 110, 200, 25);
         invoiceCreatePanel.add(subjectLabel);
@@ -507,6 +513,22 @@ public class PurchaseInvoiceShow extends JInternalFrame{
             invoiceDetailDefaultTableModel.addRow(row);
         }
         
+        helpIconImage  = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1150, 20, 80, 25);
+        invoiceCreatePanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Detalles de la Compra</h2><p>En esta vista se muestran los datos de la compra seleccionada. Primeramente se muestran los datos de la cabecera como:</p><ul><li><p>Fecha de factura</p></li><li><p>Numero</p></li><li><p>Timbrado</p></li><li><p>Datos del Proveedor</p></li></ul><p>En el sector de abajo se muestra una tabla con los detalles de la factura compra.</p><ul><li><p>Numero Item</p></li><li><p>Codigo</p></li><li><p>Descripcion</p></li><li><p>Tasa de Impuesto</p></li><li><p>Cantidad</p></li><li><p>Precio unitario</p></li><li><p>Exenta</p></li><li><p>Gravada 5%</p></li><li><p>Gravada 10%</p></li></ul><p>Y por ultimo, en la parte inferior de la vista se muestra los totales de la factura compra.</p><ul><li><p>Subtotales 5%, 10% y exenta</p></li><li><p>Liquidacion del Iva</p></li><li><p>Total Iva</p></li><li><p>Total Gs</p></li></ul></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
         add(invoiceCreatePanel);
         pack();
         setIconifiable(true);
@@ -656,4 +678,9 @@ public class PurchaseInvoiceShow extends JInternalFrame{
            
     }
     
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
+    }
 }

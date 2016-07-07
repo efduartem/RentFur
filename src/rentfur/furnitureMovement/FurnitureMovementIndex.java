@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,6 +35,7 @@ import javax.swing.event.InternalFrameListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePickerImpl;
 import rentfur.position.PositionController;
 import rentfur.util.NumericTextField;
@@ -77,6 +80,10 @@ public class FurnitureMovementIndex extends JInternalFrame{
     private final DecimalFormat amountFormat;
     //private boolean onlyQuery = false;
     private JDesktopPane movementIndexPane;
+    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     
     public FurnitureMovementIndex(FurnitureMovementController furnitureMovementController, UserRoles userRoles){
         
@@ -302,6 +309,22 @@ public class FurnitureMovementIndex extends JInternalFrame{
         furnitureMovementResultTableJScrollPane.setBounds(30, 240, 1130, 300);
         furnitureMovementResultTableJScrollPane.setViewportView(furnitureMovementResultTable);
         
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1200, 550, 80, 25);
+        furnitureMovementIndexParamsPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Busqueda de Movimientos de Mobiliario</h2><p>En esta vista se pueden filtrar los movimientos del mobiliario por los campos.</p> <li><p>Nro de Movimiento</p></li><li><p>Tipo de Movimiento</p></li><li><p>Concepto</p></li><li><p>Fecha de Movimiento</p></li><p>Para obtener los resultados de dicho filtro se debe presionar sobre el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/search_24x24.png'>&nbsp<strong>Buscar</strong></p><p>Debajo se muestra la tabla con la lista de movimientos de los mobiliarios que corresponde a la busqueda realizada.</p><p>La tabla de resultados muestra los datos principales de cada movimiento del mobiliario y se cuenta con la posibilidad de:</p> <ul><li>Ver: Ingresar a la vista donde se ven los detalles del movimiento del mobiliario.</li></ul></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
         add(furnitureMovementResultTableJScrollPane);
         add(furnitureMovementIndexParamsPanel);
         
@@ -311,7 +334,7 @@ public class FurnitureMovementIndex extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Movimientos de Mobiliario");
-        setBounds(350,100,1230,650);
+        setBounds(350,100,1300,650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
@@ -529,4 +552,10 @@ public class FurnitureMovementIndex extends JInternalFrame{
           super.fireEditingStopped();
         }
       }
+     
+     public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
+    }
 }

@@ -11,6 +11,8 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -28,6 +30,7 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -72,6 +75,10 @@ public class SubjectAccountStatus extends JInternalFrame{
     private final int PREVIOUS_BALANCE_COLUMN = 9;
     
     private final HashMap subjectMap;
+    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     
     public SubjectAccountStatus(SubjectController subjectController, int subjectId){
         
@@ -295,6 +302,22 @@ public class SubjectAccountStatus extends JInternalFrame{
         closeButton.setBounds(940, 600, 170, 32);
         subjectAccountStatusPanel.add(closeButton);
         
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1100, 20, 80, 25);
+        subjectAccountStatusPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Estado de cuenta</h2><p>En esta vista se muestran los datos del Estado de Cuenta del cliente seleccionado, en un rango de fechas.</p><p>Por defecto se muestra el estado de cuenta correspondiente al mes actual.</p><p>Para filtrar se deben seleccionar:</p><ul><li><p>Fecha de Inicio</p></li><li><p>Fecha de Fin</p></li></ul><p>Posteriormente presionar sobre el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/search_24x24.png'>&nbsp<strong>Filtrar</strong></p><p>En el sector superior derecho de la vista se muestra el saldo anterior y saldo actual correspondiente al filtro realizado.</p><p>Debajo se muestra los detalles de los movimientos asociados al cliente, en el rango de fecha seleccionado.</p></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
         add(subjectAccountMovementsResultTableJScrollPane);
         
         add(subjectAccountStatusPanel);
@@ -477,4 +500,9 @@ public class SubjectAccountStatus extends JInternalFrame{
         }
     }
     
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
+    }
 }

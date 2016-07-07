@@ -9,6 +9,8 @@ package rentfur.user;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Vector;
@@ -30,6 +32,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.UserRoles;
@@ -59,6 +62,10 @@ public class UserIndex extends JInternalFrame{
     private DefaultTableModel usersResultDefaultTableModel;
     private final JScrollPane usersResultTableJScrollPane;
     private boolean onlyQuery = false;
+    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     
     public UserIndex(UserController userController, UserRoles userRoles){
         this.userController = userController;
@@ -201,6 +208,22 @@ public class UserIndex extends JInternalFrame{
         usersResultTableJScrollPane.setBounds(30, 275, 1000, 300);
         usersResultTableJScrollPane.setViewportView(usersResultTable);
         
+        helpIconImage  = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1050, 600, 80, 25);
+        userIndexParamsPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Busqueda de Usuarios</h2><p>En esta vista se pueden filtrar los usuarios por los campos:</p> <ul><li><p>Codigo</p></li><li><p>Nombre de Usuario</p></li><li><p>Nombre Completo</p></li><li><p>Cargo</p></li><li><p>Estado</p></li></ul><p>Para obtener los resultados de dicho filtro se debe presionar sobre el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/search_24x24.png'>&nbsp<strong>Buscar</strong></p><p>Debajo se muestra la tabla con la lista de usuarios que corresponde a la busqueda realizada.</p><p>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'><strong>Crear Usuario</strong> se puede registrar un nuevo usuario completando los siguientes datos:</p><ul><li><p>Nombre Usuario</p></li><li><p>Nombre Completo</p></li><li><p>Contraseña</p></li><li><p>Confirmar contraseña</p></li><li><p>Cargo</p></li></ul><p>La tabla de resultados muestra los datos principales de cada usuario y se cuenta con la posibilidad de:</p> <ul><li>Activar/Inactivar</li><li>Ver: Ingresar a la vista donde se ven los detalles del usuario.</li></ul></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
         add(usersResultTableJScrollPane); 
         add(userIndexParamsPanel);
         
@@ -210,7 +233,7 @@ public class UserIndex extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Administrar Usuarios");
-        setBounds(100,50,1100,650);
+        setBounds(100,50,1150,670);
         setVisible(true);
         
     }
@@ -437,4 +460,10 @@ public class UserIndex extends JInternalFrame{
           super.fireEditingStopped();
         }
       }
+     
+     public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
+    }
 }

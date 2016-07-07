@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import javax.swing.ImageIcon;
@@ -23,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import net.java.balloontip.BalloonTip;
 import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
@@ -63,9 +66,32 @@ public class FurnitureShowAndEdit extends JInternalFrame{
     private final JButton editButton;
     private final JButton cancelButton;
     private final DecimalFormat amountFormat;
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip myBalloonTip;
     
     public FurnitureShowAndEdit(FurnitureController furnitureController, final int furnitureId, UserRoles userRoles){
         this.furnitureController = furnitureController;
+        
+         furnitureShowAndEditPanel = new JPanel();
+        
+        furnitureShowAndEditPanel.setLayout(null);
+        
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(370, 10, 160, 25);
+        furnitureShowAndEditPanel.add(helpLabel);
+
+        myBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Detalles del Mobiliario</h2><p>En esta vista se muestran los detalles</p> <p>del mobiliario seleccionado:</p><ul><li><p>Codigo</p></li><li><p>Descripcion</p></li><li><p>Familia</p></li><li><p>Tasa de Impuesto</p></li><li><p>Precio Unitario</p></li><li><p>Costo Unitario</p></li><li><p>Monto multa</p></li><li><p>Stock total</p></li><li><p>Activo</p></li><li><p>Observacion</p></li></ul><p>Estos datos seran habilitados para modificar</p><p>presionando el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/edit_24x24.png'>&nbsp<strong>Editar</strong></p><p>y para confirmar el cambio se debe presionar</p><p>sobre el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/save_24x24.png'>&nbsp<strong>Guardar</strong></p><p>en caso contrario presionar &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/cancel_24x24.png'>&nbsp<strong>Cancelar</strong></p></div></body></html>");
+        myBalloonTip.setVisible(false);
+        myBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
         
         HashMap furnituteMap = furnitureController.getFurnitureById(furnitureId);
         
@@ -73,10 +99,6 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         amountFormat.setGroupingUsed(true);
         amountFormat.setGroupingSize(3);
         amountFormat.setParseIntegerOnly(true);
-        
-        furnitureShowAndEditPanel = new JPanel();
-        
-        furnitureShowAndEditPanel.setLayout(null);
         
         codeLabel = new JLabel("Codigo:");
         codeLabel.setBounds(50,20, 100, 25);
@@ -357,7 +379,7 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         setClosable(true);
         //setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setTitle("Detalles ["+furnituteMap.get("code").toString()+" - "+furnituteMap.get("description").toString()+"]");
-        setBounds(400,150,460,500);
+        setBounds(400,150,460,530);
         //pack();
         setVisible(true);
     }
@@ -421,5 +443,11 @@ public class FurnitureShowAndEdit extends JInternalFrame{
         furnitureController.showAndEditViewClosed();
         furnitureController.setEnabledIndexView();
         furnitureController.searchFurnitureButtonAction();
+    }
+    
+    public void showHelp(){
+        if(!myBalloonTip.isVisible()){
+            myBalloonTip.setVisible(true);
+        }
     }
 }

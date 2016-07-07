@@ -14,6 +14,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import javax.swing.ImageIcon;
@@ -31,6 +33,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
+import net.java.balloontip.BalloonTip;
 import rentfur.position.PositionController;
 import rentfur.util.NumericTextField;
 import rentfur.util.UserRoles;
@@ -74,6 +77,10 @@ public class SubjectShowAndEdit extends JInternalFrame{
     private final HashMap subjectMap;
     private boolean rucIsEnabled = false;
     private JDesktopPane subjectShowAndEditPane;
+    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
      
     public SubjectShowAndEdit(SubjectController subjectController, final int subjectId, UserRoles userRoles){
         this.subjectController = subjectController;
@@ -292,6 +299,21 @@ public class SubjectShowAndEdit extends JInternalFrame{
         activeCheckBox.setBounds(178,330, 80, 25);
         subjectShowAndEditPanel.add(activeCheckBox);
         
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(550, 20, 80, 25);
+        subjectShowAndEditPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Detalles del Cliente</h2><p>En esta vista se muestran los datos del cliente seleccionado:</p><ul><li><p>Codigo</p></li><li><p>Razon Social</p></li><li><p>Nombre Comercial</p></li><li><p>Numero de documento</p></li><li><p>Direccion</p></li><li><p>Telefono</p></li><li><p>Ciudad</p></li><li><p>Activo</p></li></ul><p>Estos datos seran habilitados para modificar presionando el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/edit_24x24.png'>&nbsp<strong>Editar</strong></p><p>y para confirmar el cambio se debe presionar el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/save_24x24.png'>&nbsp<strong>Guardar</strong></p><p>en caso contrario presionar &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/cancel_24x24.png'>&nbsp<strong>Cancelar</strong></p><p>El boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/account_status_24x24.png'>&nbsp<strong>Estado de Cuenta</strong> muestra una ventana con los datos</p><p>del Estado de cuenta del cliente.</p></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
         
         add(subjectShowAndEditPanel);
         pack();
@@ -466,5 +488,11 @@ public class SubjectShowAndEdit extends JInternalFrame{
         subjectShowAndEditPane = this.getDesktopPane();
         subjectShowAndEditPane.add((JInternalFrame) dialogView, JLayeredPane.POPUP_LAYER);
         subjectShowAndEditPane.setVisible(true);
+    }
+    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
     }
 }

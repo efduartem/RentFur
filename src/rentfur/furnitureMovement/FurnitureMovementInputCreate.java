@@ -15,6 +15,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -46,6 +48,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -94,6 +97,9 @@ public class FurnitureMovementInputCreate extends JInternalFrame{
 //    private final int TAX_5_COLUMN = 10;
     private final int DELETE_BUTTON_COLUMN = 7;
     
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     public FurnitureMovementInputCreate(FurnitureMovementController furnitureMovementController){
         this.furnitureMovementController = furnitureMovementController;
         
@@ -266,6 +272,22 @@ public class FurnitureMovementInputCreate extends JInternalFrame{
             }
         });
         inputMovementCreatePanel.add(cancelButton);
+        
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1000, 20, 300, 25);
+        inputMovementCreatePanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Registro de Entradas al Inventario</h2><p>Esta vista permite registrar un nuevo movimiento de entrada para mobiliario completando los siguientes datos.</p><ul><li><p>Fecha</p></li><li><p>Concepto</p></li><li><p>Mobiliarios</p></li></ul><p>Con el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'>&nbsp<strong>Seleccionar Mobiliario</strong>, muestra una ventana que permite buscar y seleccionar uno o varios mobiliarios</p><p>Para registrar se debe presionar el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/save_24x24.png'>&nbsp<strong>Guardar</strong> en caso contrario presionar &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/cancel_24x24.png'>&nbsp<strong>Cancelar</strong></p></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
         
         add(inputMovementDetailTableJScrollPane);
         add(inputMovementCreatePanel);
@@ -781,5 +803,9 @@ public class FurnitureMovementInputCreate extends JInternalFrame{
             }
         }
       }
-    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
+    }
 }

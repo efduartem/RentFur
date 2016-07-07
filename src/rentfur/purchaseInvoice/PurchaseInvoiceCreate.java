@@ -10,17 +10,16 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,10 +37,8 @@ import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -51,18 +48,16 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 import rentfur.event.EventCreate;
 import rentfur.furniture.FurnitureController;
 import rentfur.provider.ProviderController;
-import rentfur.subject.SubjectController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.DateLabelFormatter;
 import rentfur.util.NumericTextField;
-import rentfur.util.SQLUtilService;
 import rentfur.util.searches.FurnitureSearch;
 import rentfur.util.searches.ProviderSearch;
 import rentfur.util.searches.SearchController;
@@ -151,6 +146,10 @@ public class PurchaseInvoiceCreate extends JInternalFrame{
     private HashMap taxableRatioMap = new HashMap();//Cocientes para Gravadas
     
     private final JScrollPane invoiceDetailTableJScrollPane;
+    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     
    public PurchaseInvoiceCreate(PurchaseInvoiceController purchaseInvoiceController){
        this.purchaseInvoiceController = purchaseInvoiceController;
@@ -513,6 +512,22 @@ public class PurchaseInvoiceCreate extends JInternalFrame{
         });
         cancelInvoice.setBounds(1100, 770, 170, 32);
         purchaseInvoicePanel.add(cancelInvoice);
+        
+        helpIconImage  = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1150, 20, 80, 25);
+        purchaseInvoicePanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Registro de Factura Compra</h2><p>Esta vista permite registrar una nueva factura de compra completando primeramente la cabecera de la misma.</p><ul><li><p>Fecha Factura</p></li><li><p>Numero de Factura</p></li><li><p>Timbrado</p></li><li><p>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/provider_32x32.png'>&nbsp<strong>Agregar Proveedor</strong>, muestra una ventana que permite buscar y seleccionar un proveedor</p></li></ul><p>Seguidamente, se debe agregar items a la tabla de detalles de la factura compra.</p><ul><li><p>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'>&nbsp<strong>Agregar Mobiliario</strong>, muestra una ventana que permite buscar y seleccionar uno o varios mobiliarios.</p></li><li><p>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'>&nbsp<strong>Agregar Item</strong>, esta opcion agrega un item a completar para registrar un detalle que no sea mobiliario.</p></li><li><p>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/delete_16x16.png'>&nbsp<strong>Remover Item</strong>, esta opcion elimina el item seleccionado en la tabla de detalles.</p></li></ul></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
         
         add(invoiceDetailTableJScrollPane);
         add(purchaseInvoicePanel);
@@ -1440,6 +1455,12 @@ public class PurchaseInvoiceCreate extends JInternalFrame{
             //updateDetailTableRowItem();
         }catch (Throwable th) {
             Logger.getLogger(PurchaseInvoiceCreate.class.getName()).log(Level.SEVERE, null, th);
+        }
+    }
+    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
         }
     }
 }

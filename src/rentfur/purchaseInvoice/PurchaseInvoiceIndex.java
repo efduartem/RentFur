@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -32,6 +34,7 @@ import javax.swing.event.InternalFrameListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -87,7 +90,9 @@ public class PurchaseInvoiceIndex extends JInternalFrame{
     private final int DATE_COLUMN = 7;
     private final int SHOW_COLUMN = 8;
     
-    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     public PurchaseInvoiceIndex(PurchaseInvoiceController purchaseInvoiceController, UserRoles userRoles){
         this.purchaseInvoiceController = purchaseInvoiceController;
         
@@ -286,6 +291,23 @@ public class PurchaseInvoiceIndex extends JInternalFrame{
         purchaseInvoicesResultTableJScrollPane.setBounds(30, 240, 1030, 300);
         purchaseInvoicesResultTableJScrollPane.setViewportView(purchaseInvoicesResultTable);
         
+        helpIconImage  = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1100, 580, 80, 25);
+        purchaseInvoiceIndexParamsPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Busqueda de Compras</h2><p>En esta vista se pueden filtrar las compras por los campos:</p> <ul><li><p>Numero Factura</p></li><li><p>Fecha Factura</p></li><li><p>Codigo Proveedor</p></li><li><p>Razon Social</p></li><li><p>Nombre comercial</p></li><li><p>RUC/CI</p></li></ul><p>Para obtener los resultados de dicho filtro se debe presionar sobre el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/search_24x24.png'>&nbsp<strong>Buscar</strong></p><p>Debajo se muestra la tabla con la lista de las compras que corresponde a la busqueda realizada.</p><p>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/shopping_cart_24x24.png'><strong>Registrar Compras</strong> se puede registrar una nueva factura de compra</p><p>La tabla de resultados muestra los datos principales de cada compra y se cuenta con la posibilidad de:</p> <ul><li>Ver: Ingresar a la vista donde se ven los detalles de la compra.</li></ul></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+       
+        
         add(purchaseInvoicesResultTableJScrollPane);
         add(purchaseInvoiceIndexParamsPanel);
         pack();
@@ -294,7 +316,7 @@ public class PurchaseInvoiceIndex extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Gestionar Compras");
-        setBounds(250,50,1100,700);
+        setBounds(250,50,1200,650);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
     }
@@ -542,4 +564,10 @@ public class PurchaseInvoiceIndex extends JInternalFrame{
           super.fireEditingStopped();
         }
       }
+     
+     public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
+    }
 }

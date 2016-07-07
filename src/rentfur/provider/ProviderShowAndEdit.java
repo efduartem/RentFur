@@ -14,6 +14,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import javax.swing.ImageIcon;
@@ -25,6 +27,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import net.java.balloontip.BalloonTip;
 import rentfur.position.PositionController;
 import rentfur.util.NumericTextField;
 import rentfur.util.UserRoles;
@@ -63,6 +66,10 @@ public class ProviderShowAndEdit extends JInternalFrame{
     private final ImageIcon saveIconImage;
     private final ImageIcon editIconImage;
     private final ImageIcon cancelIconImage;
+    
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     HashMap providerMap;
     public ProviderShowAndEdit(ProviderController providerController, final int providerId, UserRoles userRoles){
         this.providerController = providerController;
@@ -73,7 +80,7 @@ public class ProviderShowAndEdit extends JInternalFrame{
          
         saveIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/save_24x24.png"));
         saveButton = new JButton(" Guardar", saveIconImage);
-        saveButton.setBounds(60, 290, 120, 32);
+        saveButton.setBounds(60, 340, 120, 32);
         saveButton.setVisible(false);
         saveButton.addActionListener(new ActionListener() {
             @Override
@@ -232,7 +239,7 @@ public class ProviderShowAndEdit extends JInternalFrame{
         
         editIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/edit_24x24.png"));
         editButton = new JButton("     Editar", editIconImage);
-        editButton.setBounds(110, 290, 200, 35);
+        editButton.setBounds(110, 340, 200, 35);
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -248,7 +255,7 @@ public class ProviderShowAndEdit extends JInternalFrame{
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelButton = new JButton(" Cancelar", cancelIconImage);
-        cancelButton.setBounds(200, 290, 120, 32);
+        cancelButton.setBounds(200, 340, 120, 32);
         cancelButton.setVisible(false);
         cancelButton.addActionListener(new ActionListener() {
             @Override
@@ -258,7 +265,21 @@ public class ProviderShowAndEdit extends JInternalFrame{
         });
         providerShowAndEditPanel.add(cancelButton);
         
-        
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(350, 10, 80, 25);
+        providerShowAndEditPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Detalles del Proveedor</h2><p>En esta vista se muestran los datos</p><p>del proveedor seleccionado:</p><ul><li><p>Codigo</p></li><li><p>Razon Social</p></li><li><p>Nombre Comercial</p></li><li><p>Numero de documento</p></li><li><p>Direccion</p></li><li><p>Telefono</p></li><li><p>Ciudad</p></li><li><p>Activo</p></li></ul><p>Estos datos seran habilitados para </p><p>modificar presionando el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/edit_24x24.png'>&nbsp<strong>Editar</strong></p><p>y para confirmar el cambio se debe</p><p>presionar el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/save_24x24.png'>&nbsp<strong>Guardar</strong></p><p>en caso contrario presionar &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/cancel_24x24.png'>&nbsp<strong>Cancelar</strong></p></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
         add(providerShowAndEditPanel);
         pack();
         setIconifiable(true);
@@ -267,7 +288,7 @@ public class ProviderShowAndEdit extends JInternalFrame{
         setClosable(true);
         //setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setTitle("Detalles ["+providerMap.get("code").toString()+" - "+providerMap.get("name").toString()+"]");
-        setBounds(400,220,450,380);
+        setBounds(400,300,450,480);
         setVisible(true);
     }
     
@@ -366,5 +387,11 @@ public class ProviderShowAndEdit extends JInternalFrame{
         providerController.showAndEditViewClosed();
         providerController.setEnabledIndexView();
         providerController.searchProviderButtonAction();
+    }
+    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
     }
 }

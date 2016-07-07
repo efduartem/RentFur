@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -30,6 +32,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
@@ -69,6 +72,9 @@ public class ProviderIndex extends JInternalFrame{
     private final JButton createButton;
     private boolean onlyQuery = false;
     
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     public ProviderIndex(ProviderController providerController, UserRoles userRoles){
         this.providerController = providerController;
         
@@ -291,6 +297,22 @@ public class ProviderIndex extends JInternalFrame{
         providerResultTableJScrollPane.setBounds(30, 240, 1100, 300);
         providerResultTableJScrollPane.setViewportView(providerResultTable);
         
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1150, 560, 80, 25);
+        providerIndexParamsPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Busqueda de Proveedores</h2><p>En esta vista se pueden filtrar los proveedores por los campos:</p> <ul><li><p>Codigo</p></li><li><p>Razon Social</p></li><li><p>Nombre Comercial</p></li><li><p>Activo</p></li><li><p>Direccion</p></li><li><p>Telefono</p></li><li><p>RUC/CI</p></li><li><p>Ciudad</p></li></ul><p>Para obtener los resultados de dicho filtro se debe presionar sobre el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/search_24x24.png'>&nbsp<strong>Buscar</strong></p><p>Debajo se muestra la tabla con la lista de proveedores que corresponde a la busqueda realizada.</p><p>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'><strong>Crear Proveedor</strong> se puede registrar un nuevo proveedor completando los siguientes datos:</p><ul><li><p>Razon Social</p></li><li><p>Nombre Comercial</p></li><li><p>Numero de documento </p></li><li><p>Direccion</p></li><li><p>Telefono</p></li><li><p>Ciudad</p></li></ul><p>La tabla de resultados muestra los datos principales de cada proveedor y se cuenta con la posibilidad de:</p> <ul><li>Activar/Inactivar</li><li>Ver: Ingresar a la vista donde se ven los detalles del proveedor.</li></ul></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
         add(providerResultTableJScrollPane);        
         add(providerIndexParamsPanel);
         pack();
@@ -299,7 +321,7 @@ public class ProviderIndex extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Administrar Proveedor");
-        setBounds(100,50,1200,700);
+        setBounds(100,50,1250,630);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
     }
@@ -531,5 +553,11 @@ public class ProviderIndex extends JInternalFrame{
         Vector dataVector = (Vector) providerResultDefaultTableModel.getDataVector().get(row);
         int providerId = (Integer) dataVector.get(0);
         providerController.getProviderShowAndEditView(providerId);
+    }
+    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
     }
 }

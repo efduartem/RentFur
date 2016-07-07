@@ -6,55 +6,37 @@
 
 package rentfur.furnitureMovement;
 
-import javax.swing.JInternalFrame;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.AbstractCellEditor;
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.border.BevelBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
-import rentfur.event.EventController;
-import rentfur.subject.SubjectController;
-import rentfur.util.ComboBoxItem;
 import rentfur.util.DateLabelFormatter;
-import rentfur.event.EventCreate;
 import rentfur.furniture.FurnitureController;
 import rentfur.user.UserController;
-import rentfur.util.NumericTextField;
 
 /**
  *
@@ -85,6 +67,9 @@ public class FurnitureMovementShow extends JInternalFrame{
     private final DefaultTableModel movementDetailDefaultTableModel;
     private final JScrollPane movementDetailTableJScrollPane;
     private final DecimalFormat amountFormat = new DecimalFormat("#,###");
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     
     private final int ID_COLUMN = 0;
     private final int CODE_COLUMN = 1;
@@ -331,6 +316,22 @@ public class FurnitureMovementShow extends JInternalFrame{
         cancelButton.setBounds(700, 590, 170, 32);
         movementShowPanel.add(cancelButton);
         
+        helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(900, 20, 300, 25);
+        movementShowPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Detalles de Movimientos de Mobiliario</h2><p>En esta vista se muestran los datos del movimiento seleccionado. En la cabecera se encuentran los datos:</p><ul><li><p>Fecha</p></li><li><p>Numero</p></li><li><p>Tipo</p></li><li><p>Concepto</p></li><li><p>Tipo de Documento</p></li><li><p>Numero de Documento</p></li><li><p>Fecha del Documento</p></li><li><p>Usuario</p></li></ul><p>En la seccion de abajo se muestra la tabla de detalles del movimiento con los datos:</p><ul><li><p>Codigo</p></li><li><p>Descripcion</p></li><li><p>Familia</p></li><li><p>Cantidad entrante</p></li><li><p>Costo</p></li><li><p>Importe</p></li></ul></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
         add(movementDetailTableJScrollPane);
         add(movementShowPanel);
         pack();
@@ -397,6 +398,12 @@ public class FurnitureMovementShow extends JInternalFrame{
             setHorizontalAlignment(JLabel.RIGHT);
             setText((value == null) ? "" : value.toString());
             return this;
+        }
+    }
+    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
         }
     }
 }

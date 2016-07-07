@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -30,6 +32,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import net.java.balloontip.BalloonTip;
 import rentfur.position.PositionController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
@@ -68,6 +71,9 @@ public class SubjectIndex extends JInternalFrame{
     private final DecimalFormat amountFormat;
     private boolean onlyQuery = false;
     
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     
     public SubjectIndex(SubjectController subjectController, UserRoles userRoles){
         this.subjectController = subjectController;
@@ -290,6 +296,21 @@ public class SubjectIndex extends JInternalFrame{
         subjectsResultTableJScrollPane.setBounds(30, 240, 1200, 300);
         subjectsResultTableJScrollPane.setViewportView(subjectsResultTable);
         
+       helpIconImage  = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(1250, 580, 80, 25);
+        subjectIndexParamsPanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Busqueda de Clientes</h2><p>En esta vista se pueden filtrar los clientes por los campos:</p> <ul><li><p>Codigo</p></li><li><p>Razon Social</p></li><li><p>Nombre Comercial</p></li><li><p>Activo</p></li><li><p>Direccion</p></li><li><p>Telefono</p></li><li><p>RUC/CI</p></li><li><p>Ciudad</p></li></ul><p>Para obtener los resultados de dicho filtro se debe presionar sobre el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/search_24x24.png'>&nbsp<strong>Buscar</strong></p><p>Debajo se muestra la tabla con la lista de clientes que corresponde a la busqueda realizada.</p>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'><strong>Crear Cliente</strong> se puede registrar un nuevo cliente completando los siguientes datos:<ul><li><p>Razon Social</p></li><li><p>Nombre Comercial</p></li><li><p>Numero de documento </p></li><li><p>Direccion</p></li><li><p>Telefono</p></li><li><p>Ciudad</p></li></ul><p>La tabla de resultados muestra los datos principales de cada cliente y se cuenta con la posibilidad de:</p> <ul><li>Activar/Inactivar</li><li>Ver: Ingresar a la vista donde se ven los detalles del cliente.</li></ul></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
         add(subjectsResultTableJScrollPane);
         add(subjectIndexParamsPanel);
         
@@ -299,7 +320,7 @@ public class SubjectIndex extends JInternalFrame{
         setResizable(true);
         setClosable(true);
         setTitle("Administrar Clientes");
-        setBounds(100,50,1300,700);
+        setBounds(100,50,1350,650);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         
@@ -533,4 +554,10 @@ public class SubjectIndex extends JInternalFrame{
             subjectController.getSubjectShowAndEditView(subjectId);
         }
       }
+     
+     public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
+        }
+    }
 }

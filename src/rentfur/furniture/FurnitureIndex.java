@@ -76,55 +76,21 @@ public class FurnitureIndex extends JInternalFrame{
         furnitureIndexParamsPanel = new JPanel();
         furnitureIndexParamsPanel.setLayout(null);
         
-//        final Rectangle customOffset = new Rectangle(30, 50, 300, 200);
-//                        final JComponent customComponent = new JComponent() {
-//                                protected void paintComponent(Graphics g) {
-//                                        Rectangle clip = g.getClipBounds();
-//                                        g.setColor(Color.WHITE);
-//                                        g.fillRect(clip.x, clip.y, clip.width, clip.height);
-//                                        g.setColor(Color.BLUE);
-//                                        g.fillRect(customOffset.x, customOffset.y, customOffset.width, customOffset.height);
-//                                }
-//                        };
-//                        customComponent.setPreferredSize(new Dimension(1280, 640));
-//
-//                        // Now create the CustomBalloonTip, such that it attaches itself to the blue rectangle
-//                        CustomBalloonTip customBalloon = new CustomBalloonTip(customComponent, 
-//                                new JLabel("<HTML><U>Datos del Cliente</U><br><B>Datos del Cliente</B><br><ul><li>Uno</li><li>Dos</li></ul></HTML>"),
-//                                customOffset,
-//                                new EdgedBalloonStyle(Color.WHITE, Color.BLACK), 
-//                                BalloonTip.Orientation.LEFT_ABOVE, 
-//                                BalloonTip.AttachLocation.ALIGNED, 
-//                                20, 20, 
-//                                false);
-//        customComponent.setBounds(500, 50, 80, 25);
-//        customComponent.setVisible(true);
-//        furnitureIndexParamsPanel.add(customComponent);
-        
         helpIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
         helpLabel = new JLabel("AYUDA");
         helpLabel.setIcon(helpIconImage);
         helpLabel.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-//                        System.out.println("MOSTRAR GLOBO");
                         showHelp();
                     }
         });
-        helpLabel.setBounds(400, 50, 80, 25);
+        helpLabel.setBounds(1350, 600, 80, 25);
         furnitureIndexParamsPanel.add(helpLabel);
-        
-        //getHechaukaReport
-        //HechaukaReport.getHechaukaReport();
-        
-        String imgsrc = getClass().getResource("/rentfur/button/image/util/search_24x24.png").toString();
-        
-        myBalloonTip = new BalloonTip(helpLabel, "<HTML><U>Datos del Cliente</U><br><B>Datos del Cliente</B><br>"
-                + "<img src='"+imgsrc+"'><br><li>Uno</li><li>Dos</li></HTML>");
+
+        myBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Busqueda de Mobiliarios</h2><p>En esta vista se pueden filtrar los mobiliarios por los campos codigo, descripcion, familia, tasa de impuesto y estado.</p> <p>Para obtener los resultados de dicho filtro se debe presionar sobre el boton &nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/search_24x24.png'>&nbsp<strong>Buscar</strong></p><p>Debajo se muestra la tabla con la lista de mobiliarios que corresponde a la busqueda realizada.</p><li>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'><strong>Crear Mobiliario</strong> se puede registrar un nuevo mobiliario completando los siguientes datos:</li><ul><li><p>Descripcion</p></li><li><p>Familia</p></li><li><p>Precio Unitario</p></li><li><p>Costo Unitario</p></li><li><p>Monto multa</p></li><li><p>Tasa de Impuesto</p></li><li><p>Activo</p></li><li><p>Observacion</p></li></ul><li>&nbsp<img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'><strong>Familia de Mobiliarios</strong> se puede registrar una nueva familia de mobiliarios.</li><br><br><p>La tabla de resultados muestra los datos principales de cada mobiliario y se cuenta con la posibilidad de:</p> <ul><li>Activar/Inactivar</li><li>Ver: Ingresar a la vista donde se ven los detalles del mobiliario.</li></ul></div></body></html>");
         myBalloonTip.setVisible(false);
         myBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
-//        furnitureIndexResultPanel = new JPanel(new BorderLayout());
-//        furnitureIndexParamsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 1, true), "Busqueda de Mobiliarios", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Arial", 3, 14), new java.awt.Color(0, 0, 0))); // NOI18N
         
         
         
@@ -314,10 +280,10 @@ public class FurnitureIndex extends JInternalFrame{
         pack();
         setIconifiable(true);
         setMaximizable(true);
-        setResizable(true);
+        setResizable(false);
         setClosable(true);
         setTitle("Administrar Mobiliarios");
-        setBounds(100,50,1400,650);
+        setBounds(100,50,1450,680);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
         

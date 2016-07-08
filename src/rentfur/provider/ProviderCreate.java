@@ -14,6 +14,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import javax.swing.ImageIcon;
@@ -24,6 +26,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import net.java.balloontip.BalloonTip;
 import static rentfur.provider.ProviderCreate.DOCUMENT_CI;
 import static rentfur.provider.ProviderCreate.DOCUMENT_RUC;
 import rentfur.util.NumericTextField;
@@ -59,6 +62,9 @@ public class ProviderCreate extends JInternalFrame{
     
     private boolean rucIsEnabled = false;
     
+    private final ImageIcon helpIconImage;
+    private final JLabel helpLabel;
+    private BalloonTip helpBalloonTip;
     public ProviderCreate(ProviderController providerController){
         this.providerController = providerController;
         
@@ -66,34 +72,34 @@ public class ProviderCreate extends JInternalFrame{
         providerCreatePanel.setLayout(null);
         
         nameLabel = new JLabel("Razón Social:");
-        nameLabel.setBounds(40, 20, 80, 25);
+        nameLabel.setBounds(40, 50, 80, 25);
         providerCreatePanel.add(nameLabel);
         
         nameTextField = new JTextField();
-        nameTextField.setBounds(180, 20, 160, 25);
+        nameTextField.setBounds(180, 50, 160, 25);
         providerCreatePanel.add(nameTextField);
         
         tradenameLabel = new JLabel("Nombre Comercial: ");
-        tradenameLabel.setBounds(40, 50, 120, 25);
+        tradenameLabel.setBounds(40, 80, 120, 25);
         providerCreatePanel.add(tradenameLabel);
         
         tradenameTextField =  new JTextField();
-        tradenameTextField.setBounds(180, 50, 160, 25);
+        tradenameTextField.setBounds(180, 80, 160, 25);
         providerCreatePanel.add(tradenameTextField);
         
         fisccalNumberLabel = new JLabel("Nro. Documento:");
-        fisccalNumberLabel.setBounds(40, 80, 100, 25);
+        fisccalNumberLabel.setBounds(40, 110, 100, 25);
         providerCreatePanel.add(fisccalNumberLabel);
         
         fiscalNumberDigitTextField = new JTextField();
-        fiscalNumberDigitTextField.setBounds(360, 110, 30, 25);
+        fiscalNumberDigitTextField.setBounds(360, 140, 30, 25);
         fiscalNumberDigitTextField.setVisible(false);
         providerCreatePanel.add(fiscalNumberDigitTextField);
         
         fiscalNumberComboBox = new JComboBox();
         fiscalNumberComboBox.addItem(DOCUMENT_CI);
         fiscalNumberComboBox.addItem(DOCUMENT_RUC);
-        fiscalNumberComboBox.setBounds(180, 80, 160, 25);
+        fiscalNumberComboBox.setBounds(180, 110, 160, 25);
         providerCreatePanel.add(fiscalNumberComboBox);
         fiscalNumberComboBox.addItemListener(new ItemListener() {
             @Override
@@ -117,7 +123,7 @@ public class ProviderCreate extends JInternalFrame{
         amountFormat.setParseIntegerOnly(true);
         
         fiscalNumberTextField = new NumericTextField(20, amountFormat);
-        fiscalNumberTextField.setBounds(180, 110, 160, 25);
+        fiscalNumberTextField.setBounds(180, 140, 160, 25);
         fiscalNumberTextField.addKeyListener(new KeyListener() {
 
                      @Override
@@ -151,32 +157,32 @@ public class ProviderCreate extends JInternalFrame{
         providerCreatePanel.add(fiscalNumberTextField);
         
         addressLabel = new JLabel("Direccion:");
-        addressLabel.setBounds(40,140, 80, 25);
+        addressLabel.setBounds(40,170, 80, 25);
         providerCreatePanel.add(addressLabel);
         
         addresssTextField = new JTextField();
-        addresssTextField.setBounds(180, 140, 160, 25);
+        addresssTextField.setBounds(180, 170, 160, 25);
         providerCreatePanel.add(addresssTextField);
         
         telephoneLabel = new JLabel("Telefono");
-        telephoneLabel.setBounds(40,170, 160, 25);
+        telephoneLabel.setBounds(40,200, 160, 25);
         providerCreatePanel.add(telephoneLabel);
         
         telephoneTextField = new JTextField();
-        telephoneTextField.setBounds(180,170, 160, 25);
+        telephoneTextField.setBounds(180,200, 160, 25);
         providerCreatePanel.add(telephoneTextField);
         
         cityLabel = new JLabel("Ciudad");
-        cityLabel.setBounds(40,200, 160, 25);
+        cityLabel.setBounds(40,230, 160, 25);
         providerCreatePanel.add(cityLabel);
         
         cityTextField = new JTextField();
-        cityTextField.setBounds(180,200, 160, 25);
+        cityTextField.setBounds(180,230, 160, 25);
         providerCreatePanel.add(cityTextField);
         
         createIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/create_24x24.png"));
         saveButton = new JButton(" Crear", createIconImage);
-        saveButton.setBounds(50, 250, 120, 32);
+        saveButton.setBounds(50, 300, 120, 32);
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -187,7 +193,7 @@ public class ProviderCreate extends JInternalFrame{
         
         cancelIconImage = new ImageIcon(getClass().getResource("/rentfur/button/image/util/cancel_24x24.png"));
         cancelButton = new JButton(" Cancelar", cancelIconImage);
-        cancelButton.setBounds(190, 250, 120, 32);
+        cancelButton.setBounds(190, 300, 120, 32);
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -196,6 +202,22 @@ public class ProviderCreate extends JInternalFrame{
         });
         providerCreatePanel.add(cancelButton);
         
+        helpIconImage  = new ImageIcon(getClass().getResource("/rentfur/button/image/util/help_24x24.png"));
+        helpLabel = new JLabel("AYUDA");
+        helpLabel.setIcon(helpIconImage);
+        helpLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        showHelp();
+                    }
+        });
+        helpLabel.setBounds(370, 20, 80, 25);
+        providerCreatePanel.add(helpLabel);
+
+        helpBalloonTip = new BalloonTip(helpLabel, "<html><head></head><body style='background:#F4EFEF;'><div style='margin:24px 34px;'><h2>Crear Proveedor</h2><p>En esta vista se permite registrar un nuevo proveedor, </p><p>deben completarse los siguientes campos:</p><ul><li><p>Razon Social</p></li><li><p>Nombre comercial</p></li><li><p>Numero de documento</p></li><li><p>Direccion</p></li><li><p>Telefono</p></li><li><p>Ciudad</p></li></ul><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/create_24x24.png'>&nbsp&nbsp&nbsp<strong>Crear:</strong> Guarda en la base de datos </p><p>del sistema los datos del proveedor.</p><p><img src='file:/C:/Users/FDuarte/Documents/NetBeansProjects/RentFur/build/classes/rentfur/button/image/util/cancel_24x24.png'>&nbsp&nbsp&nbsp<strong>Cancelar:</strong> son descartados todos los datos</p><p>y se vuelve a la Busqueda de Proveedores</p></div></body></html>");
+        helpBalloonTip.setVisible(false);
+        helpBalloonTip.setCloseButton(BalloonTip.getDefaultCloseButton(), false);
+        
         add(providerCreatePanel);
         pack();
         setIconifiable(true);
@@ -203,7 +225,7 @@ public class ProviderCreate extends JInternalFrame{
         setResizable(false);
         setClosable(true);
         setTitle("Crear Proveedor");
-        setBounds(400,220,450,370);
+        setBounds(400,220,460,450);
         //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
     }
@@ -271,6 +293,12 @@ public class ProviderCreate extends JInternalFrame{
         if(rucIsEnabled){
             saveButton.setEnabled(false);
             saveButton.setToolTipText(html);
+        }
+    }
+    
+    public void showHelp(){
+        if(!helpBalloonTip.isVisible()){
+            helpBalloonTip.setVisible(true);
         }
     }
 }

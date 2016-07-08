@@ -60,6 +60,7 @@ import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 import rentfur.furniture.FurnitureController;
+import rentfur.report.ReportController;
 import rentfur.subject.SubjectController;
 import rentfur.util.ComboBoxItem;
 import rentfur.util.NumericTextField;
@@ -835,6 +836,9 @@ public class EventEdit extends JInternalFrame{
             if(((Integer)returnMap.get("status"))==EventController.SUCCESFULLY_SAVED){
                 JOptionPane.showMessageDialog(null, returnMap.get("message"), "", JOptionPane.INFORMATION_MESSAGE);
                 doDefaultCloseAction();
+                if((Boolean)returnMap.get("showContract")){
+                    ReportController.getContractReport((Integer) returnMap.get("id"));
+                }
             }else if((Integer)returnMap.get("status") == EventController.ERROR_IN_SAVED){
                 JOptionPane.showMessageDialog(null, returnMap.get("message"), "Atencion", JOptionPane.WARNING_MESSAGE);
             }

@@ -396,6 +396,7 @@ public class EventController {
             User loggedUser = userRoles.getUser();
             mapToReturn.put("status", ERROR_IN_SAVED);
             mapToReturn.put("message", "");
+            mapToReturn.put("showContract", false);
             
             String contractNumberNextVal;
             int contractNumber = 0;
@@ -516,6 +517,7 @@ public class EventController {
                 //Registrar movimiento de debito
                 String movement = "Contrato Nro. "+contractNumber;
                 SubjectMovementController.updateEventBalance(SubjectMovementController.DEBIT_MOVEMENT_TYPE, SubjectMovementController.CONTRACT_MOVEMENT_DOCUMENT_TYPE, String.valueOf(contractNumber), netTotal, subjectMap.get("code").toString(), movement);
+                mapToReturn.put("showContract", true);
             }
             connRentFur.commit();
             ps.close();

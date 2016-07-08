@@ -51,7 +51,7 @@ WHERE
 	<title>
 		<band height="589" splitType="Stretch">
 			<staticText>
-				<reportElement x="90" y="0" width="366" height="20" uuid="a15cdded-e57a-40b4-af88-0d9dcd01fd5f"/>
+				<reportElement x="89" y="0" width="307" height="20" uuid="a15cdded-e57a-40b4-af88-0d9dcd01fd5f"/>
 				<textElement>
 					<font size="12" isBold="true" isItalic="true" isUnderline="true"/>
 				</textElement>
@@ -62,6 +62,18 @@ WHERE
 				<textFieldExpression><![CDATA[$F{text1}+" "+$F{subject_name}+$F{text2}+$F{delivery_date}+$F{text3}+
 (new DecimalFormat("###,###")).format($F{net_total})+","+$F{text4}]]></textFieldExpression>
 			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="475" y="0" width="77" height="20" uuid="4c3dfdbe-c9b8-4989-9f25-147d4cd2f8fa"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{contract_number}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="443" y="0" width="32" height="20" uuid="aeb41e09-d2ac-4b53-986d-a00431adfd8e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true" isItalic="false" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Nro.:]]></text>
+			</staticText>
 		</band>
 	</title>
 	<pageHeader>
@@ -174,7 +186,7 @@ WHERE
 				<text><![CDATA[El Prestatario]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="375" y="196" width="100" height="20" uuid="ef738a35-c3c8-412f-ab63-35c92bffe6a9"/>
+				<reportElement x="375" y="196" width="177" height="20" uuid="ef738a35-c3c8-412f-ab63-35c92bffe6a9"/>
 				<textFieldExpression><![CDATA[$F{subject_name}]]></textFieldExpression>
 			</textField>
 			<line>
